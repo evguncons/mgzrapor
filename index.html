@@ -1,286 +1,576 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>Mağaza Performans Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f6f9; }
-    .card { background: white; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid white; }
-    .input-style { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; transition: all 0.2s; font-size: 14px; }
-    .input-style:focus { border-color: #10b981; ring: 2px; ring-color: #10b981; outline: none; background: white; }
-    table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    th { background-color: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; padding: 16px; border-bottom: 1px solid #e2e8f0; }
-    td { padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; color: #1e293b; }
-    tr:last-child td { border-bottom: none; }
-    .trend-up { color: #10b981; font-weight: 700; }
-    .trend-down { color: #f43f5e; font-weight: 700; }
-  </style>
-</head>
-<body class="antialiased text-slate-800">
-
-  <div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hedef AVM - Gelişmiş Finansal Raporlama</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS (Excel Export için) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Başlık ve Kontroller -->
-    <header class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-[1.5rem] shadow-sm border border-white">
-      <div>
-        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Performans Karşılaştırma Paneli</h1>
-        <p id="dateRangeText" class="text-slate-400 text-sm font-medium mt-1 italic italic">Veriler yükleniyor...</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <button onclick="refreshDashboard()" class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all" title="Verileri Yenile">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
-        </button>
-        <button onclick="downloadPDF()" id="pdfBtn" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all flex items-center gap-2">
-          PDF Raporu
-        </button>
-      </div>
-    </header>
-
-    <!-- Filtreleme ve Veri Girişi Alanı -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <section class="card p-6 flex flex-col gap-4">
-        <div class="flex justify-between items-center">
-          <h2 class="text-sm font-bold text-emerald-800 uppercase tracking-widest">Tarih Aralığı Seç</h2>
-          <button onclick="clearFilter()" class="text-[10px] font-bold text-slate-400 hover:text-emerald-600 transition-colors uppercase">Sıfırla</button>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="space-y-1">
-            <span class="text-[10px] font-bold text-slate-400 ml-1 uppercase">Başlangıç</span>
-            <input type="date" id="filterStart" class="w-full input-style" onchange="applyFilter()">
-          </div>
-          <div class="space-y-1">
-            <span class="text-[10px] font-bold text-slate-400 ml-1 uppercase">Bitiş</span>
-            <input type="date" id="filterEnd" class="w-full input-style" onchange="applyFilter()">
-          </div>
-        </div>
-      </section>
-
-      <section class="lg:col-span-2 card p-6">
-        <h2 class="text-sm font-bold text-emerald-800 uppercase tracking-widest mb-4">Hızlı Veri Girişi</h2>
-        <form id="dataForm" class="flex flex-wrap items-end gap-3">
-          <input type="date" id="tarih" required class="input-style flex-1 min-w-[120px]">
-          <select id="magaza" class="input-style flex-1 min-w-[150px]">
-            <option>Paşabahçe</option><option>Kavacık</option><option>Çekmeköy</option>
-            <option>Yenidoğan</option><option>Sultanbeyli</option><option>Çayırova</option>
-            <option>Körfez</option><option>Derince</option><option>İzmit</option>
-            <option>Gölcük</option><option>İnegöl</option>
-          </select>
-          <input type="number" id="yorum" placeholder="Yorum" required class="input-style w-24">
-          <input type="number" id="puan" step="0.1" min="1" max="5" placeholder="Puan" required class="input-style w-20">
-          <button type="submit" id="submitBtn" class="bg-slate-800 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-slate-900 transition-all">Kaydet</button>
-        </form>
-      </section>
-    </div>
-
-    <!-- Ana Performans Tablosu -->
-    <section class="card overflow-hidden shadow-sm">
-      <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-        <h2 class="text-lg font-bold text-slate-800">Şube Performans Karşılaştırma Tablosu</h2>
-        <div id="loader" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-emerald-600"></div>
-      </div>
-      <div class="overflow-x-auto">
-        <table>
-          <thead>
-            <tr>
-              <th class="text-left">Mağaza Adı</th>
-              <th class="text-center">Önceki Yorum</th>
-              <th class="text-center">Önceki Puan</th>
-              <th class="text-center">Yeni Yorum</th>
-              <th class="text-center">Yeni Puan</th>
-              <th class="text-center">Yorum Farkı</th>
-              <th class="text-center">Puan Farkı</th>
-              <th class="text-right">Değişim %</th>
-            </tr>
-          </thead>
-          <tbody id="dataTable">
-            <!-- Veriler JS ile buraya gelecek -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-  </div>
-
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz29zzy7qchsQTHaV6DYR10W6xoGgRWyy5OSlqZAlQ_I-I-fAX96N6ExR72St0fXUgcOA/exec";
-    let fullData = []; 
-
-    window.onload = () => {
-      const today = new Date();
-      document.getElementById('tarih').valueAsDate = today;
-      clearFilter();
-      refreshDashboard();
-    };
-
-    function clearFilter() {
-      const today = new Date();
-      const lastMonth = new Date();
-      lastMonth.setDate(today.getDate() - 30);
-      document.getElementById('filterStart').valueAsDate = lastMonth;
-      document.getElementById('filterEnd').valueAsDate = today;
-      if (fullData.length > 0) applyFilter();
-    }
-
-    async function apiCall(action, params = {}) {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        return new Promise((resolve, reject) => {
-          google.script.run
-            .withSuccessHandler(resolve)
-            .withFailureHandler(reject)[action](params);
-        });
-      }
-      const url = new URL(API_URL);
-      url.searchParams.append('action', action);
-      if (action === 'submitData' || action === 'generatePDFReport') {
-        Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-      }
-      try {
-        const response = await fetch(url.toString());
-        return await response.json();
-      } catch (error) {
-        console.error("API Hatası:", error);
-        throw error;
-      }
-    }
-
-    async function refreshDashboard() {
-      document.getElementById('loader').classList.remove('hidden');
-      try {
-        fullData = await apiCall('getDashboardData');
-        applyFilter(); 
-      } catch (e) {
-        console.error("Dashboard yüklenemedi");
-      } finally {
-        document.getElementById('loader').classList.add('hidden');
-      }
-    }
-
-    function applyFilter() {
-      const startInput = document.getElementById('filterStart').value;
-      const endInput = document.getElementById('filterEnd').value;
-      
-      const start = new Date(startInput);
-      const end = new Date(endInput);
-      end.setHours(23, 59, 59);
-
-      document.getElementById('dateRangeText').innerText = `${start.toLocaleDateString('tr-TR')} - ${end.toLocaleDateString('tr-TR')} tarihleri arasındaki değişim`;
-
-      const filtered = fullData.filter(row => {
-        const rowDate = new Date(row[0]);
-        return rowDate >= start && rowDate <= end;
-      });
-
-      updateUI(filtered);
-    }
-
-    function updateUI(data) {
-      const tableBody = document.getElementById('dataTable');
-      tableBody.innerHTML = '';
-      
-      if (!data || data.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8" class="p-20 text-center text-slate-400 font-medium">Seçili tarihler arasında veri bulunamadı.</td></tr>';
-        return;
-      }
-
-      const stores = {};
-      data.forEach(row => {
-        const date = new Date(row[0]);
-        const name = row[1];
-        const comments = parseInt(row[2]) || 0;
-        let score = parseFloat(row[3]);
-        if (isNaN(score) || score > 10) score = 0;
-
-        if (!stores[name]) {
-          stores[name] = { first: { date, comments, score }, last: { date, comments, score } };
-        } else {
-          if (date < stores[name].first.date) stores[name].first = { date, comments, score };
-          if (date > stores[name].last.date) stores[name].last = { date, comments, score };
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#0f172a',
+                    }
+                }
+            }
         }
-      });
-
-      Object.keys(stores).sort().forEach(name => {
-        const s = stores[name];
-        const cDiff = s.last.comments - s.first.comments;
-        const sDiff = s.last.score - s.first.score;
-        const percentChange = s.first.comments > 0 ? ((cDiff / s.first.comments) * 100).toFixed(1) : "0.0";
-
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50/50 transition-colors";
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
         
-        tr.innerHTML = `
-          <td class="font-bold text-slate-800">${name}</td>
-          <td class="text-center text-slate-500">${s.first.comments}</td>
-          <td class="text-center text-slate-500 font-medium">${s.first.score.toFixed(1)} ★</td>
-          <td class="text-center font-bold">${s.last.comments}</td>
-          <td class="text-center font-bold text-emerald-700">${s.last.score.toFixed(1)} ★</td>
-          <td class="text-center font-bold ${cDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}">
-            ${cDiff > 0 ? '+' : ''}${cDiff}
-          </td>
-          <td class="text-center font-bold ${sDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}">
-            ${sDiff > 0 ? '+' : ''}${sDiff.toFixed(1)}
-          </td>
-          <td class="text-right">
-            <span class="px-3 py-1 rounded-lg text-xs font-bold ${cDiff >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">
-              % ${percentChange}
-            </span>
-          </td>
-        `;
-        tableBody.appendChild(tr);
-      });
-    }
+        /* Excel UI Tasarımı */
+        .excel-table { border-collapse: collapse; width: 100%; }
+        .excel-table th { 
+            @apply bg-slate-50 text-slate-500 font-bold py-3 px-4 text-left border border-slate-200 text-[11px] uppercase tracking-wider;
+        }
+        .excel-table td { 
+            @apply py-3 px-4 border border-slate-100 text-[13px] text-slate-600 bg-white;
+        }
+        .excel-table tr:hover td { @apply bg-indigo-50/30; }
+        
+        .branch-group-row td {
+            @apply bg-slate-100 font-bold text-indigo-900 border-y border-slate-200 py-3 text-[13px];
+        }
+        
+        .subtotal-row td {
+            @apply bg-indigo-50/50 font-semibold italic text-right text-indigo-700 border-b border-slate-200;
+        }
 
-    document.getElementById('dataForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      btn.disabled = true;
-      btn.innerText = "...";
+        /* Sidebar Nav Butonları */
+        .nav-btn { @apply flex items-center gap-3 px-6 py-4 text-slate-200 border-l-4 border-transparent transition-all duration-200 hover:text-white hover:bg-white/10 text-sm; }
+        .nav-btn.active { @apply bg-white/10 border-indigo-500 text-white font-semibold; }
+        
+        .kpi-card { @apply bg-white border border-slate-200 p-6 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 
-      const formData = {
-        tarih: document.getElementById('tarih').value,
-        magaza: document.getElementById('magaza').value,
-        yorum: document.getElementById('yorum').value,
-        puan: document.getElementById('puan').value
-      };
+        /* Mobile Sidebar Transitions */
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        @media (max-width: 1024px) {
+            #sidebar.closed { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body class="flex h-screen w-full overflow-hidden">
 
-      try {
-        await apiCall('submitData', formData);
-        document.getElementById('dataForm').reset();
-        document.getElementById('tarih').valueAsDate = new Date();
-        refreshDashboard();
-      } catch (err) {
-        alert("Kayıt sırasında hata oluştu!");
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "Kaydet";
-      }
-    };
+    <!-- Mobile Overlay -->
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
 
-    async function downloadPDF() {
-      const btn = document.getElementById('pdfBtn');
-      btn.innerText = "Hazırlanıyor...";
-      btn.disabled = true;
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-72 bg-secondary flex flex-col flex-shrink-0 z-40 closed lg:transform-none shadow-2xl">
+        <div class="h-20 flex items-center px-8 border-b border-white/5">
+            <h1 class="text-white font-extrabold tracking-tighter text-2xl uppercase italic flex items-center gap-2">
+                <span class="bg-indigo-600 text-white w-8 h-8 flex items-center justify-center rounded-lg not-italic text-sm shadow-lg shadow-indigo-600/30">H</span>
+                HEDEF <span class="text-indigo-400 font-light tracking-normal">AVM</span>
+            </h1>
+        </div>
+        <nav class="flex-1 py-8 overflow-y-auto custom-scrollbar">
+            <div class="px-8 mb-4 text-[11px] font-bold text-slate-300 uppercase tracking-[0.2em] opacity-60">Ana Menü</div>
+            <button onclick="setTab('dashboard'); maybeCloseSidebar()" id="btn-dashboard" class="nav-btn active w-full group">
+                <i class="fas fa-chart-line text-lg text-slate-400 group-hover:text-white transition-colors"></i> <span>Genel Bakış</span>
+            </button>
+            <button onclick="setTab('customers'); maybeCloseSidebar()" id="btn-customers" class="nav-btn w-full group">
+                <i class="fas fa-user-tag text-lg text-slate-400 group-hover:text-white transition-colors"></i> <span>Müşteri Detayları</span>
+            </button>
+            <button onclick="setTab('unspecified'); maybeCloseSidebar()" id="btn-unspecified" class="nav-btn w-full group">
+                <i class="fas fa-user-secret text-lg text-slate-400 group-hover:text-white transition-colors"></i> <span>No Belirtilmeyenler</span>
+            </button>
+        </nav>
+        <div class="p-8 bg-black/20 border-t border-white/5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div>
+                    <p class="text-white text-xs font-bold">Admin Panel</p>
+                    <p class="text-slate-400 text-[10px]">v6.7.4 Manual-Sync</p>
+                </div>
+            </div>
+        </div>
+    </aside>
 
-      const params = {
-        start: document.getElementById('filterStart').value,
-        end: document.getElementById('filterEnd').value
-      };
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50">
+        <!-- Header -->
+        <header class="h-20 bg-white border-b border-slate-200 px-4 lg:px-10 flex items-center justify-between flex-shrink-0 z-10 shadow-sm">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div class="hidden sm:block w-1.5 h-8 bg-indigo-600 rounded-full"></div>
+                <h2 id="tabTitle" class="text-lg lg:text-xl font-bold text-slate-800 truncate">Şube Performans Tablosu</h2>
+                <div id="loading" class="hidden flex items-center gap-2">
+                    <span class="flex h-3 w-3 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                    </span>
+                    <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-tighter hidden md:block">Güncelleniyor</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 lg:gap-4">
+                <!-- Manuel Yenileme Butonu -->
+                <button onclick="fetchData()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 w-10 h-10 lg:w-auto lg:px-5 lg:py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border border-indigo-100 active:scale-95 group" title="Verileri Yenile">
+                    <i class="fas fa-sync-alt group-active:rotate-180 transition-transform duration-500"></i>
+                    <span class="hidden lg:inline">YENİLE</span>
+                </button>
 
-      try {
-        const base64 = await apiCall('generatePDFReport', params);
-        if (!base64) { alert("Veri bulunamadı."); return; }
-        const link = document.createElement('a');
-        link.href = 'data:application/pdf;base64,' + base64;
-        link.download = 'Magaza_Performans_Analizi.pdf';
-        link.click();
-      } catch (err) {
-        alert("PDF oluşturma hatası!");
-      } finally {
-        btn.innerText = "PDF Raporu";
-        btn.disabled = false;
-      }
-    }
-  </script>
+                <!-- Şube Seçimi -->
+                <div id="branchFilterContainer" class="relative group block">
+                    <select id="branchSelector" onchange="render(currentData)" class="appearance-none bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold rounded-xl pl-4 pr-10 py-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none cursor-pointer transition-all">
+                        <option value="Tümü">Tüm Şubeler</option>
+                    </select>
+                    <i class="fas fa-store absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-indigo-400 pointer-events-none"></i>
+                </div>
+
+                <div class="relative group">
+                    <select id="periodSelector" onchange="fetchData()" class="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl pl-4 pr-10 py-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none cursor-pointer transition-all">
+                        <option value="">Yükleniyor...</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none group-hover:text-indigo-500"></i>
+                </div>
+                
+                <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white w-10 h-10 lg:w-auto lg:px-6 lg:py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/20 active:scale-95">
+                    <i class="fas fa-file-excel text-base"></i>
+                    <span class="hidden lg:inline">EXCEL</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Viewport Area -->
+        <div id="report-container" class="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar">
+            
+            <!-- Dashboard View -->
+            <div id="tab-dashboard" class="space-y-8 max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="kpi-card relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-200 text-4xl group-hover:scale-110 transition-transform">
+                            <i class="fas fa-lira-sign"></i>
+                        </div>
+                        <span class="text-[11px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">Brüt Ciro</span>
+                        <div id="kpi-revenue" class="text-3xl font-extrabold text-slate-800 tracking-tighter">₺0</div>
+                        <div class="mt-4 flex items-center gap-2 text-[10px] font-bold text-indigo-600">
+                            <i class="fas fa-info-circle text-[8px]"></i>
+                            <span>Verileri Manuel Yenileyin</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-200 text-4xl group-hover:scale-110 transition-transform">
+                            <i class="fas fa-shopping-basket"></i>
+                        </div>
+                        <span class="text-[11px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">Toplam Satış</span>
+                        <div id="kpi-sales" class="text-3xl font-extrabold text-slate-800 tracking-tighter">0</div>
+                        <div class="mt-4 flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                            <i class="far fa-clock"></i>
+                            <span>Son Güncelleme: <span id="lastUpdateTime">--:--</span></span>
+                        </div>
+                    </div>
+                    <div class="kpi-card relative overflow-hidden group sm:col-span-2 lg:col-span-1">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center text-amber-200 text-4xl group-hover:scale-110 transition-transform">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <span class="text-[11px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">Ort. Sepet</span>
+                        <div id="kpi-basket" class="text-3xl font-extrabold text-slate-800 tracking-tighter">₺0</div>
+                        <div class="mt-4 flex items-center gap-2 text-[10px] font-bold text-amber-600">
+                            <i class="fas fa-calculator"></i>
+                            <span>Dönem Ortalaması</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Section -->
+                <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
+                    <div class="bg-slate-50/80 px-8 py-5 border-b border-slate-200 flex justify-between items-center">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest italic flex items-center gap-2">
+                            <i class="fas fa-list-ul text-indigo-500"></i> Şube Performans Listesi
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-16 text-center">#</th>
+                                    <th>ŞUBE TANIMI</th>
+                                    <th class="text-right">İŞLEM SAYISI</th>
+                                    <th class="text-right">TOPLAM TUTAR (TL)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="branch-body">
+                                <tr><td colspan="4" class="py-20 text-center italic text-slate-400 font-medium">Lütfen bekleyin, veriler çekiliyor...</td></tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-slate-900 text-white font-bold uppercase text-[12px]">
+                                    <td colspan="2" class="text-right py-5 px-8 border-r border-white/5 tracking-widest">GENEL TOPLAM</td>
+                                    <td id="total-sales-val" class="text-right py-5 px-8 border-r border-white/5">0</td>
+                                    <td id="total-revenue-val" class="text-right py-5 px-8 text-indigo-400 text-base">₺0</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Details View -->
+            <div id="tab-customers" class="hidden space-y-8 max-w-5xl mx-auto">
+                <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
+                    <div class="bg-slate-900 p-8 lg:p-12 text-white border-b-4 border-indigo-500">
+                        <h3 class="text-2xl font-black tracking-tight uppercase italic flex items-center gap-4">
+                            <i class="fas fa-address-book text-indigo-500"></i>
+                            Müşteri Detay Çizelgesi
+                        </h3>
+                        <p class="text-indigo-400 text-[11px] mt-3 uppercase font-bold tracking-[0.3em]" id="customer-period-text">DÖNEM: ---</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-20 text-center">SIRA</th>
+                                    <th>MÜŞTERİ NO (F SÜTUNU)</th>
+                                    <th class="text-right">İŞLEM TUTARI (TRY)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customer-body-specified">
+                                <tr><td colspan="3" class="py-20 text-center text-slate-400 italic font-medium">Veriler işleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unspecified View -->
+            <div id="tab-unspecified" class="hidden space-y-8 max-w-4xl mx-auto">
+                <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
+                    <div class="bg-rose-950 p-8 lg:p-12 text-white border-b-4 border-rose-500">
+                        <h3 class="text-2xl font-black tracking-tight uppercase italic flex items-center gap-4">
+                            <i class="fas fa-user-secret text-rose-500"></i>
+                            No Belirtilmeyen Müşteriler
+                        </h3>
+                        <p class="text-rose-400 text-[11px] mt-3 uppercase font-bold tracking-[0.3em]" id="unspecified-period-text">DÖNEM: ---</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-20 text-center">SIRA</th>
+                                    <th>MÜŞTERİ AD SOYAD (D SÜTUNU)</th>
+                                    <th>DURUM BİLGİSİ</th>
+                                    <th class="text-right">İŞLEM TUTARI (TRY)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unspecified-body">
+                                <tr><td colspan="4" class="py-20 text-center text-slate-400 italic font-medium">Kayıtlar taranıyor...</td></tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-rose-900 text-white font-bold uppercase text-[12px]">
+                                    <td colspan="3" class="text-right py-5 px-8 border-r border-white/5 tracking-widest">Kayıtsız İşlem Toplamı</td>
+                                    <td id="unspecified-total-val" class="text-right py-5 px-8 text-rose-200 text-base">₺0</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwX2K6gBaSalxAuME90FUJVr086B9D4PKitB4MvqaD5_KNc-rSHI3UWDZIjyftU6quG/exec";
+        let currentData = null;
+        let activeTab = 'dashboard';
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('closed');
+            overlay.classList.toggle('hidden');
+        }
+
+        function maybeCloseSidebar() {
+            if (window.innerWidth < 1024) toggleSidebar();
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const sel = document.getElementById('periodSelector');
+            const loader = document.getElementById('loading');
+            loader.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods`);
+                const periods = await res.json();
+                if (periods && periods.length > 0) {
+                    sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
+                    sel.value = periods[0];
+                    await fetchData(); 
+                }
+            } catch (e) { 
+                console.error("Dönemler yüklenemedi:", e); 
+                showErrorMessage("Veri bağlantısı kurulamadı.");
+            } finally { loader.classList.add('hidden'); }
+        });
+
+        function setTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`btn-${tab}`).classList.add('active');
+            
+            const titles = {
+                dashboard: 'Şube Performans Tablosu',
+                customers: 'Müşteri Detay Çizelgesi',
+                unspecified: 'No Belirtilmeyen Müşteri Listesi'
+            };
+            document.getElementById('tabTitle').innerText = titles[tab];
+            
+            document.getElementById('branchFilterContainer').classList.remove('hidden');
+
+            if(currentData) render(currentData);
+        }
+
+        async function fetchData() {
+            const period = document.getElementById('periodSelector').value;
+            if (!period) return;
+            
+            const loader = document.getElementById('loading');
+            loader.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}`);
+                const data = await res.json();
+                
+                currentData = data;
+                populateBranchFilter(currentData);
+                render(currentData);
+                
+                const now = new Date();
+                safeSetText('lastUpdateTime', now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ':' + now.getSeconds().toString().padStart(2, '0'));
+                
+            } catch (e) { 
+                console.error("Hata:", e); 
+                showErrorMessage("Veriler alınırken hata oluştu.");
+            } finally { 
+                loader.classList.add('hidden'); 
+            }
+        }
+
+        function populateBranchFilter(data) {
+            const branchSelector = document.getElementById('branchSelector');
+            const currentSelection = branchSelector.value;
+            const branches = data.charts.branch.map(item => item.name).sort();
+            
+            let html = '<option value="Tümü">Tüm Şubeler</option>';
+            branches.forEach(branch => {
+                html += `<option value="${branch}">${branch}</option>`;
+            });
+            branchSelector.innerHTML = html;
+            
+            if (branches.includes(currentSelection)) {
+                branchSelector.value = currentSelection;
+            }
+        }
+
+        function showErrorMessage(msg) {
+            ['branch-body', 'customer-body-specified', 'unspecified-body'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<tr><td colspan="10" class="py-10 text-center text-rose-600 font-bold bg-rose-50">${msg}</td></tr>`;
+            });
+        }
+
+        const safeSetText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        };
+
+        function render(data) {
+            if (!data) return;
+            
+            const selectedBranch = document.getElementById('branchSelector').value;
+            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
+
+            let displayRevenue = data.kpis.totalRevenue;
+            let displaySales = data.kpis.totalSales;
+            let displayBasket = data.kpis.avgBasket;
+
+            if (selectedBranch !== "Tümü") {
+                const branchData = data.charts.branch.find(b => b.name === selectedBranch);
+                displayRevenue = branchData ? branchData.revenue : 0;
+                displaySales = branchData ? branchData.sales : 0;
+                displayBasket = displaySales > 0 ? Math.round(displayRevenue / displaySales) : 0;
+            }
+
+            safeSetText('kpi-revenue', fmt(displayRevenue));
+            safeSetText('kpi-sales', num(displaySales));
+            safeSetText('kpi-basket', fmt(displayBasket));
+
+            const branchBody = document.getElementById('branch-body');
+            let branchList = data.charts.branch;
+            if (selectedBranch !== "Tümü") {
+                branchList = branchList.filter(b => b.name === selectedBranch);
+            }
+
+            branchBody.innerHTML = branchList.map((b, i) => `
+                <tr class="${i % 2 === 1 ? 'row-alt' : ''}">
+                    <td class="text-center text-slate-400 font-bold text-[10px]">${i+1}</td>
+                    <td class="font-bold text-slate-700 uppercase tracking-tight text-[13px]">${b.name}</td>
+                    <td class="text-right text-slate-500">${num(b.sales)}</td>
+                    <td class="text-right font-bold text-indigo-700">${fmt(b.revenue)}</td>
+                </tr>
+            `).join('');
+
+            safeSetText('total-sales-val', num(displaySales));
+            safeSetText('total-revenue-val', fmt(displayRevenue));
+
+            safeSetText('customer-period-text', `DÖNEM: ${data.period || '---'}`);
+            safeSetText('unspecified-period-text', `DÖNEM: ${data.period || '---'}`);
+            
+            let list = (data.customerList || []).filter(i => i.revenue > 0);
+            if (selectedBranch !== "Tümü") {
+                list = list.filter(i => i.branch === selectedBranch);
+            }
+            
+            const specifiedList = list.filter(i => i.customerNo && i.customerNo.toString().toLowerCase() !== "belirtilmemiş" && i.customerNo.toString().trim() !== "");
+            const groupedSpecified = groupData(specifiedList);
+            document.getElementById('customer-body-specified').innerHTML = generateGroupedHtml(groupedSpecified, fmt);
+            safeSetText('customer-total-val', fmt(specifiedList.reduce((a, b) => a + b.revenue, 0)));
+
+            const unspecifiedList = list.filter(i => !i.customerNo || i.customerNo.toString().toLowerCase() === "belirtilmemiş" || i.customerNo.toString().trim() === "");
+            const groupedUnspecified = groupData(unspecifiedList);
+            document.getElementById('unspecified-body').innerHTML = generateUnspecifiedHtml(groupedUnspecified, fmt);
+            safeSetText('unspecified-total-val', fmt(unspecifiedList.reduce((a, b) => a + b.revenue, 0)));
+        }
+
+        function groupData(list) {
+            return list.reduce((acc, curr) => {
+                if(!acc[curr.branch]) acc[curr.branch] = { items: [], total: 0 };
+                acc[curr.branch].items.push(curr);
+                acc[curr.branch].total += curr.revenue;
+                return acc;
+            }, {});
+        }
+
+        function generateGroupedHtml(grouped, fmt) {
+            let html = '';
+            const branches = Object.keys(grouped);
+            if (branches.length === 0) return '<tr><td colspan="3" class="py-20 text-center font-medium text-slate-400 italic">Veri bulunamadı.</td></tr>';
+            branches.forEach(branch => {
+                html += `<tr class="branch-group-row"><td colspan="3"><i class="fas fa-store-alt mr-3 text-indigo-400"></i> ${branch}</td></tr>`;
+                grouped[branch].items.forEach((item, idx) => {
+                    html += `<tr><td class="text-center text-slate-400 text-[10px]">${idx + 1}</td><td class="font-mono font-bold">${item.customerNo}</td><td class="text-right font-bold">${fmt(item.revenue)}</td></tr>`;
+                });
+                html += `<tr class="subtotal-row"><td colspan="2">Şube Toplamı:</td><td class="font-bold">${fmt(grouped[branch].total)}</td></tr>`;
+            });
+            return html;
+        }
+
+        function generateUnspecifiedHtml(grouped, fmt) {
+            let html = '';
+            const branches = Object.keys(grouped);
+            if (branches.length === 0) return '<tr><td colspan="4" class="py-20 text-center text-slate-400 italic">Eksik numaralı kayıt bulunamadı.</td></tr>';
+            branches.forEach(branch => {
+                html += `<tr class="branch-group-row" style="background-color: #fff1f2 !important; color: #e11d48 !important;"><td colspan="4"><i class="fas fa-exclamation-circle mr-3"></i> ${branch}</td></tr>`;
+                grouped[branch].items.forEach((item, idx) => {
+                    html += `<tr><td class="text-center text-slate-400 text-[10px]">${idx + 1}</td><td class="font-bold text-slate-700 uppercase">${item.customerName || "İSİMSİZ"}</td><td class="text-rose-600 font-bold text-[11px] italic text-center">No Belirtilmemiş</td><td class="text-right font-bold text-rose-700">${fmt(item.revenue)}</td></tr>`;
+                });
+                html += `<tr class="subtotal-row" style="background-color: #fff1f2;"><td colspan="3" class="text-rose-900 font-semibold">Şube Belirtilmeyen Toplam:</td><td class="font-bold text-rose-700">${fmt(grouped[branch].total)}</td></tr>`;
+            });
+            return html;
+        }
+
+        function exportToExcel() {
+            if (!currentData) return;
+            const period = document.getElementById('periodSelector').value;
+            const selectedBranch = document.getElementById('branchSelector').value;
+            const wb = XLSX.utils.book_new();
+            const currencyFormat = '#,##0"₺"';
+            let wsData = [];
+            
+            const branchText = selectedBranch === "Tümü" ? "TÜM ŞUBELER" : selectedBranch.toUpperCase();
+            let fileName = `Hedef_AVM_Excel_${activeTab}_${selectedBranch}_${period}.xlsx`.replace(/ /g, '_');
+
+            // --- En Üst Bilgi Alanı ---
+            wsData.push([period.toUpperCase() + " RAPORU"]);
+            wsData.push(["GENEL TÜM ŞUBELERİN TOPLAM TUTARI:", currentData.kpis.totalRevenue]); // Buraya her zaman genel toplam gelir
+            wsData.push([branchText + " FİLTRELİ LİSTE"]);
+            wsData.push([]); // Boşluk
+
+            if (activeTab === 'dashboard') {
+                wsData.push(["SIRA", "ŞUBE ADI", "İŞLEM SAYISI", "TOPLAM TUTAR (TL)"]);
+                let branchList = currentData.charts.branch;
+                if (selectedBranch !== "Tümü") branchList = branchList.filter(b => b.name === selectedBranch);
+                
+                branchList.forEach((b, i) => wsData.push([i + 1, b.name.toUpperCase(), b.sales, b.revenue]));
+                const totalSales = branchList.reduce((a,b) => a+b.sales, 0);
+                const totalRev = branchList.reduce((a,b) => a+b.revenue, 0);
+                wsData.push(["", "TOPLAM", totalSales, totalRev]);
+            } else if (activeTab === 'customers') {
+                wsData.push(["ŞUBE", "MÜŞTERİ NO", "İŞLEM TUTARI (TL)"]);
+                let list = currentData.customerList.filter(i => 
+                    i.revenue > 0 && i.customerNo && 
+                    i.customerNo.toString().trim() !== "" && 
+                    i.customerNo.toString().toLowerCase() !== "belirtilmemiş"
+                );
+                
+                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
+
+                const grouped = groupData(list);
+                Object.keys(grouped).forEach(b => {
+                    wsData.push([b.toUpperCase(), "---", ""]);
+                    grouped[b].items.forEach(i => wsData.push(["", i.customerNo, i.revenue]));
+                    wsData.push(["", "TOPLAM", grouped[b].total]);
+                });
+            } else {
+                wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "DURUM", "İŞLEM TUTARI (TL)"]);
+                let list = currentData.customerList.filter(i => 
+                    i.revenue > 0 && (!i.customerNo || i.customerNo.toString().trim() === "" || i.customerNo.toString().toLowerCase() === "belirtilmemiş")
+                );
+
+                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
+
+                const grouped = groupData(list);
+                Object.keys(grouped).forEach(b => {
+                    wsData.push([b.toUpperCase(), "---", "", ""]);
+                    grouped[b].items.forEach(i => wsData.push(["", i.customerName || "Bilinmiyor", "No Belirtilmemiş", i.revenue]));
+                    wsData.push(["", "TOPLAM", "", grouped[b].total]);
+                });
+            }
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            
+            // Ciro sütunlarının formatlanması
+            const moneyIdx = activeTab === 'unspecified' ? 3 : (activeTab === 'customers' ? 2 : 3);
+            
+            // 2. satırdaki (index 1) Genel Toplam Tutarı da formatla
+            const totalCellRef = XLSX.utils.encode_cell({ r: 1, c: 1 });
+            if (ws[totalCellRef]) ws[totalCellRef].z = currencyFormat;
+
+            // Diğer ciro hücrelerini tara
+            for (let R = 3; R <= range.e.r; ++R) {
+                const cell = ws[XLSX.utils.encode_cell({ r: R, c: moneyIdx })];
+                if (cell && typeof cell.v === 'number') cell.z = currencyFormat;
+            }
+
+            ws['!cols'] = [{wch: 30}, {wch: 25}, {wch: 20}, {wch: 20}];
+            XLSX.utils.book_append_sheet(wb, ws, "Rapor");
+            XLSX.writeFile(wb, fileName);
+        }
+    </script>
 </body>
 </html>
