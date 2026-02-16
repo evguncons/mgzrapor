@@ -64,9 +64,8 @@
     <!-- Mobile Overlay -->
     <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-30 hidden lg:hidden"></div>
 
-    <!-- SIDEBAR (Beyaz Yan Menü) -->
+    <!-- SIDEBAR -->
     <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-72 bg-white flex flex-col flex-shrink-0 z-40 closed lg:transform-none">
-        <!-- Logo -->
         <div class="h-24 flex items-center px-10 shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
@@ -79,9 +78,8 @@
             </div>
         </div>
 
-        <!-- Navigation -->
         <nav class="flex-1 px-4 py-8 overflow-y-auto custom-scrollbar">
-            <div class="px-6 mb-6 text-[10px] font-black text-slate-300 uppercase tracking-[0.4em]">Dashboard</div>
+            <div class="px-6 mb-6 text-[10px] font-black text-slate-300 uppercase tracking-[0.4em]">Panel</div>
             <button onclick="setTab('dashboard'); maybeCloseSidebar()" id="btn-dashboard" class="nav-link active w-full">
                 <i class="fas fa-chart-pie text-lg"></i> <span>Genel Bakış</span>
             </button>
@@ -96,7 +94,6 @@
             </button>
         </nav>
 
-        <!-- Sidebar Footer -->
         <div class="p-8 border-t border-slate-100 bg-slate-50/30">
             <div class="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500 border border-indigo-100">
@@ -104,7 +101,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-900 text-xs font-bold truncate">Yönetici Paneli</p>
-                    <p class="text-slate-400 text-[10px] font-bold">v6.8.5 Light</p>
+                    <p class="text-slate-400 text-[10px] font-bold">v6.9.5 Pro</p>
                 </div>
             </div>
         </div>
@@ -135,7 +132,17 @@
                     <i class="fas fa-sync-alt group-active:rotate-180 transition-transform duration-500"></i>
                 </button>
 
-                <!-- Şube Seçimi (Görünürlük Fix: hidden sm:block) -->
+                <!-- Aksiyon Filtresi (J Sütunu Değerlerine Göre) -->
+                <div id="followupFilterContainer" class="relative group hidden">
+                    <select id="followupFilter" onchange="render(currentData)" class="appearance-none bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold rounded-2xl pl-5 pr-12 py-3.5 focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none cursor-pointer transition-all shadow-sm">
+                        <option value="Tümü">Tüm Aksiyonlar</option>
+                        <option value="müşteri mağazaya gelecek">Müşteri Mağazaya Gelecek</option>
+                        <option value="tekrar aranacak">Tekrar Aranacak</option>
+                    </select>
+                    <i class="fas fa-filter absolute right-5 top-1/2 -translate-y-1/2 text-amber-400 pointer-events-none"></i>
+                </div>
+
+                <!-- Şube Seçimi -->
                 <div id="branchFilterContainer" class="relative group hidden sm:block">
                     <select id="branchSelector" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-900 text-xs font-bold rounded-2xl pl-5 pr-12 py-3.5 focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 outline-none cursor-pointer transition-all shadow-sm">
                         <option value="Tümü">Tüm Şubeler</option>
@@ -154,7 +161,7 @@
                 <!-- Excel -->
                 <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white h-12 px-8 rounded-2xl text-xs font-black flex items-center justify-center gap-3 transition-all shadow-lg shadow-emerald-600/20 active:scale-95">
                     <i class="fas fa-file-excel text-lg"></i>
-                    <span class="hidden md:inline uppercase tracking-widest">Dışa Aktar</span>
+                    <span class="hidden md:inline uppercase tracking-widest">Excel'e Aktar</span>
                 </button>
             </div>
         </header>
@@ -380,6 +387,14 @@
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             document.getElementById(`btn-${tab}`).classList.add('active');
             
+            // Filtre görünürlüğü
+            const followupFilter = document.getElementById('followupFilterContainer');
+            if (tab === 'followup') {
+                followupFilter.classList.remove('hidden');
+            } else {
+                followupFilter.classList.add('hidden');
+            }
+
             const titles = { dashboard: 'Performans Analizi', customers: 'Müşteri Detay Çizelgesi', followup: 'Takip & Aksiyon Listesi', unspecified: 'No Belirtilmeyenler' };
             document.getElementById('tabTitle').innerText = titles[tab];
             if(currentData) render(currentData);
@@ -388,6 +403,8 @@
         function render(data) {
             if (!data) return;
             const selectedBranch = document.getElementById('branchSelector').value;
+            const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
+            
             const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
 
@@ -398,7 +415,7 @@
                 list = list.filter(i => i.branch === selectedBranch);
             }
 
-            const salesCount = list.filter(i => i.status === 'satışa döndü').length;
+            const salesCount = list.filter(i => i.status.toLowerCase() === 'satışa döndü').length;
             const totalRev = branchList.reduce((a,b) => a+b.revenue, 0);
             
             safeSetText('kpi-revenue', fmt(totalRev));
@@ -426,8 +443,15 @@
             document.getElementById('customer-body-specified').innerHTML = generateGroupedHtml(specList, fmt);
             safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + b.revenue, 0)));
 
-            // Takip Listesi
-            const followupList = list.filter(i => ['aranacak', 'müşteri mağazaya gelecek'].includes(i.status));
+            // Takip Listesi (Filtreli) - "Müşteri Mağazaya Gelecek" ve "Tekrar Aranacak" referans alınır.
+            let followupList = list.filter(i => {
+                const s = i.status.toLowerCase().trim();
+                return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek';
+            });
+            
+            if (selectedAction !== "tümü") {
+                followupList = followupList.filter(i => i.status.toLowerCase().trim() === selectedAction);
+            }
             document.getElementById('followup-body').innerHTML = generateFollowupHtml(followupList);
 
             // No Belirtilmeyenler
@@ -449,22 +473,31 @@
             const grouped = list.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [] }; acc[curr.branch].items.push(curr); return acc; }, {});
             return Object.keys(grouped).map(branch => `
                 <tr class="bg-slate-50/50"><td colspan="4" class="px-10 py-4 font-black text-indigo-900 text-[11px] uppercase tracking-[0.3em] border-y border-slate-100"><i class="fas fa-headset mr-4 text-indigo-500"></i> ${branch}</td></tr>` + 
-                grouped[branch].items.map((item, idx) => `
+                grouped[branch].items.map((item, idx) => {
+                    const status = item.status.toLowerCase().trim();
+                    const isAranacak = status === 'tekrar aranacak';
+                    const badgeClass = isAranacak ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-indigo-100 text-indigo-700 border border-indigo-200';
+                    const label = isAranacak ? 'Tekrar Aranacak' : 'Mağazaya Gelecek';
+                    
+                    return `
                     <tr>
                         <td class="text-center text-slate-300 font-black text-[10px] italic">${idx + 1}</td>
                         <td class="font-extrabold uppercase text-slate-900 tracking-tighter">${item.customerName || "---"}</td>
                         <td class="font-mono font-black text-indigo-600">${item.phone || "---"}</td>
                         <td class="text-center">
-                            <span class="px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest ${item.status === 'aranacak' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-indigo-100 text-indigo-700 border border-indigo-200'}">${item.status}</span>
+                            <span class="px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest ${badgeClass}">
+                                ${label}
+                            </span>
                         </td>
-                    </tr>`).join('')
+                    </tr>`;
+                }).join('')
             ).join('') || '<tr><td colspan="4" class="py-32 text-center text-slate-300 italic uppercase text-xs tracking-widest">Takip listesi boş.</td></tr>';
         }
 
         function generateUnspecifiedHtml(list, fmt) {
             const grouped = list.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [], total: 0 }; acc[curr.branch].items.push(curr); acc[curr.branch].total += curr.revenue; return acc; }, {});
             return Object.keys(grouped).map(branch => `
-                <tr class="bg-rose-50/50"><td colspan="4" class="px-10 py-4 font-black text-rose-900 text-[11px] uppercase tracking-[0.3em] border-y border-slate-100"><i class="fas fa-circle-exclamation mr-4 text-rose-500"></i> ${branch}</td></tr>` + 
+                <tr class="bg-rose-50/50"><td colspan="4" class="px-10 py-4 font-black text-rose-900 text-[11px] uppercase tracking-[0.3em] border-y border-rose-100"><i class="fas fa-circle-exclamation mr-4 text-rose-500"></i> ${branch}</td></tr>` + 
                 grouped[branch].items.map((item, idx) => `<tr><td class="text-center text-rose-200 font-black text-[10px] italic">${idx + 1}</td><td class="font-black uppercase text-slate-900 tracking-tighter">${item.customerName || "---"}</td><td class="text-rose-500 font-bold text-[10px] italic uppercase opacity-60">Numara Eksik</td><td class="text-right font-black text-rose-800 px-10">${fmt(item.revenue)}</td></tr>`).join('') + 
                 `<tr class="bg-white"><td colspan="3" class="text-rose-900 font-black px-10 text-[9px] tracking-[0.3em] uppercase">Şube Toplamı</td><td class="font-black text-rose-700 text-lg px-10 text-right">${fmt(grouped[branch].total)}</td></tr>`
             ).join('') || '<tr><td colspan="4" class="py-32 text-center text-slate-300 italic uppercase text-xs tracking-widest">Tüm kayıtlar eksiksiz.</td></tr>';
@@ -474,6 +507,8 @@
             if (!currentData) return;
             const period = document.getElementById('periodSelector').value;
             const selectedBranch = document.getElementById('branchSelector').value;
+            const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
+
             const wb = XLSX.utils.book_new(); const currencyFormat = '#,##0"₺"';
             let wsData = []; let fileName = `Hedef_AVM_${activeTab}_${selectedBranch}_${period}.xlsx`.replace(/ /g, '_');
             const branchText = selectedBranch === "Tümü" ? "TÜM ŞUBELER" : selectedBranch.toUpperCase();
@@ -493,9 +528,13 @@
                 if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
                 list.forEach(i => wsData.push([i.branch.toUpperCase(), i.customerNo, i.revenue]));
             } else if (activeTab === 'followup') {
-                wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "TELEFON NO", "DURUM"]);
-                let list = currentData.customerList.filter(i => ['aranacak', 'müşteri mağazaya gelecek'].includes(i.status));
+                wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "TELEFON NO", "AKSİYON DURUMU"]);
+                let list = currentData.customerList.filter(i => {
+                    const s = i.status.toLowerCase().trim();
+                    return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek';
+                });
                 if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
+                if (selectedAction !== "tümü") list = list.filter(i => i.status.toLowerCase().trim() === selectedAction);
                 list.forEach(i => wsData.push([i.branch.toUpperCase(), i.customerName.toUpperCase(), i.phone, i.status.toUpperCase()]));
             } else {
                 wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "DURUM", "İŞLEM TUTARI (TL)"]);
