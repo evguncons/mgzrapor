@@ -57,6 +57,29 @@
         @media (max-width: 1024px) {
             #sidebar.closed { transform: translateX(-100%); }
         }
+
+        /* PDF Çıktısı (Yazdırma) Ayarları */
+        @media print {
+            body, main, #report-container, .table-wrapper, .overflow-x-auto {
+                overflow: visible !important;
+                height: auto !important;
+                width: auto !important;
+                position: static !important;
+                background-color: white !important;
+            }
+            /* Yazdırılırken gizlenecek alanlar */
+            #sidebar, header, button, select, #loadingIndicator, #sidebarOverlay, .relative.group {
+                display: none !important;
+            }
+            .table-wrapper {
+                box-shadow: none !important;
+                border: none !important;
+            }
+            .modern-table th {
+                background-color: #f8fafc !important;
+                color: black !important;
+            }
+        }
     </style>
 </head>
 <body class="flex h-screen w-full overflow-hidden font-sans">
@@ -101,7 +124,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-900 text-xs font-bold truncate">Yönetici Paneli</p>
-                    <p class="text-slate-400 text-[10px] font-bold">v6.9.5 Pro</p>
+                    <p class="text-slate-400 text-[10px] font-bold">v7.0.0 Pro</p>
                 </div>
             </div>
         </div>
@@ -331,13 +354,42 @@
         let currentData = null; 
         let activeTab = 'dashboard';
         
+        // Sabit ve spesifik şube sıralaması (Kullanıcının talep ettiği sıralama)
+        const PREFERRED_BRANCH_ORDER = [
+            "PAŞABAHÇE",
+            "KAVACIK",
+            "ÇEKMEKÖY",
+            "YENİDOĞAN",
+            "SULTANBEYLİ",
+            "ÇAYIROVA",
+            "KÖRFEZ",
+            "DERİNCE",
+            "İZMİT",
+            "GÖLCÜK",
+            "İNEGÖL"
+        ];
+
+        // Verilen şube isminin sıralamadaki indeksini bulur
+        function getBranchSortIndex(branchName) {
+            if (!branchName) return 999;
+            const upperName = branchName.toLocaleUpperCase('tr-TR');
+            for (let i = 0; i < PREFERRED_BRANCH_ORDER.length; i++) {
+                if (upperName.includes(PREFERRED_BRANCH_ORDER[i])) {
+                    return i;
+                }
+            }
+            return 999; // Listede yoksa en sona at
+        }
+        
         const safeSetText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
+        
         function toggleSidebar() { 
             const sb = document.getElementById('sidebar');
             const ov = document.getElementById('sidebarOverlay');
             sb.classList.toggle('closed'); 
             ov.classList.toggle('hidden'); 
         }
+        
         function maybeCloseSidebar() { if (window.innerWidth < 1024) toggleSidebar(); }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -345,7 +397,8 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods`);
+                // Tarayıcı önbelleğini kırmak için timestamp (t) eklendi
+                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${new Date().getTime()}`);
                 const periods = await res.json();
                 if (periods && periods.length > 0) {
                     sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
@@ -362,7 +415,8 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}`);
+                // Cache engelleme (Veri güncellemesinin hemen yansıması için)
+                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${new Date().getTime()}`);
                 currentData = await res.json();
                 populateBranchFilter(currentData);
                 render(currentData);
@@ -375,7 +429,11 @@
         function populateBranchFilter(data) {
             const branchSelector = document.getElementById('branchSelector');
             const currentSelection = branchSelector.value;
-            const branches = [...new Set(data.customerList.map(i => i.branch))].sort();
+            
+            // Şubeleri özel sıraya göre diz
+            const branches = [...new Set(data.customerList.map(i => i.branch))]
+                .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
+                
             branchSelector.innerHTML = '<option value="Tümü">Tüm Şubeler</option>' + branches.map(b => `<option value="${b}">${b}</option>`).join('');
             if (branches.includes(currentSelection)) branchSelector.value = currentSelection;
         }
@@ -422,6 +480,9 @@
             safeSetText('kpi-sales', num(salesCount));
             safeSetText('kpi-basket', fmt(salesCount > 0 ? totalRev / salesCount : 0));
 
+            // Özel Sıralamayı Uygula
+            branchList.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
+
             document.getElementById('branch-body').innerHTML = branchList.map((b, i) => `
                 <tr>
                     <td class="text-center font-black text-slate-300">#${i+1}</td>
@@ -443,7 +504,7 @@
             document.getElementById('customer-body-specified').innerHTML = generateGroupedHtml(specList, fmt);
             safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + b.revenue, 0)));
 
-            // Takip Listesi (Filtreli) - "Müşteri Mağazaya Gelecek" ve "Tekrar Aranacak" referans alınır.
+            // Takip Listesi (Filtreli)
             let followupList = list.filter(i => {
                 const s = i.status.toLowerCase().trim();
                 return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek';
@@ -462,7 +523,9 @@
 
         function generateGroupedHtml(list, fmt) {
             const grouped = list.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [], total: 0 }; acc[curr.branch].items.push(curr); acc[curr.branch].total += curr.revenue; return acc; }, {});
-            return Object.keys(grouped).map(branch => `
+            return Object.keys(grouped)
+                .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)) // Şubeleri özel sıraya göre diz
+                .map(branch => `
                 <tr class="bg-slate-50/50"><td colspan="3" class="px-10 py-4 font-black text-indigo-900 text-[11px] uppercase tracking-[0.3em] border-y border-slate-100"><i class="fas fa-location-dot mr-4 text-indigo-500"></i> ${branch}</td></tr>` + 
                 grouped[branch].items.map((item, idx) => `<tr><td class="text-center text-slate-300 font-black text-[10px] italic">${idx + 1}</td><td class="font-bold text-slate-700 tracking-tight">${item.customerNo}</td><td class="text-right font-extrabold text-slate-900 px-10">${fmt(item.revenue)}</td></tr>`).join('') + 
                 `<tr class="bg-white"><td colspan="2" class="px-10 uppercase text-[9px] font-black tracking-widest opacity-40">Şube Alt Toplamı</td><td class="font-black text-indigo-600 text-lg px-10 text-right">${fmt(grouped[branch].total)}</td></tr>`
@@ -471,7 +534,9 @@
 
         function generateFollowupHtml(list) {
             const grouped = list.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [] }; acc[curr.branch].items.push(curr); return acc; }, {});
-            return Object.keys(grouped).map(branch => `
+            return Object.keys(grouped)
+                .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)) // Şubeleri özel sıraya göre diz
+                .map(branch => `
                 <tr class="bg-slate-50/50"><td colspan="4" class="px-10 py-4 font-black text-indigo-900 text-[11px] uppercase tracking-[0.3em] border-y border-slate-100"><i class="fas fa-headset mr-4 text-indigo-500"></i> ${branch}</td></tr>` + 
                 grouped[branch].items.map((item, idx) => {
                     const status = item.status.toLowerCase().trim();
@@ -496,7 +561,9 @@
 
         function generateUnspecifiedHtml(list, fmt) {
             const grouped = list.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [], total: 0 }; acc[curr.branch].items.push(curr); acc[curr.branch].total += curr.revenue; return acc; }, {});
-            return Object.keys(grouped).map(branch => `
+            return Object.keys(grouped)
+                .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)) // Şubeleri özel sıraya göre diz
+                .map(branch => `
                 <tr class="bg-rose-50/50"><td colspan="4" class="px-10 py-4 font-black text-rose-900 text-[11px] uppercase tracking-[0.3em] border-y border-rose-100"><i class="fas fa-circle-exclamation mr-4 text-rose-500"></i> ${branch}</td></tr>` + 
                 grouped[branch].items.map((item, idx) => `<tr><td class="text-center text-rose-200 font-black text-[10px] italic">${idx + 1}</td><td class="font-black uppercase text-slate-900 tracking-tighter">${item.customerName || "---"}</td><td class="text-rose-500 font-bold text-[10px] italic uppercase opacity-60">Numara Eksik</td><td class="text-right font-black text-rose-800 px-10">${fmt(item.revenue)}</td></tr>`).join('') + 
                 `<tr class="bg-white"><td colspan="3" class="text-rose-900 font-black px-10 text-[9px] tracking-[0.3em] uppercase">Şube Toplamı</td><td class="font-black text-rose-700 text-lg px-10 text-right">${fmt(grouped[branch].total)}</td></tr>`
@@ -518,14 +585,17 @@
             wsData.push([]);
 
             if (activeTab === 'dashboard') {
-                wsData.push(["SİRA", "ŞUBE ADI", "SATIŞA DÖNEN (ADET)", "TOPLAM TUTAR (TL)"]);
+                wsData.push(["SIRA", "ŞUBE ADI", "SATIŞA DÖNEN (ADET)", "TOPLAM TUTAR (TL)"]);
                 let list = currentData.charts.branch;
                 if (selectedBranch !== "Tümü") list = list.filter(b => b.name === selectedBranch);
+                // Özel Sıralamayı Uygula
+                list.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
                 list.forEach((b, i) => wsData.push([i+1, b.name.toUpperCase(), b.sales, b.revenue]));
             } else if (activeTab === 'customers') {
                 wsData.push(["ŞUBE", "MÜŞTERİ NO", "İŞLEM TUTARI (TL)"]);
                 let list = currentData.customerList.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
                 if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
+                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
                 list.forEach(i => wsData.push([i.branch.toUpperCase(), i.customerNo, i.revenue]));
             } else if (activeTab === 'followup') {
                 wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "TELEFON NO", "AKSİYON DURUMU"]);
@@ -535,11 +605,13 @@
                 });
                 if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
                 if (selectedAction !== "tümü") list = list.filter(i => i.status.toLowerCase().trim() === selectedAction);
+                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
                 list.forEach(i => wsData.push([i.branch.toUpperCase(), i.customerName.toUpperCase(), i.phone, i.status.toUpperCase()]));
             } else {
                 wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "DURUM", "İŞLEM TUTARI (TL)"]);
                 let list = currentData.customerList.filter(i => i.revenue > 0 && (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş"));
                 if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
+                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
                 list.forEach(i => wsData.push([i.branch.toUpperCase(), i.customerName.toUpperCase(), "NO BELİRTİLMEMİŞ", i.revenue]));
             }
 
@@ -559,13 +631,6 @@
             ws['!cols'] = [{wch: 35}, {wch: 35}, {wch: 25}, {wch: 25}];
             XLSX.utils.book_append_sheet(wb, ws, "Hedef AVM Raporu");
             XLSX.writeFile(wb, fileName);
-        }
-
-        function toggleSidebar() { 
-            const sb = document.getElementById('sidebar');
-            const ov = document.getElementById('sidebarOverlay');
-            sb.classList.toggle('closed'); 
-            ov.classList.toggle('hidden'); 
         }
     </script>
 </body>
