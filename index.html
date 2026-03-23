@@ -56,31 +56,62 @@
             #sidebar.closed { transform: translateX(-100%); }
         }
 
-        /* PDF Çıktısı (Yazdırma) Ayarları */
+        /* PDF Çıktısı İçin Özel Rapor CSS'i */
+        #printArea { display: none; }
         @media print {
             body {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
                 background-color: white !important;
+                margin: 0; padding: 0;
             }
-            body, main, #report-container, .table-wrapper, .overflow-x-auto {
-                overflow: visible !important;
-                height: auto !important;
-                width: auto !important;
-                position: static !important;
+            /* Arayüz elemanlarının tamamını gizle */
+            body > *:not(#printArea) { 
+                display: none !important; 
             }
-            /* Yazdırılırken gizlenecek alanlar */
-            #sidebar, header, button, select, #loadingIndicator, #sidebarOverlay, .relative.group {
-                display: none !important;
+            /* Sadece Rapor alanını göster */
+            #printArea { 
+                display: block !important; 
+                width: 100%; 
+                color: black; 
+                font-family: 'Plus Jakarta Sans', sans-serif; 
+                padding: 20px;
             }
-            .table-wrapper {
-                box-shadow: none !important;
-                border: 1px solid #e2e8f0 !important;
+            .print-table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                font-size: 11px; 
+                margin-bottom: 20px; 
             }
-            .modern-table th {
+            .print-table th, .print-table td { 
+                border: 1px solid #cbd5e1; 
+                padding: 8px 12px; 
+                text-align: left; 
+            }
+            .print-table th { 
+                background-color: #f1f5f9 !important; 
+                font-weight: 800; 
+                color: #334155;
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+            }
+            .print-table tr:nth-child(even) { 
+                background-color: #f8fafc !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+            }
+            .print-summary {
+                display: flex;
+                justify-content: space-between;
                 background-color: #f8fafc !important;
-                color: #1e293b !important;
+                padding: 15px;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+                margin-bottom: 20px;
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
             }
+            .print-summary-item { text-align: center; }
+            .print-summary-value { font-size: 18px; font-weight: 800; color: #1e293b; }
+            .print-summary-label { font-size: 9px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
         }
     </style>
 </head>
@@ -126,7 +157,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-900 text-xs font-bold truncate">Yönetici Paneli</p>
-                    <p class="text-slate-400 text-[10px] font-bold">v7.2.0 Pro</p>
+                    <p class="text-slate-400 text-[10px] font-bold">v7.3.0 PDF Pro</p>
                 </div>
             </div>
         </div>
@@ -184,8 +215,8 @@
                     <i class="fas fa-calendar-days absolute right-5 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none"></i>
                 </div>
                 
-                <!-- PDF İndir (Excel yerine) -->
-                <button onclick="window.print()" class="bg-rose-600 hover:bg-rose-700 text-white h-12 px-8 rounded-2xl text-xs font-black flex items-center justify-center gap-3 transition-all shadow-lg shadow-rose-600/20 active:scale-95">
+                <!-- PDF İndir (Özel Format) -->
+                <button onclick="printReport()" class="bg-rose-600 hover:bg-rose-700 text-white h-12 px-8 rounded-2xl text-xs font-black flex items-center justify-center gap-3 transition-all shadow-lg shadow-rose-600/20 active:scale-95">
                     <i class="fas fa-file-pdf text-lg"></i>
                     <span class="hidden md:inline uppercase tracking-widest">PDF İndir</span>
                 </button>
@@ -352,6 +383,9 @@
                 </span>
             </span>
         </div>
+        
+        <!-- Gizli Yazdırma Alanı (Sadece PDF Kayıt / Yazdırmada Görünür) -->
+        <div id="printArea"></div>
     </main>
 
     <script>
@@ -600,6 +634,138 @@
                 grouped[branch].items.map((item, idx) => `<tr><td class="text-center text-rose-200 font-black text-[10px] italic">${idx + 1}</td><td class="font-black uppercase text-slate-900 tracking-tighter">${item.customerName || "---"}</td><td class="text-rose-500 font-bold text-[10px] italic uppercase opacity-60">Numara Eksik</td><td class="text-right font-black text-rose-800 px-10">${fmt(item.revenue)}</td></tr>`).join('') + 
                 `<tr class="bg-white"><td colspan="3" class="text-rose-900 font-black px-10 text-[9px] tracking-[0.3em] uppercase">Şube Toplamı</td><td class="font-black text-rose-700 text-lg px-10 text-right">${fmt(grouped[branch].total)}</td></tr>`
             ).join('') || '<tr><td colspan="4" class="py-32 text-center text-slate-300 italic uppercase text-xs tracking-widest">Tüm kayıtlar eksiksiz.</td></tr>';
+        }
+
+        // ÖZEL RENDER VE YAZDIRMA FONKSİYONU (PDF İNDİR İÇİN)
+        function printReport() {
+            if (!currentData) {
+                alert("Lütfen önce verilerin yüklenmesini bekleyin.");
+                return;
+            }
+            
+            const period = document.getElementById('periodSelector').value || 'Belirtilmemiş';
+            const selectedBranch = document.getElementById('branchSelector').value;
+            const branchText = selectedBranch === "Tümü" ? "TÜM ŞUBELER" : selectedBranch.toUpperCase();
+            const selectedAction = document.getElementById('followupFilter') ? document.getElementById('followupFilter').value.toLowerCase() : 'tümü';
+            
+            let reportTitle = "";
+            let tableHtml = "";
+            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
+
+            // Filtreleri Uygula
+            let branchList = currentData.charts.branch;
+            let list = currentData.customerList;
+            if (selectedBranch !== "Tümü") {
+                branchList = branchList.filter(b => b.name === selectedBranch);
+                list = list.filter(i => i.branch === selectedBranch);
+            }
+
+            if (activeTab === 'dashboard') {
+                reportTitle = "GENEL PERFORMANS ANALİZİ";
+                const salesCount = list.filter(i => (i.status || "").toLowerCase() === 'satışa döndü').length;
+                const totalRev = branchList.reduce((a,b) => a+b.revenue, 0);
+                
+                tableHtml += `
+                    <div class="print-summary">
+                        <div class="print-summary-item"><div class="print-summary-label">TOPLAM CİRO</div><div class="print-summary-value">${fmt(totalRev)}</div></div>
+                        <div class="print-summary-item"><div class="print-summary-label">SATIŞ ADEDİ</div><div class="print-summary-value">${num(salesCount)}</div></div>
+                        <div class="print-summary-item"><div class="print-summary-label">ORT. SEPET</div><div class="print-summary-value">${fmt(salesCount > 0 ? totalRev / salesCount : 0)}</div></div>
+                    </div>
+                `;
+                
+                branchList.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
+                
+                tableHtml += `<table class="print-table">
+                    <thead><tr><th style="width: 50px; text-align: center;">SIRA</th><th>ŞUBE ADI</th><th style="text-align:right">SATIŞ (ADET)</th><th style="text-align:right">TOPLAM TUTAR (TL)</th></tr></thead>
+                    <tbody>
+                `;
+                branchList.forEach((b, i) => {
+                    tableHtml += `<tr><td style="text-align:center">${i+1}</td><td>${b.name.toUpperCase()}</td><td style="text-align:right">${num(b.sales)}</td><td style="text-align:right">${fmt(b.revenue)}</td></tr>`;
+                });
+                tableHtml += `</tbody></table>`;
+                
+            } else if (activeTab === 'customers') {
+                reportTitle = "MÜŞTERİ DETAY ÇİZELGESİ";
+                let filteredList = list.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
+                filteredList.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
+                
+                tableHtml += `<table class="print-table">
+                    <thead><tr><th>ŞUBE</th><th>MÜŞTERİ KODU</th><th style="text-align:right">İŞLEM TUTARI</th></tr></thead>
+                    <tbody>
+                `;
+                filteredList.forEach(i => {
+                    tableHtml += `<tr><td>${i.branch.toUpperCase()}</td><td>${i.customerNo}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`;
+                });
+                tableHtml += `</tbody></table>`;
+                
+            } else if (activeTab === 'followup') {
+                reportTitle = "TAKİP VE AKSİYON LİSTESİ";
+                let filteredList = list.filter(i => {
+                    const s = (i.status || "").toLowerCase().trim();
+                    const cs = (i.callStatus || "").toLowerCase().trim();
+                    return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
+                });
+                if (selectedAction !== "tümü") {
+                    if (selectedAction === "aranmadı") {
+                        filteredList = filteredList.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı');
+                    } else {
+                        filteredList = filteredList.filter(i => (i.status || "").toLowerCase().trim() === selectedAction);
+                    }
+                }
+                filteredList.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
+
+                tableHtml += `<table class="print-table">
+                    <thead><tr><th>ŞUBE</th><th>MÜŞTERİ AD SOYAD</th><th>İLETİŞİM BİLGİSİ</th><th>AKSİYON DURUMU</th></tr></thead>
+                    <tbody>
+                `;
+                filteredList.forEach(i => {
+                    const s = (i.status || "").toLowerCase().trim();
+                    const cs = (i.callStatus || "").toLowerCase().trim();
+                    let label = 'Mağazaya Gelecek';
+                    if (cs === 'aranmadı') label = 'Aranmadı';
+                    else if (s === 'tekrar aranacak') label = 'Tekrar Aranacak';
+                    
+                    tableHtml += `<tr><td>${i.branch.toUpperCase()}</td><td>${(i.customerName || "---").toUpperCase()}</td><td>${i.phone || "---"}</td><td>${label.toUpperCase()}</td></tr>`;
+                });
+                tableHtml += `</tbody></table>`;
+                
+            } else if (activeTab === 'unspecified') {
+                reportTitle = "NO BELİRTİLMEYENLER (EKSİK KAYITLAR)";
+                let filteredList = list.filter(i => i.revenue > 0 && (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş"));
+                filteredList.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
+
+                tableHtml += `<table class="print-table">
+                    <thead><tr><th>ŞUBE</th><th>MÜŞTERİ TANIMI</th><th>DURUM</th><th style="text-align:right">TUTAR</th></tr></thead>
+                    <tbody>
+                `;
+                filteredList.forEach(i => {
+                    tableHtml += `<tr><td>${i.branch.toUpperCase()}</td><td>${(i.customerName || "---").toUpperCase()}</td><td>NUMARA EKSİK</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`;
+                });
+                tableHtml += `</tbody></table>`;
+            }
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('tr-TR') + " " + now.toLocaleTimeString('tr-TR');
+
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="margin-bottom:5px; font-size:26px; color: #1e293b; letter-spacing: -0.05em;">HEDEF AVM YÖNETİM RAPORU</h1>
+                    <h2 style="margin-top:0; font-size:16px; color:#64748b; font-weight: 500;">${reportTitle}</h2>
+                </div>
+                <div style="display:flex; justify-content: space-between; font-size:11px; font-weight: bold; color:#475569; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 25px; text-transform: uppercase;">
+                    <span>DÖNEM: ${period.toUpperCase()}</span>
+                    <span>ŞUBE: ${branchText}</span>
+                    <span>TARİH: ${dateStr}</span>
+                </div>
+                ${tableHtml}
+                <div style="text-align:center; font-size:10px; font-weight: bold; color:#94a3b8; margin-top:40px; border-top: 1px solid #e2e8f0; padding-top:15px; text-transform: uppercase; letter-spacing: 1px;">
+                    Bu rapor Hedef AVM Gelişmiş Yönetim Paneli tarafından otomatik olarak oluşturulmuştur.
+                </div>
+            `;
+
+            window.print();
         }
     </script>
 </body>
