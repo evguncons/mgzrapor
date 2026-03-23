@@ -59,22 +59,31 @@
         /* PDF Çıktısı İçin Özel Rapor CSS'i */
         #printArea { display: none; }
         @media print {
-            body {
+            html, body {
+                height: auto !important;
+                width: auto !important;
+                overflow: visible !important;
                 background-color: white !important;
-                margin: 0; padding: 0;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                margin: 0;
+                padding: 0;
             }
-            /* Arayüz elemanlarının tamamını gizle */
-            body > *:not(#printArea) { 
+            
+            /* Arayüzdeki tüm öğeleri gizle */
+            body > * { 
                 display: none !important; 
             }
-            /* Sadece Rapor alanını göster */
-            #printArea { 
+            
+            /* Sadece yazdırma alanını göster */
+            body > #printArea { 
                 display: block !important; 
                 width: 100%; 
                 color: black; 
                 font-family: 'Plus Jakarta Sans', sans-serif; 
                 padding: 20px;
             }
+
             .print-table { 
                 width: 100%; 
                 border-collapse: collapse; 
@@ -90,13 +99,9 @@
                 background-color: #f1f5f9 !important; 
                 font-weight: 800; 
                 color: #334155;
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
             }
             .print-table tr:nth-child(even) { 
                 background-color: #f8fafc !important; 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
             }
             .print-summary {
                 display: flex;
@@ -106,8 +111,6 @@
                 border-radius: 8px;
                 border: 1px solid #e2e8f0;
                 margin-bottom: 20px;
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
             }
             .print-summary-item { text-align: center; }
             .print-summary-value { font-size: 18px; font-weight: 800; color: #1e293b; }
@@ -383,10 +386,10 @@
                 </span>
             </span>
         </div>
-        
-        <!-- Gizli Yazdırma Alanı (Sadece PDF Kayıt / Yazdırmada Görünür) -->
-        <div id="printArea"></div>
     </main>
+
+    <!-- Gizli Yazdırma Alanı (Sadece PDF Kayıt / Yazdırmada Görünür) -->
+    <div id="printArea"></div>
 
     <script>
         const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwX2K6gBaSalxAuME90FUJVr086B9D4PKitB4MvqaD5_KNc-rSHI3UWDZIjyftU6quG/exec";
