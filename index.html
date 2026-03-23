@@ -6,8 +6,6 @@
     <title>Hedef AVM | Gelişmiş Yönetim Paneli</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (Excel Çıktısı) -->
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts: Plus Jakarta Sans -->
@@ -60,12 +58,16 @@
 
         /* PDF Çıktısı (Yazdırma) Ayarları */
         @media print {
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                background-color: white !important;
+            }
             body, main, #report-container, .table-wrapper, .overflow-x-auto {
                 overflow: visible !important;
                 height: auto !important;
                 width: auto !important;
                 position: static !important;
-                background-color: white !important;
             }
             /* Yazdırılırken gizlenecek alanlar */
             #sidebar, header, button, select, #loadingIndicator, #sidebarOverlay, .relative.group {
@@ -73,11 +75,11 @@
             }
             .table-wrapper {
                 box-shadow: none !important;
-                border: none !important;
+                border: 1px solid #e2e8f0 !important;
             }
             .modern-table th {
                 background-color: #f8fafc !important;
-                color: black !important;
+                color: #1e293b !important;
             }
         }
     </style>
@@ -124,7 +126,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-900 text-xs font-bold truncate">Yönetici Paneli</p>
-                    <p class="text-slate-400 text-[10px] font-bold">v7.0.0 Pro</p>
+                    <p class="text-slate-400 text-[10px] font-bold">v7.2.0 Pro</p>
                 </div>
             </div>
         </div>
@@ -155,10 +157,11 @@
                     <i class="fas fa-sync-alt group-active:rotate-180 transition-transform duration-500"></i>
                 </button>
 
-                <!-- Aksiyon Filtresi (J Sütunu Değerlerine Göre) -->
+                <!-- Aksiyon Filtresi (C ve J Sütunu Değerlerine Göre) -->
                 <div id="followupFilterContainer" class="relative group hidden">
                     <select id="followupFilter" onchange="render(currentData)" class="appearance-none bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold rounded-2xl pl-5 pr-12 py-3.5 focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none cursor-pointer transition-all shadow-sm">
                         <option value="Tümü">Tüm Aksiyonlar</option>
+                        <option value="aranmadı">Aranmadı (C Sütunu)</option>
                         <option value="müşteri mağazaya gelecek">Müşteri Mağazaya Gelecek</option>
                         <option value="tekrar aranacak">Tekrar Aranacak</option>
                     </select>
@@ -181,10 +184,10 @@
                     <i class="fas fa-calendar-days absolute right-5 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none"></i>
                 </div>
                 
-                <!-- Excel -->
-                <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white h-12 px-8 rounded-2xl text-xs font-black flex items-center justify-center gap-3 transition-all shadow-lg shadow-emerald-600/20 active:scale-95">
-                    <i class="fas fa-file-excel text-lg"></i>
-                    <span class="hidden md:inline uppercase tracking-widest">Excel'e Aktar</span>
+                <!-- PDF İndir (Excel yerine) -->
+                <button onclick="window.print()" class="bg-rose-600 hover:bg-rose-700 text-white h-12 px-8 rounded-2xl text-xs font-black flex items-center justify-center gap-3 transition-all shadow-lg shadow-rose-600/20 active:scale-95">
+                    <i class="fas fa-file-pdf text-lg"></i>
+                    <span class="hidden md:inline uppercase tracking-widest">PDF İndir</span>
                 </button>
             </div>
         </header>
@@ -289,6 +292,7 @@
                 </div>
             </div>
 
+            <!-- Takip Listesi -->
             <div id="tab-followup" class="hidden space-y-10 max-w-7xl mx-auto">
                 <div class="bg-white rounded-[3.5rem] p-12 text-slate-900 shadow-sm border-l-[12px] border-amber-500 border-slate-200 relative">
                     <div class="absolute right-12 top-12 opacity-10 text-9xl text-amber-500"><i class="fas fa-headset"></i></div>
@@ -310,6 +314,7 @@
                 </div>
             </div>
 
+            <!-- No Belirtilmeyenler -->
             <div id="tab-unspecified" class="hidden space-y-10 max-w-7xl mx-auto">
                 <div class="bg-white rounded-[3.5rem] p-12 text-slate-900 shadow-sm border-l-[12px] border-rose-500 border-slate-200 relative overflow-hidden">
                     <div class="absolute -right-10 -top-10 opacity-5 text-[15rem] rotate-45 text-rose-600"><i class="fas fa-user-ninja"></i></div>
@@ -354,7 +359,7 @@
         let currentData = null; 
         let activeTab = 'dashboard';
         
-        // Sabit ve spesifik şube sıralaması (Kullanıcının talep ettiği sıralama)
+        // Sabit ve spesifik şube sıralaması
         const PREFERRED_BRANCH_ORDER = [
             "PAŞABAHÇE",
             "KAVACIK",
@@ -378,7 +383,7 @@
                     return i;
                 }
             }
-            return 999; // Listede yoksa en sona at
+            return 999;
         }
         
         const safeSetText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
@@ -397,7 +402,7 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                // Tarayıcı önbelleğini kırmak için timestamp (t) eklendi
+                // Cache engelleme
                 const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${new Date().getTime()}`);
                 const periods = await res.json();
                 if (periods && periods.length > 0) {
@@ -415,7 +420,7 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                // Cache engelleme (Veri güncellemesinin hemen yansıması için)
+                // Cache engelleme ve yeni veri senkronizasyonu
                 const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${new Date().getTime()}`);
                 currentData = await res.json();
                 populateBranchFilter(currentData);
@@ -445,7 +450,7 @@
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             document.getElementById(`btn-${tab}`).classList.add('active');
             
-            // Filtre görünürlüğü
+            // Filtre görünürlüğü sadece takip sekmesinde olsun
             const followupFilter = document.getElementById('followupFilterContainer');
             if (tab === 'followup') {
                 followupFilter.classList.remove('hidden');
@@ -473,7 +478,7 @@
                 list = list.filter(i => i.branch === selectedBranch);
             }
 
-            const salesCount = list.filter(i => i.status.toLowerCase() === 'satışa döndü').length;
+            const salesCount = list.filter(i => (i.status || "").toLowerCase() === 'satışa döndü').length;
             const totalRev = branchList.reduce((a,b) => a+b.revenue, 0);
             
             safeSetText('kpi-revenue', fmt(totalRev));
@@ -501,17 +506,23 @@
 
             // Kayıtlı Müşteriler
             const specList = list.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
-            document.getElementById('customer-body-specified').innerHTML = generateGroupedHtml(specList, fmt);
+            document.getElementById('customer-body-specified').innerHTML = generateCustomerHtml(specList, fmt);
             safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + b.revenue, 0)));
 
-            // Takip Listesi (Filtreli)
+            // Takip Listesi (C Sütununda "Aranmadı" Olanlar ve J Sütunu Durumları)
             let followupList = list.filter(i => {
-                const s = i.status.toLowerCase().trim();
-                return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek';
+                const s = (i.status || "").toLowerCase().trim();
+                const cs = (i.callStatus || "").toLowerCase().trim();
+                return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
             });
             
+            // Seçili Filtre Uygulaması
             if (selectedAction !== "tümü") {
-                followupList = followupList.filter(i => i.status.toLowerCase().trim() === selectedAction);
+                if (selectedAction === "aranmadı") {
+                    followupList = followupList.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı');
+                } else {
+                    followupList = followupList.filter(i => (i.status || "").toLowerCase().trim() === selectedAction);
+                }
             }
             document.getElementById('followup-body').innerHTML = generateFollowupHtml(followupList);
 
@@ -521,10 +532,11 @@
             safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + b.revenue, 0)));
         }
 
-        function generateGroupedHtml(list, fmt) {
+        // Yardımcı HTML Render Fonksiyonları
+        function generateCustomerHtml(list, fmt) {
             const grouped = list.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [], total: 0 }; acc[curr.branch].items.push(curr); acc[curr.branch].total += curr.revenue; return acc; }, {});
             return Object.keys(grouped)
-                .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)) // Şubeleri özel sıraya göre diz
+                .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b))
                 .map(branch => `
                 <tr class="bg-slate-50/50"><td colspan="3" class="px-10 py-4 font-black text-indigo-900 text-[11px] uppercase tracking-[0.3em] border-y border-slate-100"><i class="fas fa-location-dot mr-4 text-indigo-500"></i> ${branch}</td></tr>` + 
                 grouped[branch].items.map((item, idx) => `<tr><td class="text-center text-slate-300 font-black text-[10px] italic">${idx + 1}</td><td class="font-bold text-slate-700 tracking-tight">${item.customerNo}</td><td class="text-right font-extrabold text-slate-900 px-10">${fmt(item.revenue)}</td></tr>`).join('') + 
@@ -535,14 +547,34 @@
         function generateFollowupHtml(list) {
             const grouped = list.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [] }; acc[curr.branch].items.push(curr); return acc; }, {});
             return Object.keys(grouped)
-                .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)) // Şubeleri özel sıraya göre diz
+                .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b))
                 .map(branch => `
-                <tr class="bg-slate-50/50"><td colspan="4" class="px-10 py-4 font-black text-indigo-900 text-[11px] uppercase tracking-[0.3em] border-y border-slate-100"><i class="fas fa-headset mr-4 text-indigo-500"></i> ${branch}</td></tr>` + 
+                <tr>
+                    <td colspan="4" class="px-10 py-4 border-y border-slate-100 bg-slate-50/50">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="font-black text-indigo-900 text-[11px] uppercase tracking-[0.3em]">
+                                <i class="fas fa-headset mr-4 text-indigo-500"></i> ${branch}
+                            </span>
+                            <span class="text-indigo-700 bg-indigo-100/80 px-4 py-1.5 rounded-full text-[12px] font-black tracking-widest">
+                                ${grouped[branch].items.length} ADET
+                            </span>
+                        </div>
+                    </td>
+                </tr>` + 
                 grouped[branch].items.map((item, idx) => {
-                    const status = item.status.toLowerCase().trim();
-                    const isAranacak = status === 'tekrar aranacak';
-                    const badgeClass = isAranacak ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-indigo-100 text-indigo-700 border border-indigo-200';
-                    const label = isAranacak ? 'Tekrar Aranacak' : 'Mağazaya Gelecek';
+                    const status = (item.status || "").toLowerCase().trim();
+                    const callStatus = (item.callStatus || "").toLowerCase().trim();
+                    
+                    let badgeClass = 'bg-indigo-100 text-indigo-700 border border-indigo-200';
+                    let label = 'Mağazaya Gelecek';
+                    
+                    if (callStatus === 'aranmadı') {
+                        badgeClass = 'bg-rose-100 text-rose-700 border border-rose-200';
+                        label = 'Aranmadı';
+                    } else if (status === 'tekrar aranacak') {
+                        badgeClass = 'bg-amber-100 text-amber-700 border border-amber-200';
+                        label = 'Tekrar Aranacak';
+                    }
                     
                     return `
                     <tr>
@@ -562,75 +594,12 @@
         function generateUnspecifiedHtml(list, fmt) {
             const grouped = list.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [], total: 0 }; acc[curr.branch].items.push(curr); acc[curr.branch].total += curr.revenue; return acc; }, {});
             return Object.keys(grouped)
-                .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)) // Şubeleri özel sıraya göre diz
+                .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b))
                 .map(branch => `
                 <tr class="bg-rose-50/50"><td colspan="4" class="px-10 py-4 font-black text-rose-900 text-[11px] uppercase tracking-[0.3em] border-y border-rose-100"><i class="fas fa-circle-exclamation mr-4 text-rose-500"></i> ${branch}</td></tr>` + 
                 grouped[branch].items.map((item, idx) => `<tr><td class="text-center text-rose-200 font-black text-[10px] italic">${idx + 1}</td><td class="font-black uppercase text-slate-900 tracking-tighter">${item.customerName || "---"}</td><td class="text-rose-500 font-bold text-[10px] italic uppercase opacity-60">Numara Eksik</td><td class="text-right font-black text-rose-800 px-10">${fmt(item.revenue)}</td></tr>`).join('') + 
                 `<tr class="bg-white"><td colspan="3" class="text-rose-900 font-black px-10 text-[9px] tracking-[0.3em] uppercase">Şube Toplamı</td><td class="font-black text-rose-700 text-lg px-10 text-right">${fmt(grouped[branch].total)}</td></tr>`
             ).join('') || '<tr><td colspan="4" class="py-32 text-center text-slate-300 italic uppercase text-xs tracking-widest">Tüm kayıtlar eksiksiz.</td></tr>';
-        }
-
-        function exportToExcel() {
-            if (!currentData) return;
-            const period = document.getElementById('periodSelector').value;
-            const selectedBranch = document.getElementById('branchSelector').value;
-            const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
-
-            const wb = XLSX.utils.book_new(); const currencyFormat = '#,##0"₺"';
-            let wsData = []; let fileName = `Hedef_AVM_${activeTab}_${selectedBranch}_${period}.xlsx`.replace(/ /g, '_');
-            const branchText = selectedBranch === "Tümü" ? "TÜM ŞUBELER" : selectedBranch.toUpperCase();
-
-            wsData.push([branchText + " - " + period.toUpperCase() + " RAPORU"]);
-            wsData.push(["GENEL TÜM ŞUBELERİN TOPLAM TUTARI:", currentData.kpis.totalRevenue]);
-            wsData.push([]);
-
-            if (activeTab === 'dashboard') {
-                wsData.push(["SIRA", "ŞUBE ADI", "SATIŞA DÖNEN (ADET)", "TOPLAM TUTAR (TL)"]);
-                let list = currentData.charts.branch;
-                if (selectedBranch !== "Tümü") list = list.filter(b => b.name === selectedBranch);
-                // Özel Sıralamayı Uygula
-                list.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
-                list.forEach((b, i) => wsData.push([i+1, b.name.toUpperCase(), b.sales, b.revenue]));
-            } else if (activeTab === 'customers') {
-                wsData.push(["ŞUBE", "MÜŞTERİ NO", "İŞLEM TUTARI (TL)"]);
-                let list = currentData.customerList.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
-                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
-                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
-                list.forEach(i => wsData.push([i.branch.toUpperCase(), i.customerNo, i.revenue]));
-            } else if (activeTab === 'followup') {
-                wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "TELEFON NO", "AKSİYON DURUMU"]);
-                let list = currentData.customerList.filter(i => {
-                    const s = i.status.toLowerCase().trim();
-                    return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek';
-                });
-                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
-                if (selectedAction !== "tümü") list = list.filter(i => i.status.toLowerCase().trim() === selectedAction);
-                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
-                list.forEach(i => wsData.push([i.branch.toUpperCase(), i.customerName.toUpperCase(), i.phone, i.status.toUpperCase()]));
-            } else {
-                wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "DURUM", "İŞLEM TUTARI (TL)"]);
-                let list = currentData.customerList.filter(i => i.revenue > 0 && (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş"));
-                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
-                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
-                list.forEach(i => wsData.push([i.branch.toUpperCase(), i.customerName.toUpperCase(), "NO BELİRTİLMEMİŞ", i.revenue]));
-            }
-
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            const moneyIdx = activeTab === 'unspecified' ? 3 : (activeTab === 'customers' ? 2 : 3);
-            
-            const totalCellRef = XLSX.utils.encode_cell({ r: 1, c: 1 });
-            if (ws[totalCellRef]) ws[totalCellRef].z = currencyFormat;
-
-            if (activeTab !== 'followup') {
-                for (let R = 3; R <= range.e.r; ++R) {
-                    const cell = ws[XLSX.utils.encode_cell({ r: R, c: moneyIdx })];
-                    if (cell && typeof cell.v === 'number') cell.z = currencyFormat;
-                }
-            }
-            ws['!cols'] = [{wch: 35}, {wch: 35}, {wch: 25}, {wch: 25}];
-            XLSX.utils.book_append_sheet(wb, ws, "Hedef AVM Raporu");
-            XLSX.writeFile(wb, fileName);
         }
     </script>
 </body>
