@@ -818,7 +818,113 @@
                 </div>
             `;
 
+            // Dinamik dosya ismi için title değiştirme (Tarayıcı PDF ismini buradan alır)
+            const originalTitle = document.title;
+            let pdfFileName = `${branchText} ${period.toUpperCase()}`;
+            
+            if (activeTab === 'followup' && selectedAction !== 'tümü') {
+                // Özel aksiyon seçildiyse (Örn: Aranmadı)
+                pdfFileName += ` - ${selectedAction.toUpperCase()}`;
+            } else if (activeTab === 'followup') {
+                pdfFileName += ` - TAKİP LİSTESİ`;
+            } else if (activeTab === 'customers') {
+                pdfFileName += ` - MÜŞTERİ LİSTESİ`;
+            } else if (activeTab === 'unspecified') {
+                pdfFileName += ` - NO BELİRTİLMEYENLER`;
+            } else {
+                pdfFileName += ` - GENEL ÖZET`;
+            }
+
+            // Sayfa başlığını dosya ismi olacak şekilde ayarla
+            document.title = pdfFileName;
+
+            // Yazdırma/PDF Kaydetme penceresini aç
             window.print();
+
+            // İşlem bittikten sonra sayfa başlığını orijinal haline geri döndür
+            setTimeout(() => {
+                document.title = originalTitle;
+            }, 1000);
+            window.onafterprint = () => {
+                document.title = originalTitle;
+            };
+        }
+
+        function exportToExcel() {
+            if (!currentData) return;
+            const period = document.getElementById('periodSelector').value;
+            const selectedBranch = document.getElementById('branchSelector').value;
+            const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
+
+            const wb = XLSX.utils.book_new(); const currencyFormat = '#,##0"₺"';
+            let wsData = []; let fileName = `Hedef_AVM_${activeTab}_${selectedBranch}_${period}.xlsx`.replace(/ /g, '_');
+            const branchText = selectedBranch === "Tümü" ? "TÜM ŞUBELER" : selectedBranch.toUpperCase();
+
+            wsData.push([branchText + " - " + period.toUpperCase() + " RAPORU"]);
+            wsData.push(["GENEL TÜM ŞUBELERİN TOPLAM TUTARI:", currentData.kpis.totalRevenue]);
+            wsData.push([]);
+
+            if (activeTab === 'dashboard') {
+                wsData.push(["SIRA", "ŞUBE ADI", "SATIŞA DÖNEN (ADET)", "TOPLAM TUTAR (TL)"]);
+                let list = currentData.charts.branch;
+                if (selectedBranch !== "Tümü") list = list.filter(b => b.name === selectedBranch);
+                // Özel Sıralamayı Uygula
+                list.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
+                list.forEach((b, i) => wsData.push([i+1, b.name.toUpperCase(), b.sales, b.revenue]));
+            } else if (activeTab === 'customers') {
+                wsData.push(["ŞUBE", "MÜŞTERİ NO", "İŞLEM TUTARI (TL)"]);
+                let list = currentData.customerList.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
+                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
+                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
+                list.forEach(i => wsData.push([i.branch.toUpperCase(), i.customerNo, i.revenue]));
+            } else if (activeTab === 'followup') {
+                wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "AKSİYON DURUMU"]);
+                let list = currentData.customerList.filter(i => {
+                    const s = (i.status || "").toLowerCase().trim();
+                    const cs = (i.callStatus || "").toLowerCase().trim();
+                    return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
+                });
+                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
+                if (selectedAction !== "tümü") {
+                    if (selectedAction === "aranmadı") {
+                        list = list.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı');
+                    } else {
+                        list = list.filter(i => (i.status || "").toLowerCase().trim() === selectedAction);
+                    }
+                }
+                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
+                list.forEach(i => {
+                    const s = (i.status || "").toLowerCase().trim();
+                    const cs = (i.callStatus || "").toLowerCase().trim();
+                    let label = 'MAĞAZAYA GELECEK';
+                    if (cs === 'aranmadı') label = 'ARANMADI';
+                    else if (s === 'tekrar aranacak') label = 'TEKRAR ARANACAK';
+                    wsData.push([i.branch.toUpperCase(), (i.customerName || "---").toUpperCase(), label]);
+                });
+            } else {
+                wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "DURUM", "İŞLEM TUTARI (TL)"]);
+                let list = currentData.customerList.filter(i => i.revenue > 0 && (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş"));
+                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
+                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
+                list.forEach(i => wsData.push([i.branch.toUpperCase(), (i.customerName || "---").toUpperCase(), "NO BELİRTİLMEMİŞ", i.revenue]));
+            }
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            const moneyIdx = activeTab === 'unspecified' ? 3 : (activeTab === 'customers' ? 2 : 3);
+            
+            const totalCellRef = XLSX.utils.encode_cell({ r: 1, c: 1 });
+            if (ws[totalCellRef]) ws[totalCellRef].z = currencyFormat;
+
+            if (activeTab !== 'followup') {
+                for (let R = 3; R <= range.e.r; ++R) {
+                    const cell = ws[XLSX.utils.encode_cell({ r: R, c: moneyIdx })];
+                    if (cell && typeof cell.v === 'number') cell.z = currencyFormat;
+                }
+            }
+            ws['!cols'] = [{wch: 35}, {wch: 35}, {wch: 25}, {wch: 25}];
+            XLSX.utils.book_append_sheet(wb, ws, "Hedef AVM Raporu");
+            XLSX.writeFile(wb, fileName);
         }
     </script>
 </body>
