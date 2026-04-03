@@ -220,8 +220,14 @@
                     <i class="fas fa-calendar-days absolute right-5 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none"></i>
                 </div>
                 
+                <!-- Excel İndir -->
+                <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white h-12 px-6 rounded-2xl text-xs font-black flex items-center justify-center gap-3 transition-all shadow-lg shadow-emerald-600/20 active:scale-95">
+                    <i class="fas fa-file-excel text-lg"></i>
+                    <span class="hidden md:inline uppercase tracking-widest">Excel İndir</span>
+                </button>
+
                 <!-- PDF İndir (Özel Format) -->
-                <button onclick="printReport()" class="bg-rose-600 hover:bg-rose-700 text-white h-12 px-8 rounded-2xl text-xs font-black flex items-center justify-center gap-3 transition-all shadow-lg shadow-rose-600/20 active:scale-95">
+                <button onclick="printReport()" class="bg-rose-600 hover:bg-rose-700 text-white h-12 px-6 rounded-2xl text-xs font-black flex items-center justify-center gap-3 transition-all shadow-lg shadow-rose-600/20 active:scale-95">
                     <i class="fas fa-file-pdf text-lg"></i>
                     <span class="hidden md:inline uppercase tracking-widest">PDF İndir</span>
                 </button>
