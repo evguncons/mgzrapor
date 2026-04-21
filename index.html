@@ -144,7 +144,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.1</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.2</p>
                 </div>
             </div>
         </div>
@@ -204,6 +204,11 @@
                 <div class="h-6 w-px bg-slate-200 mx-1 hidden md:block"></div>
 
                 <!-- Dışa Aktar Butonları -->
+                <button onclick="printSummaryReport()" class="bg-brand-50 hover:bg-brand-100 text-brand-600 border border-brand-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95" title="Aksiyon Özeti">
+                    <i class="fas fa-list-ol text-sm"></i>
+                    <span class="hidden xl:inline">Özet PDF</span>
+                </button>
+
                 <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95" title="Excel İndir">
                     <i class="fas fa-file-excel text-sm"></i>
                     <span class="hidden xl:inline">Excel</span>
@@ -618,6 +623,99 @@
                 grouped[branch].items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-medium text-xs">${idx + 1}</td><td class="font-semibold text-slate-700">${item.customerName || "---"}</td><td><span class="badge badge-rose">Numara Eksik</span></td><td class="text-right font-bold text-slate-800">${fmt(item.revenue)}</td></tr>`).join('') + 
                 `<tr><td colspan="3" class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 text-right">Şube Toplamı</td><td class="font-bold text-rose-600 text-base bg-slate-50/50 text-right">${fmt(grouped[branch].total)}</td></tr>`
             ).join('') || '<tr><td colspan="4" class="py-12 text-center text-slate-400 text-sm">Tüm kayıtlar eksiksiz.</td></tr>';
+        }
+
+        function printSummaryReport() {
+            if (!currentData) { alert("Lütfen önce verilerin yüklenmesini bekleyin."); return; }
+            const period = document.getElementById('periodSelector').value || 'Belirtilmemiş';
+
+            let list = currentData.customerList;
+            let followupList = list.filter(i => {
+                const s = (i.status || "").toLowerCase().trim();
+                const cs = (i.callStatus || "").toLowerCase().trim();
+                return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
+            });
+
+            const branchStats = {};
+            followupList.forEach(item => {
+                const branch = item.branch;
+                const s = (item.status || "").toLowerCase().trim();
+                const cs = (item.callStatus || "").toLowerCase().trim();
+
+                if (!branchStats[branch]) {
+                    branchStats[branch] = { name: branch, aranmadi: 0, tekrar: 0, gelecek: 0, total: 0 };
+                }
+
+                if (cs === 'aranmadı') {
+                    branchStats[branch].aranmadi++;
+                } else if (s === 'tekrar aranacak') {
+                    branchStats[branch].tekrar++;
+                } else if (s === 'müşteri mağazaya gelecek') {
+                    branchStats[branch].gelecek++;
+                }
+                branchStats[branch].total++;
+            });
+
+            const sortedBranches = Object.values(branchStats).sort((a, b) => b.total - a.total);
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('tr-TR') + " " + now.toLocaleTimeString('tr-TR');
+
+            let tableHtml = `<table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px; text-align: center;">SIRA</th>
+                        <th>ŞUBE ADI</th>
+                        <th style="text-align:center">ARANMADI</th>
+                        <th style="text-align:center">TEKRAR ARANACAK</th>
+                        <th style="text-align:center">MAĞAZAYA GELECEK</th>
+                        <th style="text-align:center">TOPLAM AKSİYON</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            sortedBranches.forEach((b, i) => {
+                tableHtml += `
+                    <tr>
+                        <td style="text-align:center; font-weight:bold;">${i + 1}</td>
+                        <td style="font-weight:bold;">${b.name.toUpperCase()}</td>
+                        <td style="text-align:center; color:#e11d48; font-weight:bold;">${b.aranmadi}</td>
+                        <td style="text-align:center; color:#d97706; font-weight:bold;">${b.tekrar}</td>
+                        <td style="text-align:center; color:#4f46e5; font-weight:bold;">${b.gelecek}</td>
+                        <td style="text-align:center; font-weight:900; font-size:12px;">${b.total}</td>
+                    </tr>
+                `;
+            });
+
+            if (sortedBranches.length === 0) {
+                tableHtml += `<tr><td colspan="6" style="text-align:center; padding: 20px;">Takip verisi bulunamadı.</td></tr>`;
+            }
+
+            tableHtml += `</tbody></table>`;
+
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="margin-bottom:5px; font-size:26px; color: #1e293b; letter-spacing: -0.05em;">HEDEF AVM YÖNETİM RAPORU</h1>
+                    <h2 style="margin-top:0; font-size:16px; color:#64748b; font-weight: 500;">ŞUBE BAZLI AKSİYON ÖZETİ (TOPLAM İŞ YÜKÜNE GÖRE SIRALI)</h2>
+                </div>
+                <div style="display:flex; justify-content: space-between; font-size:11px; font-weight: bold; color:#475569; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 25px; text-transform: uppercase;">
+                    <span>DÖNEM: ${period.toUpperCase()}</span>
+                    <span>RAPOR TÜRÜ: TAKİP & AKSİYON ÖZETİ</span>
+                    <span>TARİH: ${dateStr}</span>
+                </div>
+                ${tableHtml}
+                <div style="text-align:center; font-size:10px; font-weight: bold; color:#94a3b8; margin-top:40px; border-top: 1px solid #e2e8f0; padding-top:15px; text-transform: uppercase; letter-spacing: 1px;">
+                    Bu rapor Hedef AVM Gelişmiş Yönetim Paneli tarafından otomatik olarak oluşturulmuştur.
+                </div>
+            `;
+
+            const originalTitle = document.title;
+            const pdfFileName = `TÜM ŞUBELER ${period.toUpperCase()} - AKSİYON ÖZETİ`;
+            document.title = pdfFileName;
+            window.print();
+            setTimeout(() => { document.title = originalTitle; }, 1000);
+            window.onafterprint = () => { document.title = originalTitle; };
         }
 
         function printReport() {
