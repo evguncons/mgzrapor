@@ -23,12 +23,12 @@
                             50: '#f5f3ff',
                             100: '#ede9fe',
                             500: '#8b5cf6',
-                            600: '#7c3aed', // Primary Violet
+                            600: '#7c3aed', 
                             900: '#4c1d95',
                             950: '#2e1065',
                         },
-                        sidebar: '#0f172a', // Slate 900
-                        sidebarActive: '#1e293b', // Slate 800
+                        sidebar: '#0f172a',
+                        sidebarActive: '#1e293b',
                     },
                     boxShadow: {
                         'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.04)',
@@ -41,7 +41,6 @@
     <style>
         body { background-color: #f8fafc; color: #334155; overflow: hidden; }
         
-        /* Premium Sidebar */
         #sidebar { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .nav-link { @apply flex items-center gap-4 px-6 py-3.5 rounded-2xl text-slate-500 font-medium text-sm transition-all duration-300 border border-transparent; }
         .nav-link:hover { @apply text-brand-600 bg-slate-50; }
@@ -49,12 +48,10 @@
         .nav-link i { @apply text-lg w-6 text-center transition-transform duration-300; }
         .nav-link.active i { @apply scale-110; }
 
-        /* KPI Cards */
         .stat-card { @apply bg-white p-8 rounded-3xl border border-slate-100 shadow-soft transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative overflow-hidden; }
         .stat-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100px; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: skewX(-20deg) translateX(-150%); transition: 0.5s; }
         .stat-card:hover::after { transform: skewX(-20deg) translateX(200%); }
         
-        /* Modern Tables */
         .table-wrapper { @apply bg-white rounded-3xl border border-slate-200/60 shadow-soft overflow-hidden; }
         .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
         .modern-table th { @apply bg-slate-50/50 text-slate-400 font-semibold py-5 px-8 text-left text-[11px] uppercase tracking-wider border-b border-slate-100; }
@@ -62,37 +59,27 @@
         .modern-table tr:hover td { @apply bg-slate-50/50; }
         .modern-table tr:last-child td { border-b: 0; }
 
-        /* Status Badges */
         .badge { @apply px-3 py-1.5 rounded-full text-[11px] font-bold tracking-wide uppercase border; }
         .badge-rose { @apply bg-rose-50 text-rose-600 border-rose-100; }
         .badge-amber { @apply bg-amber-50 text-amber-600 border-amber-100; }
         .badge-emerald { @apply bg-emerald-50 text-emerald-600 border-emerald-100; }
         .badge-brand { @apply bg-brand-50 text-brand-600 border-brand-100; }
 
-        /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        @media (max-width: 1024px) {
-            #sidebar.closed { transform: translateX(-100%); }
-        }
+        @media (max-width: 1024px) { #sidebar.closed { transform: translateX(-100%); } }
 
-        /* PDF Çıktısı (Yazdırma) CSS */
         #printArea { display: none; }
         @media print {
             html, body { height: auto !important; width: auto !important; overflow: visible !important; background-color: white !important; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            
-            /* Arayüzdeki tüm öğeleri gizle */
             body > * { display: none !important; }
-            
-            /* Sadece yazdırma alanını göster */
             body > #printArea { display: block !important; width: 100%; color: black; font-family: 'Outfit', sans-serif; padding: 20px; }
             .print-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; }
             .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px 12px; text-align: left; }
             .print-table th { background-color: #f1f5f9 !important; font-weight: 800; color: #334155; }
-            .print-table tr:nth-child(even) { background-color: #f8fafc !important; }
             .print-summary { display: flex; justify-content: space-between; background-color: #f8fafc !important; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
             .print-summary-item { text-align: center; }
             .print-summary-value { font-size: 18px; font-weight: 800; color: #1e293b; }
@@ -102,15 +89,14 @@
 </head>
 <body class="flex h-screen w-full overflow-hidden font-sans antialiased">
 
-    <!-- Mobile Overlay -->
     <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity"></div>
 
-    <!-- SIDEBAR (Light Premium) -->
+    <!-- SIDEBAR -->
     <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-[280px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 z-40 closed lg:transform-none shadow-2xl lg:shadow-none">
         <div class="h-24 flex items-center px-8 shrink-0 border-b border-slate-100">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-glow">
-                    <i class="fas fa-chart-simple text-white text-lg"></i>
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-glow text-white">
+                    <i class="fas fa-chart-simple text-lg"></i>
                 </div>
                 <div>
                     <h1 class="text-slate-800 font-bold text-xl tracking-tight leading-none">Hedef <span class="font-light text-slate-400">AVM</span></h1>
@@ -144,16 +130,13 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.2</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.6.2</p>
                 </div>
             </div>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col min-w-0 relative">
-        
-        <!-- HEADER (Glassmorphism) -->
         <header class="h-20 bg-white/60 backdrop-blur-xl border-b border-slate-200/50 px-6 lg:px-10 flex items-center justify-between z-20 shrink-0 sticky top-0">
             <div class="flex items-center gap-5">
                 <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-all shadow-sm">
@@ -169,14 +152,12 @@
             </div>
             
             <div class="flex items-center gap-3">
-                <!-- Refresh Button -->
                 <button onclick="fetchData()" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-slate-50 text-slate-600 rounded-xl border border-slate-200 transition-all active:scale-95 shadow-sm group" title="Verileri Güncelle">
                     <i class="fas fa-rotate-right group-active:rotate-180 transition-transform duration-500"></i>
                 </button>
 
-                <!-- Aksiyon Filtresi -->
                 <div id="followupFilterContainer" class="relative group hidden">
-                    <select id="followupFilter" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl pl-4 pr-10 py-2.5 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none cursor-pointer transition-all shadow-sm">
+                    <select id="followupFilter" onchange="render(currentData)" class="appearance-none bg-white border border-brand-500/50 text-slate-700 text-xs font-semibold rounded-xl pl-4 pr-10 py-2.5 outline-none cursor-pointer shadow-sm">
                         <option value="Tümü">Tüm Aksiyonlar</option>
                         <option value="aranmadı">Aranmadı</option>
                         <option value="müşteri mağazaya gelecek">Mağazaya Gelecek</option>
@@ -185,17 +166,15 @@
                     <i class="fas fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                 </div>
 
-                <!-- Şube Seçimi -->
                 <div id="branchFilterContainer" class="relative group hidden sm:block">
-                    <select id="branchSelector" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl pl-4 pr-10 py-2.5 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none cursor-pointer transition-all shadow-sm">
+                    <select id="branchSelector" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl pl-4 pr-10 py-2.5 outline-none cursor-pointer shadow-sm">
                         <option value="Tümü">Tüm Şubeler</option>
                     </select>
                     <i class="fas fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                 </div>
 
-                <!-- Dönem Seçimi -->
                 <div class="relative group">
-                    <select id="periodSelector" onchange="fetchData()" class="appearance-none bg-slate-800 border border-slate-800 text-white text-xs font-semibold rounded-xl pl-4 pr-10 py-2.5 focus:ring-2 focus:ring-slate-500 outline-none cursor-pointer transition-all shadow-sm">
+                    <select id="periodSelector" onchange="fetchData()" class="appearance-none bg-slate-800 border border-slate-800 text-white text-xs font-semibold rounded-xl pl-4 pr-10 py-2.5 outline-none cursor-pointer shadow-sm">
                         <option value="">Yükleniyor...</option>
                     </select>
                     <i class="fas fa-calendar absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
@@ -203,7 +182,6 @@
                 
                 <div class="h-6 w-px bg-slate-200 mx-1 hidden md:block"></div>
 
-                <!-- Dışa Aktar Butonları -->
                 <button onclick="printSummaryReport()" class="bg-brand-50 hover:bg-brand-100 text-brand-600 border border-brand-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95" title="Aksiyon Özeti">
                     <i class="fas fa-list-ol text-sm"></i>
                     <span class="hidden xl:inline">Özet PDF</span>
@@ -221,14 +199,11 @@
             </div>
         </header>
 
-        <!-- CONTENT AREA -->
         <div id="report-container" class="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar">
             
             <!-- DASHBOARD TAB -->
             <div id="tab-dashboard" class="space-y-8 max-w-[1400px] mx-auto">
-                <!-- KPI Section -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Total Revenue -->
                     <div class="stat-card group">
                         <div class="flex justify-between items-start mb-6">
                             <div>
@@ -245,7 +220,6 @@
                         </div>
                     </div>
 
-                    <!-- Total Sales -->
                     <div class="stat-card group">
                         <div class="flex justify-between items-start mb-6">
                             <div>
@@ -262,7 +236,6 @@
                         </div>
                     </div>
 
-                    <!-- Avg Basket -->
                     <div class="stat-card group">
                         <div class="flex justify-between items-start mb-6">
                             <div>
@@ -279,7 +252,6 @@
                     </div>
                 </div>
 
-                <!-- Branch Performance Table -->
                 <div class="table-wrapper">
                     <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
                         <div>
@@ -289,24 +261,9 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="modern-table">
-                            <thead>
-                                <tr>
-                                    <th class="w-16 text-center">#</th>
-                                    <th>Şube Tanımı</th>
-                                    <th class="text-right">Satış (Adet)</th>
-                                    <th class="text-right">Toplam Tutar</th>
-                                </tr>
-                            </thead>
-                            <tbody id="branch-body">
-                                <tr><td colspan="4" class="py-20 text-center text-slate-400 text-sm">Veriler senkronize ediliyor...</td></tr>
-                            </tbody>
-                            <tfoot class="bg-slate-50/80">
-                                <tr>
-                                    <td colspan="2" class="py-6 px-8 text-right font-bold text-slate-500 text-[11px] uppercase tracking-wider">Genel Toplam</td>
-                                    <td id="total-sales-val" class="text-right py-6 px-8 font-extrabold text-emerald-600 text-base">0</td>
-                                    <td id="total-revenue-val" class="text-right py-6 px-8 font-extrabold text-brand-600 text-lg">₺0</td>
-                                </tr>
-                            </tfoot>
+                            <thead><tr><th class="w-16 text-center">#</th><th>Şube Tanımı</th><th class="text-right">Satış (Adet)</th><th class="text-right">Toplam Tutar</th></tr></thead>
+                            <tbody id="branch-body"></tbody>
+                            <tfoot class="bg-slate-50/80"><tr><td colspan="2" class="py-6 px-8 text-right font-bold text-slate-500 text-[11px] uppercase tracking-wider">Genel Toplam</td><td id="total-sales-val" class="text-right py-6 px-8 font-extrabold text-emerald-600 text-base">0</td><td id="total-revenue-val" class="text-right py-6 px-8 font-extrabold text-brand-600 text-lg">₺0</td></tr></tfoot>
                         </table>
                     </div>
                 </div>
@@ -314,61 +271,20 @@
 
             <!-- CUSTOMERS TAB -->
             <div id="tab-customers" class="hidden space-y-8 max-w-[1400px] mx-auto">
-                <div class="bg-gradient-to-r from-brand-900 to-brand-700 rounded-3xl p-10 text-white shadow-soft relative overflow-hidden flex items-center justify-between">
-                    <div class="relative z-10">
-                        <h3 class="text-3xl font-bold tracking-tight mb-2">Müşteri Detay Çizelgesi</h3>
-                        <p class="text-brand-200 text-sm">Satışa dönen ve işlemi onaylanan müşteri kayıtları.</p>
-                    </div>
-                    <div class="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2 rounded-xl">
-                        <span class="text-[10px] font-bold text-brand-100 uppercase tracking-widest block mb-0.5">Seçili Dönem</span>
-                        <span id="customer-period-text" class="text-white font-bold text-sm">---</span>
-                    </div>
-                    <i class="fas fa-users absolute -right-10 -bottom-10 text-9xl text-white opacity-5"></i>
-                </div>
-                
                 <div class="table-wrapper">
                     <table class="modern-table">
-                        <thead>
-                            <tr>
-                                <th class="w-20 text-center">No</th>
-                                <th>Müşteri Kodu (F Sütunu)</th>
-                                <th class="text-right">İşlem Tutarı (TRY)</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th class="w-20 text-center">No</th><th>Müşteri No</th><th>Telefon (E Sütunu)</th><th class="text-right">Tutar (TRY)</th></tr></thead>
                         <tbody id="customer-body-specified"></tbody>
-                        <tfoot class="bg-slate-50/80 border-t border-slate-200">
-                            <tr>
-                                <td colspan="2" class="text-right py-6 px-8 font-bold text-slate-500 text-[11px] uppercase tracking-wider">Liste Toplamı</td>
-                                <td id="customer-total-val" class="text-right py-6 px-8 font-extrabold text-brand-600 text-xl">₺0</td>
-                            </tr>
-                        </tfoot>
+                        <tfoot class="bg-slate-50/80 border-t border-slate-200"><tr><td colspan="3" class="text-right py-6 px-8 font-bold text-slate-500 text-[11px] uppercase">Liste Toplamı</td><td id="customer-total-val" class="text-right py-6 px-8 font-extrabold text-brand-600 text-xl">₺0</td></tr></tfoot>
                     </table>
                 </div>
             </div>
 
             <!-- FOLLOW-UP TAB -->
             <div id="tab-followup" class="hidden space-y-8 max-w-[1400px] mx-auto">
-                <div class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-3xl p-10 text-white shadow-soft relative overflow-hidden flex items-center justify-between">
-                    <div class="relative z-10">
-                        <h3 class="text-3xl font-bold tracking-tight mb-2">Takip ve Aksiyon Listesi</h3>
-                        <p class="text-slate-400 text-sm">Aranacak, mağazaya gelecek veya iletişim kurulmamış kayıtlar.</p>
-                    </div>
-                    <div class="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2 rounded-xl">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Seçili Dönem</span>
-                        <span id="followup-period-text" class="text-white font-bold text-sm">---</span>
-                    </div>
-                    <i class="fas fa-headset absolute -right-10 -bottom-10 text-9xl text-white opacity-[0.03]"></i>
-                </div>
-                
                 <div class="table-wrapper">
                     <table class="modern-table">
-                        <thead>
-                            <tr>
-                                <th class="w-16 text-center">#</th>
-                                <th>Müşteri Ad Soyad</th>
-                                <th>Aksiyon Durumu</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th class="w-16 text-center">#</th><th>Müşteri Ad Soyad</th><th>Telefon (E Sütunu)</th><th>Aksiyon Durumu</th></tr></thead>
                         <tbody id="followup-body"></tbody>
                     </table>
                 </div>
@@ -376,62 +292,31 @@
 
             <!-- UNSPECIFIED TAB -->
             <div id="tab-unspecified" class="hidden space-y-8 max-w-[1400px] mx-auto">
-                <div class="bg-gradient-to-r from-rose-600 to-rose-500 rounded-3xl p-10 text-white shadow-soft relative overflow-hidden flex items-center justify-between">
-                    <div class="relative z-10">
-                        <h3 class="text-3xl font-bold tracking-tight mb-2">No Belirtilmeyenler</h3>
-                        <p class="text-rose-100 text-sm">Müşteri numarası eksik veya hatalı girilmiş işlemler.</p>
-                    </div>
-                    <div class="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2 rounded-xl">
-                        <span class="text-[10px] font-bold text-rose-200 uppercase tracking-widest block mb-0.5">Seçili Dönem</span>
-                        <span id="unspecified-period-text" class="text-white font-bold text-sm">---</span>
-                    </div>
-                    <i class="fas fa-triangle-exclamation absolute -right-10 -bottom-10 text-9xl text-white opacity-10"></i>
-                </div>
-                
                 <div class="table-wrapper">
                     <table class="modern-table">
-                        <thead>
-                            <tr>
-                                <th class="w-16 text-center">#</th>
-                                <th>Müşteri Tanımı</th>
-                                <th>Durum</th>
-                                <th class="text-right">Tutar (TRY)</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th class="w-16 text-center">#</th><th>Müşteri Tanımı</th><th>Durum</th><th class="text-right">Tutar (TRY)</th></tr></thead>
                         <tbody id="unspecified-body"></tbody>
-                        <tfoot class="bg-rose-50/50 border-t border-rose-100">
-                            <tr>
-                                <td colspan="3" class="text-right py-6 px-8 font-bold text-rose-400 text-[11px] uppercase tracking-wider">Kayıtsız Toplam</td>
-                                <td id="unspecified-total-val" class="text-right py-6 px-8 font-extrabold text-rose-600 text-xl">₺0</td>
-                            </tr>
-                        </tfoot>
+                        <tfoot class="bg-rose-50/50 border-t border-rose-100"><tr><td colspan="3" class="text-right py-6 px-8 font-bold text-rose-400 text-[11px] uppercase">Kayıtsız Toplam</td><td id="unspecified-total-val" class="text-right py-6 px-8 font-extrabold text-rose-600 text-xl">₺0</td></tr></tfoot>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Global Loader Overlay -->
         <div id="loadingIndicator" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center hidden">
             <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-4">
-                <div class="w-10 h-10 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin"></div>
+                <div class="w-10 h-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
                 <p class="text-sm font-semibold text-slate-600">Veriler Senkronize Ediliyor...</p>
             </div>
         </div>
     </main>
 
-    <!-- Gizli Yazdırma Alanı (Sadece PDF Kayıt / Yazdırmada Görünür) -->
     <div id="printArea"></div>
 
     <script>
         const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwX2K6gBaSalxAuME90FUJVr086B9D4PKitB4MvqaD5_KNc-rSHI3UWDZIjyftU6quG/exec";
         let currentData = null; 
         let activeTab = 'dashboard';
-        
-        // Sabit Şube Sıralaması
-        const PREFERRED_BRANCH_ORDER = [
-            "PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ",
-            "ÇAYIROVA", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"
-        ];
+        const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
 
         function getBranchSortIndex(branchName) {
             if (!branchName) return 999;
@@ -443,11 +328,7 @@
         }
         
         const safeSetText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
-        
-        function toggleSidebar() { 
-            document.getElementById('sidebar').classList.toggle('closed'); 
-            document.getElementById('sidebarOverlay').classList.toggle('hidden'); 
-        }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('closed'); document.getElementById('sidebarOverlay').classList.toggle('hidden'); }
         function maybeCloseSidebar() { if (window.innerWidth < 1024) toggleSidebar(); }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -455,14 +336,14 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${new Date().getTime()}`);
+                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`);
                 const periods = await res.json();
                 if (periods && periods.length > 0) {
                     sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
                     sel.value = periods[0]; 
                     await fetchData();
                 }
-            } catch (e) { console.error("Dönem yüklenemedi:", e); }
+            } catch (e) { console.error(e); }
             finally { loader.classList.add('hidden'); }
         });
 
@@ -472,22 +353,20 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${new Date().getTime()}`);
+                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`);
                 currentData = await res.json();
                 populateBranchFilter(currentData);
                 render(currentData);
                 const now = new Date(); 
                 safeSetText('lastUpdateTime', now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'));
-            } catch (e) { console.error("Veri çekilemedi:", e); }
+            } catch (e) { console.error(e); }
             finally { loader.classList.add('hidden'); }
         }
 
         function populateBranchFilter(data) {
             const branchSelector = document.getElementById('branchSelector');
-            const currentSelection = branchSelector.value;
             const branches = [...new Set(data.customerList.map(i => i.branch))].sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
             branchSelector.innerHTML = '<option value="Tümü">Tüm Şubeler</option>' + branches.map(b => `<option value="${b}">${b}</option>`).join('');
-            if (branches.includes(currentSelection)) branchSelector.value = currentSelection;
         }
 
         function setTab(tab) {
@@ -496,367 +375,162 @@
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             document.getElementById(`btn-${tab}`).classList.add('active');
-            
-            const followupFilter = document.getElementById('followupFilterContainer');
-            followupFilter.classList.toggle('hidden', tab !== 'followup');
-
+            document.getElementById('followupFilterContainer').classList.toggle('hidden', tab !== 'followup');
             const titles = { dashboard: 'Performans Analizi', customers: 'Müşteri Detayları', followup: 'Takip Listesi', unspecified: 'No Belirtilmeyenler' };
             document.getElementById('tabTitle').innerText = titles[tab];
             if(currentData) render(currentData);
+        }
+
+        function groupDataByBranch(list) {
+            const grouped = {};
+            list.forEach(item => {
+                if (!grouped[item.branch]) grouped[item.branch] = [];
+                grouped[item.branch].push(item);
+            });
+            // Şubeleri öncelikli sıraya göre diz
+            return Object.keys(grouped).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)).map(branch => ({
+                branch: branch,
+                items: grouped[branch]
+            }));
         }
 
         function render(data) {
             if (!data) return;
             const selectedBranch = document.getElementById('branchSelector').value;
             const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
-            
             const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
 
-            let branchList = data.charts.branch;
-            let list = data.customerList;
-            if (selectedBranch !== "Tümü") {
-                branchList = branchList.filter(b => b.name === selectedBranch);
-                list = list.filter(i => i.branch === selectedBranch);
-            }
-
-            const salesCount = list.filter(i => (i.status || "").toLowerCase() === 'satışa döndü').length;
-            const totalRev = branchList.reduce((a,b) => a+b.revenue, 0);
-            
-            safeSetText('kpi-revenue', fmt(totalRev));
-            safeSetText('kpi-sales', num(salesCount));
-            safeSetText('kpi-basket', fmt(salesCount > 0 ? totalRev / salesCount : 0));
-
-            branchList.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
-
-            document.getElementById('branch-body').innerHTML = branchList.map((b, i) => `
-                <tr>
-                    <td class="text-center font-bold text-slate-400">${i+1}</td>
-                    <td class="font-bold text-slate-800">${b.name}</td>
-                    <td class="text-right font-semibold text-slate-500">${num(b.sales)}</td>
-                    <td class="text-right font-bold text-slate-800">${fmt(b.revenue)}</td>
-                </tr>
-            `).join('') || '<tr><td colspan="4" class="py-12 text-center text-slate-400 text-sm">Kayıt bulunamadı.</td></tr>';
-            
-            safeSetText('total-sales-val', num(salesCount));
-            safeSetText('total-revenue-val', fmt(totalRev));
-
-            safeSetText('customer-period-text', data.period);
-            safeSetText('followup-period-text', data.period);
-            safeSetText('unspecified-period-text', data.period);
-
-            // Customers
-            const specList = list.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
-            document.getElementById('customer-body-specified').innerHTML = generateCustomerHtml(specList, fmt);
-            safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + b.revenue, 0)));
-
-            // Follow-up
-            let followupList = list.filter(i => {
-                const s = (i.status || "").toLowerCase().trim();
-                const cs = (i.callStatus || "").toLowerCase().trim();
-                return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
-            });
-            if (selectedAction !== "tümü") {
-                if (selectedAction === "aranmadı") followupList = followupList.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı');
-                else followupList = followupList.filter(i => (i.status || "").toLowerCase().trim() === selectedAction);
-            }
-            document.getElementById('followup-body').innerHTML = generateFollowupHtml(followupList, selectedAction);
-
-            // Unspecified
-            const unspecList = list.filter(i => i.revenue > 0 && (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş"));
-            document.getElementById('unspecified-body').innerHTML = generateUnspecifiedHtml(unspecList, fmt);
-            safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + b.revenue, 0)));
-        }
-
-        function generateCustomerHtml(list, fmt) {
-            const grouped = list.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [], total: 0 }; acc[curr.branch].items.push(curr); acc[curr.branch].total += curr.revenue; return acc; }, {});
-            return Object.keys(grouped).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)).map(branch => `
-                <tr class="bg-slate-50"><td colspan="3" class="px-8 py-3 font-bold text-slate-800 text-[11px] uppercase tracking-wider"><i class="fas fa-building mr-2 text-slate-400"></i> ${branch}</td></tr>` + 
-                grouped[branch].items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-medium text-xs">${idx + 1}</td><td class="font-semibold text-slate-700">${item.customerNo}</td><td class="text-right font-bold text-slate-800">${fmt(item.revenue)}</td></tr>`).join('') + 
-                `<tr><td colspan="2" class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 text-right">Şube Toplamı</td><td class="font-bold text-brand-600 text-base bg-slate-50/50 text-right">${fmt(grouped[branch].total)}</td></tr>`
-            ).join('') || '<tr><td colspan="3" class="py-12 text-center text-slate-400 text-sm">Veri bulunamadı.</td></tr>';
-        }
-
-        function generateFollowupHtml(list, selectedAction = "tümü") {
-            const grouped = list.reduce((acc, curr) => { 
-                if(!acc[curr.branch]) acc[curr.branch] = { items: [], aranmadiCount: 0 }; 
-                acc[curr.branch].items.push(curr); 
-                if((curr.callStatus || "").toLowerCase().trim() === 'aranmadı') acc[curr.branch].aranmadiCount++;
-                return acc; 
-            }, {});
-
-            return Object.keys(grouped).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)).map(branch => {
-                const group = grouped[branch];
-                let badgeText = selectedAction === "tümü" ? `TOPLAM: ${group.items.length} | ARANMADI: ${group.aranmadiCount}` : 
-                                selectedAction === "aranmadı" ? `ARANMADI: ${group.items.length}` : 
-                                selectedAction === "tekrar aranacak" ? `TEKRAR ARANACAK: ${group.items.length}` : `MAĞAZAYA GELECEK: ${group.items.length}`;
-
-                return `
-                <tr class="bg-slate-50">
-                    <td colspan="3" class="px-8 py-3">
-                        <div class="flex justify-between items-center w-full">
-                            <span class="font-bold text-slate-800 text-[11px] uppercase tracking-wider"><i class="fas fa-building mr-2 text-slate-400"></i> ${branch}</span>
-                            <span class="text-slate-600 bg-white border border-slate-200 px-3 py-1 rounded-md text-[10px] font-bold tracking-wider shadow-sm">${badgeText}</span>
-                        </div>
-                    </td>
-                </tr>` + 
-                group.items.map((item, idx) => {
-                    const status = (item.status || "").toLowerCase().trim();
-                    const callStatus = (item.callStatus || "").toLowerCase().trim();
-                    let badgeClass = 'badge badge-brand'; let label = 'Mağazaya Gelecek';
-                    if (callStatus === 'aranmadı') { badgeClass = 'badge badge-rose'; label = 'Aranmadı'; }
-                    else if (status === 'tekrar aranacak') { badgeClass = 'badge badge-amber'; label = 'Tekrar Aranacak'; }
-                    return `
-                    <tr>
-                        <td class="text-center text-slate-400 font-medium text-xs">${idx + 1}</td>
-                        <td class="font-semibold text-slate-700">${item.customerName || "---"}</td>
-                        <td><span class="${badgeClass}">${label}</span></td>
-                    </tr>`;
-                }).join('');
-            }).join('') || '<tr><td colspan="3" class="py-12 text-center text-slate-400 text-sm">Takip listesi boş.</td></tr>';
-        }
-
-        function generateUnspecifiedHtml(list, fmt) {
-            const grouped = list.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [], total: 0 }; acc[curr.branch].items.push(curr); acc[curr.branch].total += curr.revenue; return acc; }, {});
-            return Object.keys(grouped).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)).map(branch => `
-                <tr class="bg-rose-50/50"><td colspan="4" class="px-8 py-3 font-bold text-rose-800 text-[11px] uppercase tracking-wider"><i class="fas fa-building mr-2 text-rose-400"></i> ${branch}</td></tr>` + 
-                grouped[branch].items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-medium text-xs">${idx + 1}</td><td class="font-semibold text-slate-700">${item.customerName || "---"}</td><td><span class="badge badge-rose">Numara Eksik</span></td><td class="text-right font-bold text-slate-800">${fmt(item.revenue)}</td></tr>`).join('') + 
-                `<tr><td colspan="3" class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 text-right">Şube Toplamı</td><td class="font-bold text-rose-600 text-base bg-slate-50/50 text-right">${fmt(grouped[branch].total)}</td></tr>`
-            ).join('') || '<tr><td colspan="4" class="py-12 text-center text-slate-400 text-sm">Tüm kayıtlar eksiksiz.</td></tr>';
-        }
-
-        function printSummaryReport() {
-            if (!currentData) { alert("Lütfen önce verilerin yüklenmesini bekleyin."); return; }
-            const period = document.getElementById('periodSelector').value || 'Belirtilmemiş';
-
-            let list = currentData.customerList;
-            let followupList = list.filter(i => {
-                const s = (i.status || "").toLowerCase().trim();
-                const cs = (i.callStatus || "").toLowerCase().trim();
-                return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
-            });
-
-            const branchStats = {};
-            followupList.forEach(item => {
-                const branch = item.branch;
-                const s = (item.status || "").toLowerCase().trim();
-                const cs = (item.callStatus || "").toLowerCase().trim();
-
-                if (!branchStats[branch]) {
-                    branchStats[branch] = { name: branch, aranmadi: 0, tekrar: 0, gelecek: 0, total: 0 };
-                }
-
-                if (cs === 'aranmadı') {
-                    branchStats[branch].aranmadi++;
-                } else if (s === 'tekrar aranacak') {
-                    branchStats[branch].tekrar++;
-                } else if (s === 'müşteri mağazaya gelecek') {
-                    branchStats[branch].gelecek++;
-                }
-                branchStats[branch].total++;
-            });
-
-            const sortedBranches = Object.values(branchStats).sort((a, b) => b.total - a.total);
-
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('tr-TR') + " " + now.toLocaleTimeString('tr-TR');
-
-            let tableHtml = `<table class="print-table">
-                <thead>
-                    <tr>
-                        <th style="width: 40px; text-align: center;">SIRA</th>
-                        <th>ŞUBE ADI</th>
-                        <th style="text-align:center">ARANMADI</th>
-                        <th style="text-align:center">TEKRAR ARANACAK</th>
-                        <th style="text-align:center">MAĞAZAYA GELECEK</th>
-                        <th style="text-align:center">TOPLAM AKSİYON</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-            sortedBranches.forEach((b, i) => {
-                tableHtml += `
-                    <tr>
-                        <td style="text-align:center; font-weight:bold;">${i + 1}</td>
-                        <td style="font-weight:bold;">${b.name.toUpperCase()}</td>
-                        <td style="text-align:center; color:#e11d48; font-weight:bold;">${b.aranmadi}</td>
-                        <td style="text-align:center; color:#d97706; font-weight:bold;">${b.tekrar}</td>
-                        <td style="text-align:center; color:#4f46e5; font-weight:bold;">${b.gelecek}</td>
-                        <td style="text-align:center; font-weight:900; font-size:12px;">${b.total}</td>
-                    </tr>
-                `;
-            });
-
-            if (sortedBranches.length === 0) {
-                tableHtml += `<tr><td colspan="6" style="text-align:center; padding: 20px;">Takip verisi bulunamadı.</td></tr>`;
-            }
-
-            tableHtml += `</tbody></table>`;
-
-            const printArea = document.getElementById('printArea');
-            printArea.innerHTML = `
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h1 style="margin-bottom:5px; font-size:26px; color: #1e293b; letter-spacing: -0.05em;">HEDEF AVM YÖNETİM RAPORU</h1>
-                    <h2 style="margin-top:0; font-size:16px; color:#64748b; font-weight: 500;">ŞUBE BAZLI AKSİYON ÖZETİ (TOPLAM İŞ YÜKÜNE GÖRE SIRALI)</h2>
-                </div>
-                <div style="display:flex; justify-content: space-between; font-size:11px; font-weight: bold; color:#475569; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 25px; text-transform: uppercase;">
-                    <span>DÖNEM: ${period.toUpperCase()}</span>
-                    <span>RAPOR TÜRÜ: TAKİP & AKSİYON ÖZETİ</span>
-                    <span>TARİH: ${dateStr}</span>
-                </div>
-                ${tableHtml}
-                <div style="text-align:center; font-size:10px; font-weight: bold; color:#94a3b8; margin-top:40px; border-top: 1px solid #e2e8f0; padding-top:15px; text-transform: uppercase; letter-spacing: 1px;">
-                    Bu rapor Hedef AVM Gelişmiş Yönetim Paneli tarafından otomatik olarak oluşturulmuştur.
-                </div>
-            `;
-
-            const originalTitle = document.title;
-            const pdfFileName = `TÜM ŞUBELER ${period.toUpperCase()} - AKSİYON ÖZETİ`;
-            document.title = pdfFileName;
-            window.print();
-            setTimeout(() => { document.title = originalTitle; }, 1000);
-            window.onafterprint = () => { document.title = originalTitle; };
-        }
-
-        function printReport() {
-            if (!currentData) { alert("Lütfen önce verilerin yüklenmesini bekleyin."); return; }
-            const period = document.getElementById('periodSelector').value || 'Belirtilmemiş';
-            const selectedBranch = document.getElementById('branchSelector').value;
-            const branchText = selectedBranch === "Tümü" ? "TÜM ŞUBELER" : selectedBranch.toUpperCase();
-            const selectedAction = document.getElementById('followupFilter') ? document.getElementById('followupFilter').value.toLowerCase() : 'tümü';
-            
-            let reportTitle = ""; let tableHtml = "";
-            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
-            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
-
-            let branchList = currentData.charts.branch; let list = currentData.customerList;
-            if (selectedBranch !== "Tümü") { branchList = branchList.filter(b => b.name === selectedBranch); list = list.filter(i => i.branch === selectedBranch); }
+            let list = data.customerList.filter(i => (i.customerName || i.customerNo)); 
+            if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
 
             if (activeTab === 'dashboard') {
-                reportTitle = "GENEL PERFORMANS ANALİZİ";
-                const salesCount = list.filter(i => (i.status || "").toLowerCase() === 'satışa döndü').length;
-                const totalRev = branchList.reduce((a,b) => a+b.revenue, 0);
-                tableHtml += `<div class="print-summary"><div class="print-summary-item"><div class="print-summary-label">TOPLAM CİRO</div><div class="print-summary-value">${fmt(totalRev)}</div></div><div class="print-summary-item"><div class="print-summary-label">SATIŞ ADEDİ</div><div class="print-summary-value">${num(salesCount)}</div></div><div class="print-summary-item"><div class="print-summary-label">ORT. SEPET</div><div class="print-summary-value">${fmt(salesCount > 0 ? totalRev / salesCount : 0)}</div></div></div>`;
-                branchList.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
-                tableHtml += `<table class="print-table"><thead><tr><th style="width: 50px; text-align: center;">SIRA</th><th>ŞUBE ADI</th><th style="text-align:right">SATIŞ (ADET)</th><th style="text-align:right">TOPLAM TUTAR (TL)</th></tr></thead><tbody>`;
-                branchList.forEach((b, i) => { tableHtml += `<tr><td style="text-align:center">${i+1}</td><td>${b.name.toUpperCase()}</td><td style="text-align:right">${num(b.sales)}</td><td style="text-align:right">${fmt(b.revenue)}</td></tr>`; });
-                tableHtml += `</tbody></table>`;
+                let branchSummary = data.charts.branch;
+                if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
+                branchSummary.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
+                
+                document.getElementById('branch-body').innerHTML = branchSummary.map((b, i) => `<tr><td class="text-center font-bold text-slate-400">${i+1}</td><td class="font-bold text-slate-800">${b.name}</td><td class="text-right font-semibold text-slate-500">${num(b.sales)}</td><td class="text-right font-bold text-brand-600">${fmt(b.revenue)}</td></tr>`).join('');
+                
+                const currentSales = branchSummary.reduce((a,b)=>a+b.sales,0);
+                const currentRev = branchSummary.reduce((a,b)=>a+b.revenue,0);
+                safeSetText('kpi-revenue', fmt(currentRev));
+                safeSetText('kpi-sales', num(currentSales));
+                safeSetText('kpi-basket', fmt(currentSales > 0 ? currentRev / currentSales : 0));
+                safeSetText('total-sales-val', num(currentSales));
+                safeSetText('total-revenue-val', fmt(currentRev));
             } else if (activeTab === 'customers') {
-                reportTitle = "MÜŞTERİ DETAY ÇİZELGESİ";
-                let filteredList = list.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş").sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
-                tableHtml += `<table class="print-table"><thead><tr><th>ŞUBE</th><th>MÜŞTERİ KODU</th><th style="text-align:right">İŞLEM TUTARI</th></tr></thead><tbody>`;
-                filteredList.forEach(i => { tableHtml += `<tr><td>${i.branch.toUpperCase()}</td><td>${i.customerNo}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`; });
-                tableHtml += `</tbody></table>`;
+                const specList = list.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
+                const grouped = groupDataByBranch(specList);
+                
+                document.getElementById('customer-body-specified').innerHTML = grouped.map(group => `
+                    <tr class="bg-slate-50/80"><td colspan="4" class="px-8 py-3 font-bold text-brand-600 text-[10px] uppercase tracking-widest bg-brand-50/30 border-y border-slate-100"><i class="fas fa-store mr-2"></i> ${group.branch}</td></tr>
+                    ${group.items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-bold">${idx+1}</td><td><div class="font-bold text-slate-700">${item.customerNo}</div></td><td>${item.phone || '---'}</td><td class="text-right font-bold text-brand-600">${fmt(item.revenue)}</td></tr>`).join('')}
+                `).join('');
+                safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + b.revenue, 0)));
             } else if (activeTab === 'followup') {
-                reportTitle = "TAKİP VE AKSİYON LİSTESİ";
-                let filteredList = list.filter(i => { const s = (i.status || "").toLowerCase().trim(); const cs = (i.callStatus || "").toLowerCase().trim(); return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı'; });
-                if (selectedAction !== "tümü") { if (selectedAction === "aranmadı") filteredList = filteredList.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı'); else filteredList = filteredList.filter(i => (i.status || "").toLowerCase().trim() === selectedAction); }
-                filteredList.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
-                const groupedFollowup = filteredList.reduce((acc, curr) => { if(!acc[curr.branch]) acc[curr.branch] = { items: [], aranmadiCount: 0 }; acc[curr.branch].items.push(curr); if((curr.callStatus || "").toLowerCase().trim() === 'aranmadı') acc[curr.branch].aranmadiCount++; return acc; }, {});
-                tableHtml += `<table class="print-table"><thead><tr><th>ŞUBE</th><th>MÜŞTERİ AD SOYAD</th><th>AKSİYON DURUMU</th></tr></thead><tbody>`;
-                Object.keys(groupedFollowup).forEach(branch => {
-                    const group = groupedFollowup[branch];
-                    let badgeText = selectedAction === "tümü" ? `TOPLAM: ${group.items.length} ADET | ARANMADI: ${group.aranmadiCount} ADET` : selectedAction === "aranmadı" ? `ARANMADI: ${group.items.length} ADET` : selectedAction === "tekrar aranacak" ? `TEKRAR ARANACAK: ${group.items.length} ADET` : `MAĞAZAYA GELECEK: ${group.items.length} ADET`;
-                    tableHtml += `<tr style="background-color: #f1f5f9;"><td colspan="3" style="font-weight: 900; color: #1e293b; padding: 12px;">${branch.toUpperCase()} <span style="float:right; color: #475569; font-size: 11px;">${badgeText}</span></td></tr>`;
-                    group.items.forEach(i => { const s = (i.status || "").toLowerCase().trim(); const cs = (i.callStatus || "").toLowerCase().trim(); let label = 'Mağazaya Gelecek'; if (cs === 'aranmadı') label = 'Aranmadı'; else if (s === 'tekrar aranacak') label = 'Tekrar Aranacak'; tableHtml += `<tr><td>${i.branch.toUpperCase()}</td><td>${(i.customerName || "---").toUpperCase()}</td><td>${label.toUpperCase()}</td></tr>`; });
-                });
-                tableHtml += `</tbody></table>`;
-            } else if (activeTab === 'unspecified') {
-                reportTitle = "NO BELİRTİLMEYENLER (EKSİK KAYITLAR)";
-                let filteredList = list.filter(i => i.revenue > 0 && (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş")).sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
-                tableHtml += `<table class="print-table"><thead><tr><th>ŞUBE</th><th>MÜŞTERİ TANIMI</th><th>DURUM</th><th style="text-align:right">TUTAR</th></tr></thead><tbody>`;
-                filteredList.forEach(i => { tableHtml += `<tr><td>${i.branch.toUpperCase()}</td><td>${(i.customerName || "---").toUpperCase()}</td><td>NUMARA EKSİK</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`; });
-                tableHtml += `</tbody></table>`;
-            }
-
-            const now = new Date(); const dateStr = now.toLocaleDateString('tr-TR') + " " + now.toLocaleTimeString('tr-TR');
-            const printArea = document.getElementById('printArea');
-            printArea.innerHTML = `<div style="text-align: center; margin-bottom: 30px;"><h1 style="margin-bottom:5px; font-size:26px; color: #1e293b; letter-spacing: -0.05em;">HEDEF AVM YÖNETİM RAPORU</h1><h2 style="margin-top:0; font-size:16px; color:#64748b; font-weight: 500;">${reportTitle}</h2></div><div style="display:flex; justify-content: space-between; font-size:11px; font-weight: bold; color:#475569; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 25px; text-transform: uppercase;"><span>DÖNEM: ${period.toUpperCase()}</span><span>ŞUBE: ${branchText}</span><span>TARİH: ${dateStr}</span></div>${tableHtml}<div style="text-align:center; font-size:10px; font-weight: bold; color:#94a3b8; margin-top:40px; border-top: 1px solid #e2e8f0; padding-top:15px; text-transform: uppercase; letter-spacing: 1px;">Bu rapor Hedef AVM Gelişmiş Yönetim Paneli tarafından otomatik olarak oluşturulmuştur.</div>`;
-
-            const originalTitle = document.title;
-            let pdfFileName = `${branchText} ${period.toUpperCase()}`;
-            if (activeTab === 'followup' && selectedAction !== 'tümü') pdfFileName += ` - ${selectedAction.toUpperCase()}`;
-            else if (activeTab === 'followup') pdfFileName += ` - TAKİP LİSTESİ`;
-            else if (activeTab === 'customers') pdfFileName += ` - MÜŞTERİ LİSTESİ`;
-            else if (activeTab === 'unspecified') pdfFileName += ` - NO BELİRTİLMEYENLER`;
-            else pdfFileName += ` - GENEL ÖZET`;
-            document.title = pdfFileName;
-            window.print();
-            setTimeout(() => { document.title = originalTitle; }, 1000);
-            window.onafterprint = () => { document.title = originalTitle; };
-        }
-
-        function exportToExcel() {
-            if (!currentData) return;
-            const period = document.getElementById('periodSelector').value;
-            const selectedBranch = document.getElementById('branchSelector').value;
-            const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
-
-            const wb = XLSX.utils.book_new(); const currencyFormat = '#,##0"₺"';
-            let wsData = []; let fileName = `Hedef_AVM_${activeTab}_${selectedBranch}_${period}.xlsx`.replace(/ /g, '_');
-            const branchText = selectedBranch === "Tümü" ? "TÜM ŞUBELER" : selectedBranch.toUpperCase();
-
-            wsData.push([branchText + " - " + period.toUpperCase() + " RAPORU"]);
-            wsData.push(["GENEL TÜM ŞUBELERİN TOPLAM TUTARI:", currentData.kpis.totalRevenue]);
-            wsData.push([]);
-
-            if (activeTab === 'dashboard') {
-                wsData.push(["SIRA", "ŞUBE ADI", "SATIŞA DÖNEN (ADET)", "TOPLAM TUTAR (TL)"]);
-                let list = currentData.charts.branch;
-                if (selectedBranch !== "Tümü") list = list.filter(b => b.name === selectedBranch);
-                list.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
-                list.forEach((b, i) => wsData.push([i+1, b.name.toUpperCase(), b.sales, b.revenue]));
-            } else if (activeTab === 'customers') {
-                wsData.push(["ŞUBE", "MÜŞTERİ NO", "İŞLEM TUTARI (TL)"]);
-                let list = currentData.customerList.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
-                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
-                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
-                list.forEach(i => wsData.push([i.branch.toUpperCase(), i.customerNo, i.revenue]));
-            } else if (activeTab === 'followup') {
-                wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "AKSİYON DURUMU"]);
-                let list = currentData.customerList.filter(i => {
+                let fList = list.filter(i => {
                     const s = (i.status || "").toLowerCase().trim();
                     const cs = (i.callStatus || "").toLowerCase().trim();
                     return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
                 });
-                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
                 if (selectedAction !== "tümü") {
-                    if (selectedAction === "aranmadı") list = list.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı');
-                    else list = list.filter(i => (i.status || "").toLowerCase().trim() === selectedAction);
+                    if (selectedAction === "aranmadı") fList = fList.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı');
+                    else fList = fList.filter(i => (i.status || "").toLowerCase().trim() === selectedAction);
                 }
-                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
+                const grouped = groupDataByBranch(fList);
+                
+                document.getElementById('followup-body').innerHTML = grouped.map(group => `
+                    <tr class="bg-slate-50/80"><td colspan="4" class="px-8 py-3 font-bold text-slate-800 text-[10px] uppercase tracking-widest bg-slate-100 border-y border-slate-100"><i class="fas fa-building mr-2"></i> ${group.branch} <span class="ml-2 text-slate-400 text-[9px] font-normal">(${group.items.length} Kayıt)</span></td></tr>
+                    ${group.items.map((item, idx) => {
+                        const callStatus = (item.callStatus || "").toLowerCase().trim();
+                        const status = (item.status || "").toLowerCase().trim();
+                        let badgeClass = 'badge badge-brand'; let label = 'Mağazaya Gelecek';
+                        if (callStatus === 'aranmadı') { badgeClass = 'badge badge-rose'; label = 'Aranmadı'; }
+                        else if (status === 'tekrar aranacak') { badgeClass = 'badge badge-amber'; label = 'Tekrar Aranacak'; }
+                        let lateWarning = item.isLate ? `<div class="text-[10px] text-rose-600 font-bold mt-1 animate-pulse"><i class="fas fa-clock"></i> ${item.date} TARIHINDEN BERI ARANMADI!</div>` : '';
+                        return `<tr><td class="text-center text-slate-400 font-bold">${idx+1}</td><td><div class="font-bold text-slate-700">${item.customerName || "---"}</div></td><td>${item.phone || '---'}</td><td><span class="${badgeClass}">${label}</span>${lateWarning}</td></tr>`;
+                    }).join('')}
+                `).join('');
+                if(grouped.length === 0) document.getElementById('followup-body').innerHTML = '<tr><td colspan="4" class="text-center py-10">Kayıt bulunamadı.</td></tr>';
+            } else if (activeTab === 'unspecified') {
+                const unspecList = list.filter(i => i.revenue > 0 && (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş"));
+                const grouped = groupDataByBranch(unspecList);
+                
+                document.getElementById('unspecified-body').innerHTML = grouped.map(group => `
+                    <tr class="bg-rose-50/30"><td colspan="4" class="px-8 py-3 font-bold text-rose-600 text-[10px] uppercase tracking-widest border-y border-rose-100"><i class="fas fa-triangle-exclamation mr-2"></i> ${group.branch}</td></tr>
+                    ${group.items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-bold">${idx+1}</td><td><div class="font-bold text-slate-700">${item.customerName || "---"}</div></td><td><span class="badge badge-rose">Numara Eksik</span></td><td class="text-right font-bold text-rose-600">${fmt(item.revenue)}</td></tr>`).join('')}
+                `).join('');
+                safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + b.revenue, 0)));
+            }
+        }
+
+        function printReport() {
+            if (!currentData) return;
+            const period = document.getElementById('periodSelector').value;
+            const branch = document.getElementById('branchSelector').value;
+            const fmt = v => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            let list = currentData.customerList.filter(i => (i.customerName || i.customerNo));
+            if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
+
+            let tableHtml = "";
+            if (activeTab === 'followup') {
+                let fList = list.filter(i => (i.callStatus === 'aranmadı' || ['tekrar aranacak','müşteri mağazaya gelecek'].includes(i.status)));
+                const grouped = groupDataByBranch(fList);
+                tableHtml = `<thead><tr><th>Şube</th><th>Müşteri</th><th>Telefon</th><th>Aksiyon / Uyarı</th></tr></thead><tbody>` + 
+                    grouped.map(group => group.items.map(i => `<tr><td>${group.branch}</td><td>${i.customerName}</td><td>${i.phone}</td><td>${i.callStatus === 'aranmadı' ? 'ARANMADI' : i.status.toUpperCase()} ${i.isLate ? '('+i.date+' TARIHINDEN BERI ARANMADI)' : ''}</td></tr>`).join('')).join('') + `</tbody>`;
+            } else {
+                const grouped = groupDataByBranch(list.filter(i => i.revenue > 0));
+                tableHtml = `<thead><tr><th>Şube</th><th>Müşteri No/Adı</th><th>Telefon</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
+                    grouped.map(group => group.items.map(i => `<tr><td>${group.branch}</td><td>${i.customerNo || i.customerName}</td><td>${i.phone}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`).join('')).join('') + `</tbody>`;
+            }
+
+            document.getElementById('printArea').innerHTML = `<div style="text-align:center"><h1>HEDEF AVM YÖNETİM RAPORU</h1><p>${period.toUpperCase()} - ${branch.toUpperCase()} - ${activeTab.toUpperCase()}</p></div><table class="print-table">${tableHtml}</table>`;
+            window.print();
+        }
+
+        function printSummaryReport() {
+            if (!currentData) return;
+            const period = document.getElementById('periodSelector').value;
+            let list = currentData.customerList.filter(i => (i.status === 'tekrar aranacak' || i.status === 'müşteri mağazaya gelecek' || i.callStatus === 'aranmadı'));
+            const stats = {};
+            list.forEach(i => {
+                if(!stats[i.branch]) stats[i.branch] = { aranmadi: 0, tekrar: 0, gelecek: 0, total: 0 };
+                if(i.callStatus === 'aranmadı') stats[i.branch].aranmadi++;
+                else if(i.status === 'tekrar aranacak') stats[i.branch].tekrar++;
+                else if(i.status === 'müşteri mağazaya gelecek') stats[i.branch].gelecek++;
+                stats[i.branch].total++;
+            });
+            const sorted = Object.entries(stats).sort((a,b)=>getBranchSortIndex(a[0])-getBranchSortIndex(b[0]));
+            
+            let html = `<div style="text-align:center"><h1>HEDEF AVM AKSİYON ÖZETİ</h1><p>${period.toUpperCase()}</p></div><table class="print-table"><thead><tr><th>ŞUBE ADI</th><th>ARANMADI</th><th>TEKRAR</th><th>GELECEK</th><th>TOPLAM</th></tr></thead><tbody>` + 
+                sorted.map(([name, s]) => `<tr><td><b>${name.toUpperCase()}</b></td><td>${s.aranmadi}</td><td>${s.tekrar}</td><td>${s.gelecek}</td><td><b>${s.total}</b></td></tr>`).join('') + `</tbody></table>`;
+            document.getElementById('printArea').innerHTML = html;
+            window.print();
+        }
+
+        function exportToExcel() {
+            if (!currentData) return;
+            const wb = XLSX.utils.book_new();
+            const period = document.getElementById('periodSelector').value;
+            let wsData = [];
+            if (activeTab === 'followup') {
+                wsData = [["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "AKSİYON DURUMU", "GECİKME BİLGİSİ"]];
+                const list = currentData.customerList.filter(i => (i.callStatus === 'aranmadı' || ['tekrar aranacak','müşteri mağazaya gelecek'].includes(i.status)));
+                list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
                 list.forEach(i => {
-                    const s = (i.status || "").toLowerCase().trim();
-                    const cs = (i.callStatus || "").toLowerCase().trim();
-                    let label = 'MAĞAZAYA GELECEK';
-                    if (cs === 'aranmadı') label = 'ARANMADI';
-                    else if (s === 'tekrar aranacak') label = 'TEKRAR ARANACAK';
-                    wsData.push([i.branch.toUpperCase(), (i.customerName || "---").toUpperCase(), label]);
+                    wsData.push([i.branch, i.customerName, i.phone, i.callStatus === 'aranmadı' ? 'Aranmadı' : i.status, i.isLate ? i.date + ' tarihinden beri aranmadı' : '']);
                 });
             } else {
-                wsData.push(["ŞUBE", "MÜŞTERİ AD SOYAD", "DURUM", "İŞLEM TUTARI (TL)"]);
-                let list = currentData.customerList.filter(i => i.revenue > 0 && (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş"));
-                if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
-                list.sort((a, b) => getBranchSortIndex(a.branch) - getBranchSortIndex(b.branch));
-                list.forEach(i => wsData.push([i.branch.toUpperCase(), (i.customerName || "---").toUpperCase(), "NO BELİRTİLMEMİŞ", i.revenue]));
+                wsData = [["ŞUBE", "MÜŞTERİ NO/ADI", "TELEFON", "TUTAR"]];
+                const list = currentData.customerList.filter(i => i.revenue > 0);
+                list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
+                list.forEach(i => {
+                    wsData.push([i.branch, i.customerNo || i.customerName, i.phone, i.revenue]);
+                });
             }
-
             const ws = XLSX.utils.aoa_to_sheet(wsData);
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            const moneyIdx = activeTab === 'unspecified' ? 3 : (activeTab === 'customers' ? 2 : 3);
-            
-            const totalCellRef = XLSX.utils.encode_cell({ r: 1, c: 1 });
-            if (ws[totalCellRef]) ws[totalCellRef].z = currencyFormat;
-
-            if (activeTab !== 'followup') {
-                for (let R = 3; R <= range.e.r; ++R) {
-                    const cell = ws[XLSX.utils.encode_cell({ r: R, c: moneyIdx })];
-                    if (cell && typeof cell.v === 'number') cell.z = currencyFormat;
-                }
-            }
-            ws['!cols'] = [{wch: 35}, {wch: 35}, {wch: 25}, {wch: 25}];
-            XLSX.utils.book_append_sheet(wb, ws, "Hedef AVM Raporu");
-            XLSX.writeFile(wb, fileName);
+            XLSX.utils.book_append_sheet(wb, ws, "Rapor");
+            XLSX.writeFile(wb, `Hedef_AVM_${period}_${activeTab}.xlsx`);
         }
     </script>
 </body>
