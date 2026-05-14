@@ -130,7 +130,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.6.2</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.6.3</p>
                 </div>
             </div>
         </div>
@@ -468,23 +468,46 @@
             if (!currentData) return;
             const period = document.getElementById('periodSelector').value;
             const branch = document.getElementById('branchSelector').value;
+            const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
             const fmt = v => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             let list = currentData.customerList.filter(i => (i.customerName || i.customerNo));
             if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
             let tableHtml = "";
             if (activeTab === 'followup') {
-                let fList = list.filter(i => (i.callStatus === 'aranmadı' || ['tekrar aranacak','müşteri mağazaya gelecek'].includes(i.status)));
+                let fList = list.filter(i => {
+                    const s = (i.status || "").toLowerCase().trim();
+                    const cs = (i.callStatus || "").toLowerCase().trim();
+                    return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
+                });
+                
+                // PANELDEKİ AKSİYON FİLTRESİNİ PDF'E DE UYGULA
+                if (selectedAction !== "tümü") {
+                    if (selectedAction === "aranmadı") fList = fList.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı');
+                    else fList = fList.filter(i => (i.status || "").toLowerCase().trim() === selectedAction);
+                }
+
                 const grouped = groupDataByBranch(fList);
                 tableHtml = `<thead><tr><th>Şube</th><th>Müşteri</th><th>Telefon</th><th>Aksiyon / Uyarı</th></tr></thead><tbody>` + 
-                    grouped.map(group => group.items.map(i => `<tr><td>${group.branch}</td><td>${i.customerName}</td><td>${i.phone}</td><td>${i.callStatus === 'aranmadı' ? 'ARANMADI' : i.status.toUpperCase()} ${i.isLate ? '('+i.date+' TARIHINDEN BERI ARANMADI)' : ''}</td></tr>`).join('')).join('') + `</tbody>`;
+                    grouped.map(group => group.items.map(i => {
+                        const callStatus = (i.callStatus || "").toLowerCase().trim();
+                        const status = (i.status || "").toLowerCase().trim();
+                        let label = 'MAĞAZAYA GELECEK';
+                        if (callStatus === 'aranmadı') label = 'ARANMADI';
+                        else if (status === 'tekrar aranacak') label = 'TEKRAR ARANACAK';
+                        
+                        return `<tr><td>${group.branch}</td><td>${i.customerName}</td><td>${i.phone}</td><td>${label} ${i.isLate ? '('+i.date+' TARIHINDEN BERI ARANMADI)' : ''}</td></tr>`;
+                    }).join('')).join('') + `</tbody>`;
             } else {
                 const grouped = groupDataByBranch(list.filter(i => i.revenue > 0));
                 tableHtml = `<thead><tr><th>Şube</th><th>Müşteri No/Adı</th><th>Telefon</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
                     grouped.map(group => group.items.map(i => `<tr><td>${group.branch}</td><td>${i.customerNo || i.customerName}</td><td>${i.phone}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`).join('')).join('') + `</tbody>`;
             }
 
-            document.getElementById('printArea').innerHTML = `<div style="text-align:center"><h1>HEDEF AVM YÖNETİM RAPORU</h1><p>${period.toUpperCase()} - ${branch.toUpperCase()} - ${activeTab.toUpperCase()}</p></div><table class="print-table">${tableHtml}</table>`;
+            const branchTitle = branch === "Tümü" ? "TÜM ŞUBELER" : branch.toUpperCase();
+            const actionTitle = (activeTab === 'followup' && selectedAction !== 'tümü') ? `(${selectedAction.toUpperCase()})` : '';
+
+            document.getElementById('printArea').innerHTML = `<div style="text-align:center"><h1>HEDEF AVM YÖNETİM RAPORU</h1><p>${period.toUpperCase()} - ${branchTitle} - ${activeTab.toUpperCase()} ${actionTitle}</p></div><table class="print-table">${tableHtml}</table>`;
             window.print();
         }
 
