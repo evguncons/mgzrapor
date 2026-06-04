@@ -91,7 +91,6 @@
 
     <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity"></div>
 
-    <!-- SIDEBAR -->
     <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-[280px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 z-40 closed lg:transform-none shadow-2xl lg:shadow-none">
         <div class="h-24 flex items-center px-8 shrink-0 border-b border-slate-100">
             <div class="flex items-center gap-3">
@@ -130,7 +129,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.6.3</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.7.0</p>
                 </div>
             </div>
         </div>
@@ -313,10 +312,14 @@
     <div id="printArea"></div>
 
     <script>
+        // Lütfen kendi yayınladığınız Web App URL'si ile burayı güncelleyin!
         const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwX2K6gBaSalxAuME90FUJVr086B9D4PKitB4MvqaD5_KNc-rSHI3UWDZIjyftU6quG/exec";
+        
         let currentData = null; 
         let activeTab = 'dashboard';
-        const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
+        
+        // GEBZE eklendi.
+        const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "GEBZE", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
 
         function getBranchSortIndex(branchName) {
             if (!branchName) return 999;
@@ -481,7 +484,6 @@
                     return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
                 });
                 
-                // PANELDEKİ AKSİYON FİLTRESİNİ PDF'E DE UYGULA
                 if (selectedAction !== "tümü") {
                     if (selectedAction === "aranmadı") fList = fList.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı');
                     else fList = fList.filter(i => (i.status || "").toLowerCase().trim() === selectedAction);
