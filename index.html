@@ -91,6 +91,7 @@
 
     <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity"></div>
 
+    <!-- SIDEBAR -->
     <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-[280px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 z-40 closed lg:transform-none shadow-2xl lg:shadow-none">
         <div class="h-24 flex items-center px-8 shrink-0 border-b border-slate-100">
             <div class="flex items-center gap-3">
@@ -129,7 +130,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.7.0</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.6.4</p>
                 </div>
             </div>
         </div>
@@ -295,7 +296,7 @@
                     <table class="modern-table">
                         <thead><tr><th class="w-16 text-center">#</th><th>Müşteri Tanımı</th><th>Durum</th><th class="text-right">Tutar (TRY)</th></tr></thead>
                         <tbody id="unspecified-body"></tbody>
-                        <tfoot class="bg-rose-50/50 border-t border-rose-100"><tr><td colspan="3" class="text-right py-6 px-8 font-bold text-rose-400 text-[11px] uppercase">Kayıtsız Toplam</td><td id="unspecified-total-val" class="text-right py-6 px-8 font-extrabold text-rose-600 text-xl">₺0</td></tr></tfoot>
+                        <tfoot class="bg-rose-50/50 border-t border-rose-100"><tr><td colspan="3" class="text-right py-6 px-8 font-bold text-rose-400 text-[11px] uppercase">Kayıtsız / Hatalı Ciro Toplamı</td><td id="unspecified-total-val" class="text-right py-6 px-8 font-extrabold text-rose-600 text-xl">₺0</td></tr></tfoot>
                     </table>
                 </div>
             </div>
@@ -312,14 +313,10 @@
     <div id="printArea"></div>
 
     <script>
-        // Lütfen kendi yayınladığınız Web App URL'si ile burayı güncelleyin!
         const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwX2K6gBaSalxAuME90FUJVr086B9D4PKitB4MvqaD5_KNc-rSHI3UWDZIjyftU6quG/exec";
-        
         let currentData = null; 
         let activeTab = 'dashboard';
-        
-        // GEBZE eklendi.
-        const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "GEBZE", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
+        const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
 
         function getBranchSortIndex(branchName) {
             if (!branchName) return 999;
@@ -456,13 +453,29 @@
                 `).join('');
                 if(grouped.length === 0) document.getElementById('followup-body').innerHTML = '<tr><td colspan="4" class="text-center py-10">Kayıt bulunamadı.</td></tr>';
             } else if (activeTab === 'unspecified') {
-                const unspecList = list.filter(i => i.revenue > 0 && (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş"));
+                // YENİ KRİTER: No Belirtilmeyenler (ciro > 0) + Satışa Döndü olup Tutarı 0₺ veya boş olanlar
+                const unspecList = list.filter(i => {
+                    const hasNoNumber = (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş") && i.revenue > 0;
+                    const isZeroRevenueSale = (i.status || "").toLowerCase().trim() === 'satışa döndü' && (i.revenue === 0 || !i.revenue);
+                    return hasNoNumber || isZeroRevenueSale;
+                });
                 const grouped = groupDataByBranch(unspecList);
                 
                 document.getElementById('unspecified-body').innerHTML = grouped.map(group => `
-                    <tr class="bg-rose-50/30"><td colspan="4" class="px-8 py-3 font-bold text-rose-600 text-[10px] uppercase tracking-widest border-y border-rose-100"><i class="fas fa-triangle-exclamation mr-2"></i> ${group.branch}</td></tr>
-                    ${group.items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-bold">${idx+1}</td><td><div class="font-bold text-slate-700">${item.customerName || "---"}</div></td><td><span class="badge badge-rose">Numara Eksik</span></td><td class="text-right font-bold text-rose-600">${fmt(item.revenue)}</td></tr>`).join('')}
+                    <tr class="bg-rose-50/30"><td colspan="4" class="px-8 py-3 font-bold text-rose-600 text-[10px] uppercase tracking-widest border-y border-rose-100"><i class="fas fa-triangle-exclamation mr-2"></i> ${group.branch} <span class="ml-2 text-rose-400 text-[9px] font-normal">(${group.items.length} Hatalı Kayıt)</span></td></tr>
+                    ${group.items.map((item, idx) => {
+                        const isZeroRevenue = (item.status || "").toLowerCase().trim() === 'satışa döndü' && (item.revenue === 0 || !item.revenue);
+                        const badgeLabel = isZeroRevenue ? "Sıfır Cirolu Satış" : "Numara Eksik";
+                        const badgeClass = isZeroRevenue ? "badge-amber" : "badge-rose";
+                        return `<tr>
+                            <td class="text-center text-slate-400 font-bold">${idx+1}</td>
+                            <td><div class="font-bold text-slate-700">${item.customerName || "---"}</div></td>
+                            <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+                            <td class="text-right font-bold text-rose-600">${fmt(item.revenue)}</td>
+                        </tr>`;
+                    }).join('')}
                 `).join('');
+                if(grouped.length === 0) document.getElementById('unspecified-body').innerHTML = '<tr><td colspan="4" class="text-center py-10">Sorunsuz ve eksiksiz kayıtlar.</td></tr>';
                 safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + b.revenue, 0)));
             }
         }
@@ -500,6 +513,25 @@
                         
                         return `<tr><td>${group.branch}</td><td>${i.customerName}</td><td>${i.phone}</td><td>${label} ${i.isLate ? '('+i.date+' TARIHINDEN BERI ARANMADI)' : ''}</td></tr>`;
                     }).join('')).join('') + `</tbody>`;
+            } else if (activeTab === 'unspecified') {
+                // PDF Çıktısında yeni kriterleri uygula
+                let unspecList = list.filter(i => {
+                    const hasNoNumber = (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş") && i.revenue > 0;
+                    const isZeroRevenueSale = (i.status || "").toLowerCase().trim() === 'satışa döndü' && (i.revenue === 0 || !i.revenue);
+                    return hasNoNumber || isZeroRevenueSale;
+                });
+                const grouped = groupDataByBranch(unspecList);
+                tableHtml = `<thead><tr><th>Şube</th><th>Müşteri Tanımı</th><th>Telefon</th><th>Sorun Durumu</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
+                    grouped.map(group => group.items.map(i => {
+                        const isZeroRevenue = (i.status || "").toLowerCase().trim() === 'satışa döndü' && (i.revenue === 0 || !i.revenue);
+                        const statusLabel = isZeroRevenue ? "SIFIR CİROLU SATIŞ" : "MÜŞTERİ NO EKSİK";
+                        return `<tr><td>${group.branch}</td><td>${i.customerName || '---'}</td><td>${i.phone || '---'}</td><td>${statusLabel}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`;
+                    }).join('')).join('') + `</tbody>`;
+            } else if (activeTab === 'customers') {
+                let specList = list.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
+                const grouped = groupDataByBranch(specList);
+                tableHtml = `<thead><tr><th>Şube</th><th>Müşteri No</th><th>Telefon</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
+                    grouped.map(group => group.items.map(i => `<tr><td>${group.branch}</td><td>${i.customerNo}</td><td>${i.phone || '---'}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`).join('')).join('') + `</tbody>`;
             } else {
                 const grouped = groupDataByBranch(list.filter(i => i.revenue > 0));
                 tableHtml = `<thead><tr><th>Şube</th><th>Müşteri No/Adı</th><th>Telefon</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
@@ -544,6 +576,27 @@
                 list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
                 list.forEach(i => {
                     wsData.push([i.branch, i.customerName, i.phone, i.callStatus === 'aranmadı' ? 'Aranmadı' : i.status, i.isLate ? i.date + ' tarihinden beri aranmadı' : '']);
+                });
+            } else if (activeTab === 'unspecified') {
+                // Excel Çıktısında yeni kriterleri uygula
+                wsData = [["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "HATA/SORUN DURUMU", "TUTAR"]];
+                const list = currentData.customerList.filter(i => {
+                    const hasNoNumber = (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş") && i.revenue > 0;
+                    const isZeroRevenueSale = (i.status || "").toLowerCase().trim() === 'satışa döndü' && (i.revenue === 0 || !i.revenue);
+                    return hasNoNumber || isZeroRevenueSale;
+                });
+                list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
+                list.forEach(i => {
+                    const isZeroRevenue = (i.status || "").toLowerCase().trim() === 'satışa döndü' && (i.revenue === 0 || !i.revenue);
+                    const statusLabel = isZeroRevenue ? "Sıfır Cirolu Satış" : "Müşteri No Eksik";
+                    wsData.push([i.branch, i.customerName || '---', i.phone || '---', statusLabel, i.revenue]);
+                });
+            } else if (activeTab === 'customers') {
+                wsData = [["ŞUBE", "MÜŞTERİ NO", "TELEFON", "TUTAR"]];
+                const list = currentData.customerList.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
+                list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
+                list.forEach(i => {
+                    wsData.push([i.branch, i.customerNo, i.phone || '---', i.revenue]);
                 });
             } else {
                 wsData = [["ŞUBE", "MÜŞTERİ NO/ADI", "TELEFON", "TUTAR"]];
