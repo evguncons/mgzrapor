@@ -130,7 +130,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.6.4</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.0</p>
                 </div>
             </div>
         </div>
@@ -316,7 +316,7 @@
         const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwX2K6gBaSalxAuME90FUJVr086B9D4PKitB4MvqaD5_KNc-rSHI3UWDZIjyftU6quG/exec";
         let currentData = null; 
         let activeTab = 'dashboard';
-        const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
+        const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "GEBZE", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
 
         function getBranchSortIndex(branchName) {
             if (!branchName) return 999;
@@ -387,7 +387,6 @@
                 if (!grouped[item.branch]) grouped[item.branch] = [];
                 grouped[item.branch].push(item);
             });
-            // Şubeleri öncelikli sıraya göre diz
             return Object.keys(grouped).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)).map(branch => ({
                 branch: branch,
                 items: grouped[branch]
@@ -401,49 +400,53 @@
             const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
 
-            let list = data.customerList.filter(i => (i.customerName || i.customerNo)); 
+            let list = data.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0)); 
             if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
 
             if (activeTab === 'dashboard') {
-                let branchSummary = data.charts.branch;
+                let branchSummary = [...data.charts.branch];
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
                 branchSummary.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
                 
                 document.getElementById('branch-body').innerHTML = branchSummary.map((b, i) => `<tr><td class="text-center font-bold text-slate-400">${i+1}</td><td class="font-bold text-slate-800">${b.name}</td><td class="text-right font-semibold text-slate-500">${num(b.sales)}</td><td class="text-right font-bold text-brand-600">${fmt(b.revenue)}</td></tr>`).join('');
                 
-                const currentSales = branchSummary.reduce((a,b)=>a+b.sales,0);
-                const currentRev = branchSummary.reduce((a,b)=>a+b.revenue,0);
+                const currentSales = branchSummary.reduce((a,b)=>a+Number(b.sales || 0),0);
+                const currentRev = branchSummary.reduce((a,b)=>a+Number(b.revenue || 0),0);
                 safeSetText('kpi-revenue', fmt(currentRev));
                 safeSetText('kpi-sales', num(currentSales));
                 safeSetText('kpi-basket', fmt(currentSales > 0 ? currentRev / currentSales : 0));
                 safeSetText('total-sales-val', num(currentSales));
                 safeSetText('total-revenue-val', fmt(currentRev));
             } else if (activeTab === 'customers') {
-                const specList = list.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
+                const specList = list.filter(i => {
+                    const rev = Number(i.revenue || 0);
+                    const cNo = String(i.customerNo || "").trim();
+                    return rev > 0 && cNo !== "" && cNo.toLowerCase() !== "belirtilmemiş";
+                });
                 const grouped = groupDataByBranch(specList);
                 
                 document.getElementById('customer-body-specified').innerHTML = grouped.map(group => `
                     <tr class="bg-slate-50/80"><td colspan="4" class="px-8 py-3 font-bold text-brand-600 text-[10px] uppercase tracking-widest bg-brand-50/30 border-y border-slate-100"><i class="fas fa-store mr-2"></i> ${group.branch}</td></tr>
                     ${group.items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-bold">${idx+1}</td><td><div class="font-bold text-slate-700">${item.customerNo}</div></td><td>${item.phone || '---'}</td><td class="text-right font-bold text-brand-600">${fmt(item.revenue)}</td></tr>`).join('')}
                 `).join('');
-                safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + b.revenue, 0)));
+                safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
             } else if (activeTab === 'followup') {
                 let fList = list.filter(i => {
-                    const s = (i.status || "").toLowerCase().trim();
-                    const cs = (i.callStatus || "").toLowerCase().trim();
+                    const s = String(i.status || "").trim().toLowerCase();
+                    const cs = String(i.callStatus || "").trim().toLowerCase();
                     return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
                 });
                 if (selectedAction !== "tümü") {
-                    if (selectedAction === "aranmadı") fList = fList.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı');
-                    else fList = fList.filter(i => (i.status || "").toLowerCase().trim() === selectedAction);
+                    if (selectedAction === "aranmadı") fList = fList.filter(i => String(i.callStatus || "").trim().toLowerCase() === 'aranmadı');
+                    else fList = fList.filter(i => String(i.status || "").trim().toLowerCase() === selectedAction);
                 }
                 const grouped = groupDataByBranch(fList);
                 
                 document.getElementById('followup-body').innerHTML = grouped.map(group => `
                     <tr class="bg-slate-50/80"><td colspan="4" class="px-8 py-3 font-bold text-slate-800 text-[10px] uppercase tracking-widest bg-slate-100 border-y border-slate-100"><i class="fas fa-building mr-2"></i> ${group.branch} <span class="ml-2 text-slate-400 text-[9px] font-normal">(${group.items.length} Kayıt)</span></td></tr>
                     ${group.items.map((item, idx) => {
-                        const callStatus = (item.callStatus || "").toLowerCase().trim();
-                        const status = (item.status || "").toLowerCase().trim();
+                        const callStatus = String(item.callStatus || "").trim().toLowerCase();
+                        const status = String(item.status || "").trim().toLowerCase();
                         let badgeClass = 'badge badge-brand'; let label = 'Mağazaya Gelecek';
                         if (callStatus === 'aranmadı') { badgeClass = 'badge badge-rose'; label = 'Aranmadı'; }
                         else if (status === 'tekrar aranacak') { badgeClass = 'badge badge-amber'; label = 'Tekrar Aranacak'; }
@@ -453,10 +456,13 @@
                 `).join('');
                 if(grouped.length === 0) document.getElementById('followup-body').innerHTML = '<tr><td colspan="4" class="text-center py-10">Kayıt bulunamadı.</td></tr>';
             } else if (activeTab === 'unspecified') {
-                // YENİ KRİTER: No Belirtilmeyenler (ciro > 0) + Satışa Döndü olup Tutarı 0₺ veya boş olanlar
                 const unspecList = list.filter(i => {
-                    const hasNoNumber = (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş") && i.revenue > 0;
-                    const isZeroRevenueSale = (i.status || "").toLowerCase().trim() === 'satışa döndü' && (i.revenue === 0 || !i.revenue);
+                    const cNo = String(i.customerNo || "").trim();
+                    const status = String(i.status || "").trim().toLowerCase();
+                    const rev = Number(i.revenue || 0);
+                    
+                    const hasNoNumber = (cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && rev > 0;
+                    const isZeroRevenueSale = status === 'satışa döndü' && rev === 0;
                     return hasNoNumber || isZeroRevenueSale;
                 });
                 const grouped = groupDataByBranch(unspecList);
@@ -464,19 +470,21 @@
                 document.getElementById('unspecified-body').innerHTML = grouped.map(group => `
                     <tr class="bg-rose-50/30"><td colspan="4" class="px-8 py-3 font-bold text-rose-600 text-[10px] uppercase tracking-widest border-y border-rose-100"><i class="fas fa-triangle-exclamation mr-2"></i> ${group.branch} <span class="ml-2 text-rose-400 text-[9px] font-normal">(${group.items.length} Hatalı Kayıt)</span></td></tr>
                     ${group.items.map((item, idx) => {
-                        const isZeroRevenue = (item.status || "").toLowerCase().trim() === 'satışa döndü' && (item.revenue === 0 || !item.revenue);
+                        const status = String(item.status || "").trim().toLowerCase();
+                        const rev = Number(item.revenue || 0);
+                        const isZeroRevenue = status === 'satışa döndü' && rev === 0;
                         const badgeLabel = isZeroRevenue ? "Sıfır Cirolu Satış" : "Numara Eksik";
                         const badgeClass = isZeroRevenue ? "badge-amber" : "badge-rose";
                         return `<tr>
                             <td class="text-center text-slate-400 font-bold">${idx+1}</td>
                             <td><div class="font-bold text-slate-700">${item.customerName || "---"}</div></td>
                             <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
-                            <td class="text-right font-bold text-rose-600">${fmt(item.revenue)}</td>
+                            <td class="text-right font-bold text-rose-600">${fmt(rev)}</td>
                         </tr>`;
                     }).join('')}
                 `).join('');
                 if(grouped.length === 0) document.getElementById('unspecified-body').innerHTML = '<tr><td colspan="4" class="text-center py-10">Sorunsuz ve eksiksiz kayıtlar.</td></tr>';
-                safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + b.revenue, 0)));
+                safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
             }
         }
 
@@ -486,27 +494,27 @@
             const branch = document.getElementById('branchSelector').value;
             const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
             const fmt = v => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
-            let list = currentData.customerList.filter(i => (i.customerName || i.customerNo));
+            let list = currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
             if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
             let tableHtml = "";
             if (activeTab === 'followup') {
                 let fList = list.filter(i => {
-                    const s = (i.status || "").toLowerCase().trim();
-                    const cs = (i.callStatus || "").toLowerCase().trim();
+                    const s = String(i.status || "").trim().toLowerCase();
+                    const cs = String(i.callStatus || "").trim().toLowerCase();
                     return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
                 });
                 
                 if (selectedAction !== "tümü") {
-                    if (selectedAction === "aranmadı") fList = fList.filter(i => (i.callStatus || "").toLowerCase().trim() === 'aranmadı');
-                    else fList = fList.filter(i => (i.status || "").toLowerCase().trim() === selectedAction);
+                    if (selectedAction === "aranmadı") fList = fList.filter(i => String(i.callStatus || "").trim().toLowerCase() === 'aranmadı');
+                    else fList = fList.filter(i => String(i.status || "").trim().toLowerCase() === selectedAction);
                 }
 
                 const grouped = groupDataByBranch(fList);
                 tableHtml = `<thead><tr><th>Şube</th><th>Müşteri</th><th>Telefon</th><th>Aksiyon / Uyarı</th></tr></thead><tbody>` + 
                     grouped.map(group => group.items.map(i => {
-                        const callStatus = (i.callStatus || "").toLowerCase().trim();
-                        const status = (i.status || "").toLowerCase().trim();
+                        const callStatus = String(i.callStatus || "").trim().toLowerCase();
+                        const status = String(i.status || "").trim().toLowerCase();
                         let label = 'MAĞAZAYA GELECEK';
                         if (callStatus === 'aranmadı') label = 'ARANMADI';
                         else if (status === 'tekrar aranacak') label = 'TEKRAR ARANACAK';
@@ -514,26 +522,35 @@
                         return `<tr><td>${group.branch}</td><td>${i.customerName}</td><td>${i.phone}</td><td>${label} ${i.isLate ? '('+i.date+' TARIHINDEN BERI ARANMADI)' : ''}</td></tr>`;
                     }).join('')).join('') + `</tbody>`;
             } else if (activeTab === 'unspecified') {
-                // PDF Çıktısında yeni kriterleri uygula
                 let unspecList = list.filter(i => {
-                    const hasNoNumber = (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş") && i.revenue > 0;
-                    const isZeroRevenueSale = (i.status || "").toLowerCase().trim() === 'satışa döndü' && (i.revenue === 0 || !i.revenue);
+                    const cNo = String(i.customerNo || "").trim();
+                    const status = String(i.status || "").trim().toLowerCase();
+                    const rev = Number(i.revenue || 0);
+                    
+                    const hasNoNumber = (cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && rev > 0;
+                    const isZeroRevenueSale = status === 'satışa döndü' && rev === 0;
                     return hasNoNumber || isZeroRevenueSale;
                 });
                 const grouped = groupDataByBranch(unspecList);
                 tableHtml = `<thead><tr><th>Şube</th><th>Müşteri Tanımı</th><th>Telefon</th><th>Sorun Durumu</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
                     grouped.map(group => group.items.map(i => {
-                        const isZeroRevenue = (i.status || "").toLowerCase().trim() === 'satışa döndü' && (i.revenue === 0 || !i.revenue);
+                        const status = String(i.status || "").trim().toLowerCase();
+                        const rev = Number(i.revenue || 0);
+                        const isZeroRevenue = status === 'satışa döndü' && rev === 0;
                         const statusLabel = isZeroRevenue ? "SIFIR CİROLU SATIŞ" : "MÜŞTERİ NO EKSİK";
-                        return `<tr><td>${group.branch}</td><td>${i.customerName || '---'}</td><td>${i.phone || '---'}</td><td>${statusLabel}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`;
+                        return `<tr><td>${group.branch}</td><td>${i.customerName || '---'}</td><td>${i.phone || '---'}</td><td>${statusLabel}</td><td style="text-align:right">${fmt(rev)}</td></tr>`;
                     }).join('')).join('') + `</tbody>`;
             } else if (activeTab === 'customers') {
-                let specList = list.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
+                let specList = list.filter(i => {
+                    const rev = Number(i.revenue || 0);
+                    const cNo = String(i.customerNo || "").trim();
+                    return rev > 0 && cNo !== "" && cNo.toLowerCase() !== "belirtilmemiş";
+                });
                 const grouped = groupDataByBranch(specList);
                 tableHtml = `<thead><tr><th>Şube</th><th>Müşteri No</th><th>Telefon</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
                     grouped.map(group => group.items.map(i => `<tr><td>${group.branch}</td><td>${i.customerNo}</td><td>${i.phone || '---'}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`).join('')).join('') + `</tbody>`;
             } else {
-                const grouped = groupDataByBranch(list.filter(i => i.revenue > 0));
+                const grouped = groupDataByBranch(list.filter(i => Number(i.revenue || 0) > 0));
                 tableHtml = `<thead><tr><th>Şube</th><th>Müşteri No/Adı</th><th>Telefon</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
                     grouped.map(group => group.items.map(i => `<tr><td>${group.branch}</td><td>${i.customerNo || i.customerName}</td><td>${i.phone}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`).join('')).join('') + `</tbody>`;
             }
@@ -548,13 +565,19 @@
         function printSummaryReport() {
             if (!currentData) return;
             const period = document.getElementById('periodSelector').value;
-            let list = currentData.customerList.filter(i => (i.status === 'tekrar aranacak' || i.status === 'müşteri mağazaya gelecek' || i.callStatus === 'aranmadı'));
+            let list = currentData.customerList.filter(i => {
+                const s = String(i.status || "").trim().toLowerCase();
+                const cs = String(i.callStatus || "").trim().toLowerCase();
+                return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
+            });
             const stats = {};
             list.forEach(i => {
                 if(!stats[i.branch]) stats[i.branch] = { aranmadi: 0, tekrar: 0, gelecek: 0, total: 0 };
-                if(i.callStatus === 'aranmadı') stats[i.branch].aranmadi++;
-                else if(i.status === 'tekrar aranacak') stats[i.branch].tekrar++;
-                else if(i.status === 'müşteri mağazaya gelecek') stats[i.branch].gelecek++;
+                const cs = String(i.callStatus || "").trim().toLowerCase();
+                const s = String(i.status || "").trim().toLowerCase();
+                if(cs === 'aranmadı') stats[i.branch].aranmadi++;
+                else if(s === 'tekrar aranacak') stats[i.branch].tekrar++;
+                else if(s === 'müşteri mağazaya gelecek') stats[i.branch].gelecek++;
                 stats[i.branch].total++;
             });
             const sorted = Object.entries(stats).sort((a,b)=>getBranchSortIndex(a[0])-getBranchSortIndex(b[0]));
@@ -572,35 +595,49 @@
             let wsData = [];
             if (activeTab === 'followup') {
                 wsData = [["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "AKSİYON DURUMU", "GECİKME BİLGİSİ"]];
-                const list = currentData.customerList.filter(i => (i.callStatus === 'aranmadı' || ['tekrar aranacak','müşteri mağazaya gelecek'].includes(i.status)));
+                const list = currentData.customerList.filter(i => {
+                    const s = String(i.status || "").trim().toLowerCase();
+                    const cs = String(i.callStatus || "").trim().toLowerCase();
+                    return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
+                });
                 list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
                 list.forEach(i => {
-                    wsData.push([i.branch, i.customerName, i.phone, i.callStatus === 'aranmadı' ? 'Aranmadı' : i.status, i.isLate ? i.date + ' tarihinden beri aranmadı' : '']);
+                    const cs = String(i.callStatus || "").trim().toLowerCase();
+                    wsData.push([i.branch, i.customerName, i.phone, cs === 'aranmadı' ? 'Aranmadı' : i.status, i.isLate ? i.date + ' tarihinden beri aranmadı' : '']);
                 });
             } else if (activeTab === 'unspecified') {
-                // Excel Çıktısında yeni kriterleri uygula
                 wsData = [["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "HATA/SORUN DURUMU", "TUTAR"]];
                 const list = currentData.customerList.filter(i => {
-                    const hasNoNumber = (!i.customerNo || i.customerNo.toLowerCase() === "belirtilmemiş") && i.revenue > 0;
-                    const isZeroRevenueSale = (i.status || "").toLowerCase().trim() === 'satışa döndü' && (i.revenue === 0 || !i.revenue);
+                    const cNo = String(i.customerNo || "").trim();
+                    const status = String(i.status || "").trim().toLowerCase();
+                    const rev = Number(i.revenue || 0);
+                    
+                    const hasNoNumber = (cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && rev > 0;
+                    const isZeroRevenueSale = status === 'satışa döndü' && rev === 0;
                     return hasNoNumber || isZeroRevenueSale;
                 });
                 list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
                 list.forEach(i => {
-                    const isZeroRevenue = (i.status || "").toLowerCase().trim() === 'satışa döndü' && (i.revenue === 0 || !i.revenue);
+                    const status = String(i.status || "").trim().toLowerCase();
+                    const rev = Number(i.revenue || 0);
+                    const isZeroRevenue = status === 'satışa döndü' && rev === 0;
                     const statusLabel = isZeroRevenue ? "Sıfır Cirolu Satış" : "Müşteri No Eksik";
-                    wsData.push([i.branch, i.customerName || '---', i.phone || '---', statusLabel, i.revenue]);
+                    wsData.push([i.branch, i.customerName || '---', i.phone || '---', statusLabel, rev]);
                 });
             } else if (activeTab === 'customers') {
                 wsData = [["ŞUBE", "MÜŞTERİ NO", "TELEFON", "TUTAR"]];
-                const list = currentData.customerList.filter(i => i.revenue > 0 && i.customerNo && i.customerNo.toLowerCase() !== "belirtilmemiş");
+                const list = currentData.customerList.filter(i => {
+                    const rev = Number(i.revenue || 0);
+                    const cNo = String(i.customerNo || "").trim();
+                    return rev > 0 && cNo !== "" && cNo.toLowerCase() !== "belirtilmemiş";
+                });
                 list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
                 list.forEach(i => {
                     wsData.push([i.branch, i.customerNo, i.phone || '---', i.revenue]);
                 });
             } else {
                 wsData = [["ŞUBE", "MÜŞTERİ NO/ADI", "TELEFON", "TUTAR"]];
-                const list = currentData.customerList.filter(i => i.revenue > 0);
+                const list = currentData.customerList.filter(i => Number(i.revenue || 0) > 0);
                 list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
                 list.forEach(i => {
                     wsData.push([i.branch, i.customerNo || i.customerName, i.phone, i.revenue]);
