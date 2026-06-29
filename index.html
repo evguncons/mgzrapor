@@ -130,7 +130,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.0</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.2</p>
                 </div>
             </div>
         </div>
@@ -256,7 +256,7 @@
                     <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
                         <div>
                             <h3 class="font-bold text-base text-slate-800">Şube Performans Çizelgesi</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Sıralama varsayılan düzene göre yapılmıştır.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Ciro performansına göre yüksekten düşüğe doğru sıralanmıştır.</p>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -406,7 +406,8 @@
             if (activeTab === 'dashboard') {
                 let branchSummary = [...data.charts.branch];
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
-                branchSummary.sort((a, b) => getBranchSortIndex(a.name) - getBranchSortIndex(b.name));
+                // Performans Sıralaması: Yüksekten düşüğe doğru sırala
+                branchSummary.sort((a, b) => b.revenue - a.revenue);
                 
                 document.getElementById('branch-body').innerHTML = branchSummary.map((b, i) => `<tr><td class="text-center font-bold text-slate-400">${i+1}</td><td class="font-bold text-slate-800">${b.name}</td><td class="text-right font-semibold text-slate-500">${num(b.sales)}</td><td class="text-right font-bold text-brand-600">${fmt(b.revenue)}</td></tr>`).join('');
                 
@@ -494,17 +495,27 @@
             const branch = document.getElementById('branchSelector').value;
             const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
             const fmt = v => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            
+            // FILTRE: Seçilen şubeyi PDF'e de uygula
             let list = currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
             if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
             let tableHtml = "";
-            if (activeTab === 'followup') {
+            if (activeTab === 'dashboard') {
+                let branchSummary = [...currentData.charts.branch];
+                if (branch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === branch);
+                // Performans Sıralaması: PDF'te de yüksekten düşüğe doğru
+                branchSummary.sort((a, b) => b.revenue - a.revenue);
+                tableHtml = `<thead><tr><th style="width: 50px; text-align: center;">Sıra</th><th>Şube Tanımı</th><th style="text-align:right">Satış (Adet)</th><th style="text-align:right">Toplam Tutar</th></tr></thead><tbody>` + 
+                    branchSummary.map((b, i) => `<tr><td style="text-align:center">${i+1}</td><td>${b.name.toUpperCase()}</td><td style="text-align:right">${b.sales}</td><td style="text-align:right">${fmt(b.revenue)}</td></tr>`).join('') + `</tbody>`;
+            } else if (activeTab === 'followup') {
                 let fList = list.filter(i => {
                     const s = String(i.status || "").trim().toLowerCase();
                     const cs = String(i.callStatus || "").trim().toLowerCase();
                     return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
                 });
                 
+                // FILTRE: Seçilen takip aksiyonunu PDF'e de uygula
                 if (selectedAction !== "tümü") {
                     if (selectedAction === "aranmadı") fList = fList.filter(i => String(i.callStatus || "").trim().toLowerCase() === 'aranmadı');
                     else fList = fList.filter(i => String(i.status || "").trim().toLowerCase() === selectedAction);
@@ -549,10 +560,6 @@
                 const grouped = groupDataByBranch(specList);
                 tableHtml = `<thead><tr><th>Şube</th><th>Müşteri No</th><th>Telefon</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
                     grouped.map(group => group.items.map(i => `<tr><td>${group.branch}</td><td>${i.customerNo}</td><td>${i.phone || '---'}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`).join('')).join('') + `</tbody>`;
-            } else {
-                const grouped = groupDataByBranch(list.filter(i => Number(i.revenue || 0) > 0));
-                tableHtml = `<thead><tr><th>Şube</th><th>Müşteri No/Adı</th><th>Telefon</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
-                    grouped.map(group => group.items.map(i => `<tr><td>${group.branch}</td><td>${i.customerNo || i.customerName}</td><td>${i.phone}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`).join('')).join('') + `</tbody>`;
             }
 
             const branchTitle = branch === "Tümü" ? "TÜM ŞUBELER" : branch.toUpperCase();
@@ -565,11 +572,12 @@
         function printSummaryReport() {
             if (!currentData) return;
             const period = document.getElementById('periodSelector').value;
-            let list = currentData.customerList.filter(i => {
-                const s = String(i.status || "").trim().toLowerCase();
-                const cs = String(i.callStatus || "").trim().toLowerCase();
-                return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
-            });
+            const branch = document.getElementById('branchSelector').value;
+            
+            let list = currentData.customerList.filter(i => (i.status === 'tekrar aranacak' || i.status === 'müşteri mağazaya gelecek' || i.callStatus === 'aranmadı'));
+            // FILTRE: Şube seçildiyse özet PDF'e de filtreyi yansıt
+            if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
+
             const stats = {};
             list.forEach(i => {
                 if(!stats[i.branch]) stats[i.branch] = { aranmadi: 0, tekrar: 0, gelecek: 0, total: 0 };
@@ -582,7 +590,8 @@
             });
             const sorted = Object.entries(stats).sort((a,b)=>getBranchSortIndex(a[0])-getBranchSortIndex(b[0]));
             
-            let html = `<div style="text-align:center"><h1>HEDEF AVM AKSİYON ÖZETİ</h1><p>${period.toUpperCase()}</p></div><table class="print-table"><thead><tr><th>ŞUBE ADI</th><th>ARANMADI</th><th>TEKRAR</th><th>GELECEK</th><th>TOPLAM</th></tr></thead><tbody>` + 
+            const branchTitle = branch === "Tümü" ? "TÜM ŞUBELER" : branch.toUpperCase();
+            let html = `<div style="text-align:center"><h1>HEDEF AVM AKSİYON ÖZETİ</h1><p>${period.toUpperCase()} - ${branchTitle}</p></div><table class="print-table"><thead><tr><th>ŞUBE ADI</th><th>ARANMADI</th><th>TEKRAR</th><th>GELECEK</th><th>TOPLAM</th></tr></thead><tbody>` + 
                 sorted.map(([name, s]) => `<tr><td><b>${name.toUpperCase()}</b></td><td>${s.aranmadi}</td><td>${s.tekrar}</td><td>${s.gelecek}</td><td><b>${s.total}</b></td></tr>`).join('') + `</tbody></table>`;
             document.getElementById('printArea').innerHTML = html;
             window.print();
@@ -592,22 +601,45 @@
             if (!currentData) return;
             const wb = XLSX.utils.book_new();
             const period = document.getElementById('periodSelector').value;
+            const selectedBranch = document.getElementById('branchSelector').value;
+            const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
+            
+            // FILTRE: Başlangıç listesine şube filtresini entegre et
+            let list = currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
+            if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
+
             let wsData = [];
-            if (activeTab === 'followup') {
+            if (activeTab === 'dashboard') {
+                wsData = [["ŞUBE", "SATIŞ ADEDİ (ADET)", "TOPLAM CİRO (TL)"]];
+                let branchSummary = [...currentData.charts.branch];
+                if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
+                // Performans Sıralaması: Excel tablosunda da yüksekten düşüğe doğru
+                branchSummary.sort((a, b) => b.revenue - a.revenue);
+                branchSummary.forEach(b => {
+                    wsData.push([b.name.toUpperCase(), b.sales, b.revenue]);
+                });
+            } else if (activeTab === 'followup') {
                 wsData = [["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "AKSİYON DURUMU", "GECİKME BİLGİSİ"]];
-                const list = currentData.customerList.filter(i => {
+                let fList = list.filter(i => {
                     const s = String(i.status || "").trim().toLowerCase();
                     const cs = String(i.callStatus || "").trim().toLowerCase();
                     return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
                 });
-                list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
-                list.forEach(i => {
+                
+                // FILTRE: Seçilen takip aksiyonunu Excel'e de uygula
+                if (selectedAction !== "tümü") {
+                    if (selectedAction === "aranmadı") fList = fList.filter(i => String(i.callStatus || "").trim().toLowerCase() === 'aranmadı');
+                    else fList = fList.filter(i => String(i.status || "").trim().toLowerCase() === selectedAction);
+                }
+                
+                fList.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
+                fList.forEach(i => {
                     const cs = String(i.callStatus || "").trim().toLowerCase();
                     wsData.push([i.branch, i.customerName, i.phone, cs === 'aranmadı' ? 'Aranmadı' : i.status, i.isLate ? i.date + ' tarihinden beri aranmadı' : '']);
                 });
             } else if (activeTab === 'unspecified') {
                 wsData = [["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "HATA/SORUN DURUMU", "TUTAR"]];
-                const list = currentData.customerList.filter(i => {
+                const unspecList = list.filter(i => {
                     const cNo = String(i.customerNo || "").trim();
                     const status = String(i.status || "").trim().toLowerCase();
                     const rev = Number(i.revenue || 0);
@@ -616,8 +648,8 @@
                     const isZeroRevenueSale = status === 'satışa döndü' && rev === 0;
                     return hasNoNumber || isZeroRevenueSale;
                 });
-                list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
-                list.forEach(i => {
+                unspecList.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
+                unspecList.forEach(i => {
                     const status = String(i.status || "").trim().toLowerCase();
                     const rev = Number(i.revenue || 0);
                     const isZeroRevenue = status === 'satışa döndü' && rev === 0;
@@ -635,17 +667,11 @@
                 list.forEach(i => {
                     wsData.push([i.branch, i.customerNo, i.phone || '---', i.revenue]);
                 });
-            } else {
-                wsData = [["ŞUBE", "MÜŞTERİ NO/ADI", "TELEFON", "TUTAR"]];
-                const list = currentData.customerList.filter(i => Number(i.revenue || 0) > 0);
-                list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
-                list.forEach(i => {
-                    wsData.push([i.branch, i.customerNo || i.customerName, i.phone, i.revenue]);
-                });
             }
+            
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, "Rapor");
-            XLSX.writeFile(wb, `Hedef_AVM_${period}_${activeTab}.xlsx`);
+            XLSX.writeFile(wb, `Hedef_AVM_${period}_${selectedBranch}_${activeTab}.xlsx`);
         }
     </script>
 </body>
