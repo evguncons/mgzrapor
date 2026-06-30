@@ -130,7 +130,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.4</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.6</p>
                 </div>
             </div>
         </div>
@@ -302,10 +302,30 @@
             </div>
         </div>
 
+        <!-- Global Loader -->
         <div id="loadingIndicator" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center hidden">
             <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-4">
                 <div class="w-10 h-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
                 <p class="text-sm font-semibold text-slate-600">Veriler Senkronize Ediliyor...</p>
+            </div>
+        </div>
+
+        <!-- PREMIUM DETAYLI HATA MODALI -->
+        <div id="errorModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded-3xl max-w-lg w-full mx-4 border border-rose-100 shadow-2xl relative">
+                <div class="flex items-center gap-4 text-rose-600 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0 animate-pulse">
+                        <i class="fas fa-circle-exclamation text-xl"></i>
+                    </div>
+                    <h3 id="errorModalTitle" class="text-lg font-bold">Web App Bağlantı Hatası</h3>
+                </div>
+                <div id="errorModalMessage" class="text-sm text-slate-600 leading-relaxed mb-6 whitespace-normal">
+                    Hata detayı yükleniyor...
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button onclick="closeErrorModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Kapat</button>
+                    <button onclick="fetchData()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-xl transition">Yeniden Bağlan</button>
+                </div>
             </div>
         </div>
     </main>
@@ -313,6 +333,7 @@
     <div id="printArea"></div>
 
     <script>
+        // ÖNEMLİ: Google Apps Script Web App URL'niz
         const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwX2K6gBaSalxAuME90FUJVr086B9D4PKitB4MvqaD5_KNc-rSHI3UWDZIjyftU6quG/exec";
         let currentData = null; 
         let activeTab = 'dashboard';
@@ -331,29 +352,103 @@
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('closed'); document.getElementById('sidebarOverlay').classList.toggle('hidden'); }
         function maybeCloseSidebar() { if (window.innerWidth < 1024) toggleSidebar(); }
 
+        function showErrorModal(title, msg) {
+            document.getElementById('errorModalTitle').innerText = title;
+            document.getElementById('errorModalMessage').innerHTML = msg;
+            document.getElementById('errorModal').classList.remove('hidden');
+            document.getElementById('loadingIndicator').classList.add('hidden');
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModal').classList.add('hidden');
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             const sel = document.getElementById('periodSelector');
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`);
+                // Tarayıcı önbelleğini engellemek için cache: 'no-store' ekliyoruz
+                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`, { cache: 'no-store' });
+                
+                // HTML/CORS Hata Kontrolü
+                const contentType = res.headers.get("content-type");
+                if (contentType && !contentType.includes("application/json")) {
+                    const text = await res.text();
+                    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+                        showErrorModal("Web App Yapılandırma Hatası", 
+                            "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
+                            "<b>Olası Çözümler:</b><br>" +
+                            "1. Google Apps Script editöründe sağ üstteki <b>Deploy > Manage deployments</b> adımlarını takip edin.<br>" +
+                            "2. <b>Who has access</b> seçeneğini <b>'Anyone' (Herkes)</b>, <b>Execute as</b> seçeneğini ise <b>'Me' (Ben)</b> olarak güncelleyin ve yeni bir sürümle yayına alın."
+                        );
+                        return;
+                    }
+                }
+                
                 const periods = await res.json();
                 if (periods && periods.length > 0) {
                     sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
-                    // Değeri doğrudan atıyoruz ve DOM'un bunu aldığından emin oluyoruz
                     sel.value = periods[0];
-                    // Boş parametreyle tetikleme hatasını önlemek için ilk periyodu doğrudan gönderiyoruz
                     await fetchDataWithPeriod(periods[0]);
+                } else {
+                    showErrorModal("Veri Yok", "E-Tablonuzda uygun çalışma dönemi sayfası bulunamadı.");
                 }
             } catch (e) { 
                 console.error(e); 
+                showErrorModal("Sistem Başlatılamadı", 
+                    "Web App ile bağlantı kurulamadı. URL geçersiz olabilir veya Google API kısıtlamalarına takılmış olabilirsiniz.<br><br>" +
+                    "Uygulama kodundaki <b>APPSCRIPT_URL</b> adresinin doğru olduğundan emin olun."
+                );
+            } finally {
                 loader.classList.add('hidden');
             }
         });
 
+        // "Yenile" (Yenileme) Butonu için Gelişmiş fetchData Fonksiyonu
+        // Hem dönem listesini sıfırdan günceller hem de seçili dönemin canlı verisini çeker.
         async function fetchData() {
-            const period = document.getElementById('periodSelector').value;
-            await fetchDataWithPeriod(period);
+            const sel = document.getElementById('periodSelector');
+            const currentSelection = sel.value;
+            const loader = document.getElementById('loadingIndicator');
+            loader.classList.remove('hidden');
+            try {
+                // 1. Önce güncel dönem listesini e-tablodan çek
+                const resPeriods = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`, { cache: 'no-store' });
+                
+                // HTML/CORS Hata Kontrolü
+                const contentType = resPeriods.headers.get("content-type");
+                if (contentType && !contentType.includes("application/json")) {
+                    const text = await resPeriods.text();
+                    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+                        showErrorModal("Web App Yapılandırma Hatası", 
+                            "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
+                            "Lütfen Google Apps Script dağıtım (deployment) izinlerinizi kontrol edin."
+                        );
+                        return;
+                    }
+                }
+                
+                const periods = await resPeriods.json();
+                if (periods && periods.length > 0) {
+                    sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
+                    // Eğer önceden seçilmiş dönem hala mevcutsa onu seç, yoksa en yeni dönemi seç
+                    if (periods.includes(currentSelection)) {
+                        sel.value = currentSelection;
+                    } else {
+                        sel.value = periods[0];
+                    }
+                }
+                
+                // 2. Belirlenen dönemin güncel istatistiklerini getir
+                const activePeriod = sel.value;
+                await fetchDataWithPeriod(activePeriod);
+            } catch (e) {
+                console.error(e);
+                showErrorModal("Yenileme Başarısız", "Veriler güncellenirken bir bağlantı hatası oluştu. Lütfen tekrar deneyin.");
+            } finally {
+                loader.classList.add('hidden');
+            }
         }
 
         async function fetchDataWithPeriod(period) {
@@ -361,8 +456,22 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                // CORS hatasını önlemek için headers içermeyen temiz bir fetch işlemi gerçekleştiriyoruz
-                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`);
+                // Önbellek bypass etmek için cache: 'no-store' zorunlu kılınmıştır
+                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`, { cache: 'no-store' });
+                
+                // HTML/CORS Hata Kontrolü
+                const contentType = res.headers.get("content-type");
+                if (contentType && !contentType.includes("application/json")) {
+                    const text = await res.text();
+                    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+                        showErrorModal("Veri Okuma Hatası", 
+                            "Web uygulamasından JSON beklenirken HTML formatında bir yanıt alındı.<br><br>" +
+                            "<b>Çözüm:</b> Dağıtım ayarlarından 'Execute as' kısmının 'Me' ve erişim yetkisinin 'Anyone' olduğunu doğrulayın."
+                        );
+                        return;
+                    }
+                }
+                
                 currentData = await res.json();
                 populateBranchFilter(currentData);
                 render(currentData);
@@ -370,6 +479,7 @@
                 safeSetText('lastUpdateTime', now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'));
             } catch (e) { 
                 console.error(e); 
+                showErrorModal("Bağlantı Kesildi", "Veriler sunucudan alınamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.");
             } finally { 
                 loader.classList.add('hidden'); 
             }
@@ -377,12 +487,10 @@
 
         function populateBranchFilter(data) {
             const branchSelector = document.getElementById('branchSelector');
-            // Kullanıcının yenile butonuna basmadan önceki aktif şube filtresini yedekle
             const currentSelection = branchSelector.value;
             const branches = [...new Set(data.customerList.map(i => i.branch))].sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
             branchSelector.innerHTML = '<option value="Tümü">Tüm Şubeler</option>' + branches.map(b => `<option value="${b}">${b}</option>`).join('');
             
-            // Eğer yedeklenen şube hâlâ listedeyse, seçimi koru
             if (branches.includes(currentSelection)) {
                 branchSelector.value = currentSelection;
             }
@@ -515,7 +623,6 @@
             const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
             const fmt = v => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             
-            // FILTRE: Seçilen şubeyi PDF'e de uygula
             let list = currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
             if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
@@ -523,7 +630,6 @@
             if (activeTab === 'dashboard') {
                 let branchSummary = [...currentData.charts.branch];
                 if (branch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === branch);
-                // Performans Sıralaması: PDF'te de yüksekten düşüğe doğru
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
                 tableHtml = `<thead><tr><th style="width: 50px; text-align: center;">Sıra</th><th>Şube Tanımı</th><th style="text-align:right">Satış (Adet)</th><th style="text-align:right">Toplam Tutar</th></tr></thead><tbody>` + 
                     branchSummary.map((b, i) => `<tr><td style="text-align:center">${i+1}</td><td>${b.name.toUpperCase()}</td><td style="text-align:right">${b.sales}</td><td style="text-align:right">${fmt(b.revenue)}</td></tr>`).join('') + `</tbody>`;
@@ -534,7 +640,6 @@
                     return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
                 });
                 
-                // FILTRE: Seçilen takip aksiyonunu PDF'e de uygula
                 if (selectedAction !== "tümü") {
                     if (selectedAction === "aranmadı") fList = fList.filter(i => String(i.callStatus || "").trim().toLowerCase() === 'aranmadı');
                     else fList = fList.filter(i => String(i.status || "").trim().toLowerCase() === selectedAction);
@@ -594,7 +699,6 @@
             const branch = document.getElementById('branchSelector').value;
             
             let list = currentData.customerList.filter(i => (i.status === 'tekrar aranacak' || i.status === 'müşteri mağazaya gelecek' || i.callStatus === 'aranmadı'));
-            // FILTRE: Şube seçildiyse özet PDF'e de filtreyi yansıt
             if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
             const stats = {};
@@ -623,7 +727,6 @@
             const selectedBranch = document.getElementById('branchSelector').value;
             const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
             
-            // FILTRE: Başlangıç listesine şube filtresini entegre et
             let list = currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
             if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
 
@@ -632,7 +735,6 @@
                 wsData = [["ŞUBE", "SATIŞ ADEDİ (ADET)", "TOPLAM CİRO (TL)"]];
                 let branchSummary = [...currentData.charts.branch];
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
-                // Performans Sıralaması: Excel tablosunda da yüksekten düşüğe doğru
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
                 branchSummary.forEach(b => {
                     wsData.push([b.name.toUpperCase(), b.sales, b.revenue]);
@@ -645,7 +747,6 @@
                     return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı';
                 });
                 
-                // FILTRE: Seçilen takip aksiyonunu Excel'e de uygula
                 if (selectedAction !== "tümü") {
                     if (selectedAction === "aranmadı") fList = fList.filter(i => String(i.callStatus || "").trim().toLowerCase() === 'aranmadı');
                     else fList = fList.filter(i => String(i.status || "").trim().toLowerCase() === selectedAction);
