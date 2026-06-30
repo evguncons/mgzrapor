@@ -130,7 +130,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.3</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.4</p>
                 </div>
             </div>
         </div>
@@ -340,29 +340,39 @@
                 const periods = await res.json();
                 if (periods && periods.length > 0) {
                     sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
-                    sel.value = periods[0]; 
-                    await fetchData();
+                    // Değeri doğrudan atıyoruz ve DOM'un bunu aldığından emin oluyoruz
+                    sel.value = periods[0];
+                    // Boş parametreyle tetikleme hatasını önlemek için ilk periyodu doğrudan gönderiyoruz
+                    await fetchDataWithPeriod(periods[0]);
                 }
-            } catch (e) { console.error(e); }
-            finally { loader.classList.add('hidden'); }
+            } catch (e) { 
+                console.error(e); 
+                loader.classList.add('hidden');
+            }
         });
 
         async function fetchData() {
             const period = document.getElementById('periodSelector').value;
+            await fetchDataWithPeriod(period);
+        }
+
+        async function fetchDataWithPeriod(period) {
             if (!period) return;
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                // Tarayıcı ve proxy sunucu CORS preflight (OPTIONS) hatasını engellemek için özel HTTP başlıklarını kaldırdık.
-                // Zaman damgası (t=timestamp) önbelleği engellemek için tam olarak yeterlidir.
+                // CORS hatasını önlemek için headers içermeyen temiz bir fetch işlemi gerçekleştiriyoruz
                 const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`);
                 currentData = await res.json();
                 populateBranchFilter(currentData);
                 render(currentData);
                 const now = new Date(); 
                 safeSetText('lastUpdateTime', now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'));
-            } catch (e) { console.error(e); }
-            finally { loader.classList.add('hidden'); }
+            } catch (e) { 
+                console.error(e); 
+            } finally { 
+                loader.classList.add('hidden'); 
+            }
         }
 
         function populateBranchFilter(data) {
