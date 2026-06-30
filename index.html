@@ -130,7 +130,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.2</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.3</p>
                 </div>
             </div>
         </div>
@@ -353,6 +353,8 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
+                // Tarayıcı ve proxy sunucu CORS preflight (OPTIONS) hatasını engellemek için özel HTTP başlıklarını kaldırdık.
+                // Zaman damgası (t=timestamp) önbelleği engellemek için tam olarak yeterlidir.
                 const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`);
                 currentData = await res.json();
                 populateBranchFilter(currentData);
@@ -365,8 +367,15 @@
 
         function populateBranchFilter(data) {
             const branchSelector = document.getElementById('branchSelector');
+            // Kullanıcının yenile butonuna basmadan önceki aktif şube filtresini yedekle
+            const currentSelection = branchSelector.value;
             const branches = [...new Set(data.customerList.map(i => i.branch))].sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
             branchSelector.innerHTML = '<option value="Tümü">Tüm Şubeler</option>' + branches.map(b => `<option value="${b}">${b}</option>`).join('');
+            
+            // Eğer yedeklenen şube hâlâ listedeyse, seçimi koru
+            if (branches.includes(currentSelection)) {
+                branchSelector.value = currentSelection;
+            }
         }
 
         function setTab(tab) {
@@ -406,7 +415,7 @@
             if (activeTab === 'dashboard') {
                 let branchSummary = [...data.charts.branch];
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
-                // Performans Sıralaması: Yüksekten düşüğe doğru sırala
+                // Performans Sıralaması: Ciro bazında yüksekten düşüğe sıralama
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
                 
                 document.getElementById('branch-body').innerHTML = branchSummary.map((b, i) => `<tr><td class="text-center font-bold text-slate-400">${i+1}</td><td class="font-bold text-slate-800">${b.name}</td><td class="text-right font-semibold text-slate-500">${num(b.sales)}</td><td class="text-right font-bold text-brand-600">${fmt(b.revenue)}</td></tr>`).join('');
