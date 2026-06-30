@@ -368,25 +368,28 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                // Tarayıcı önbelleğini engellemek için cache: 'no-store' ekliyoruz
-                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`, { cache: 'no-store' });
+                // Tarayıcı ve CORS preflight engellerini kaldırmak için GET isteğini en saf haliyle gönderiyoruz.
+                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`);
                 
                 // HTML/CORS Hata Kontrolü
                 const contentType = res.headers.get("content-type");
-                if (contentType && !contentType.includes("application/json")) {
-                    const text = await res.text();
-                    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
-                        showErrorModal("Web App Yapılandırma Hatası", 
-                            "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
-                            "<b>Olası Çözümler:</b><br>" +
-                            "1. Google Apps Script editöründe sağ üstteki <b>Deploy > Manage deployments</b> adımlarını takip edin.<br>" +
-                            "2. <b>Who has access</b> seçeneğini <b>'Anyone' (Herkes)</b>, <b>Execute as</b> seçeneğini ise <b>'Me' (Ben)</b> olarak güncelleyin ve yeni bir sürümle yayına alın."
-                        );
-                        return;
-                    }
+                const text = await res.text();
+                
+                if (contentType && !contentType.includes("application/json") || text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
+                    // Google'dan dönen gerçek hata kodunun ilk 250 karakterini teşhis amaçlı ekranda gösteriyoruz
+                    const cleanText = text.replace(/<[^>]*>/g, '').substring(0, 250);
+                    showErrorModal("Web App Yapılandırma Hatası", 
+                        "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
+                        "<b>Google Sunucusundan Dönen Hata Yanıtı:</b><br>" +
+                        `<code class="block bg-slate-100 p-3 rounded-lg text-xs font-mono text-rose-600 mt-2 break-all">${cleanText}...</code><br>` +
+                        "<b>Olası Çözümler:</b><br>" +
+                        "1. Google Apps Script editöründe sağ üstteki <b>Deploy > Manage deployments</b> adımlarını takip edin.<br>" +
+                        "2. <b>Who has access</b> seçeneğini <b>'Anyone' (Herkes)</b>, <b>Execute as</b> seçeneğini ise <b>'Me' (Ben)</b> olarak güncelleyin ve yeni bir sürümle yayına alın."
+                    );
+                    return;
                 }
                 
-                const periods = await res.json();
+                const periods = JSON.parse(text);
                 if (periods && periods.length > 0) {
                     sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
                     sel.value = periods[0];
@@ -398,6 +401,7 @@
                 console.error(e); 
                 showErrorModal("Sistem Başlatılamadı", 
                     "Web App ile bağlantı kurulamadı. URL geçersiz olabilir veya Google API kısıtlamalarına takılmış olabilirsiniz.<br><br>" +
+                    `<b>Hata Detayı:</b> <code class="text-rose-600 font-bold">${e.message}</code><br><br>` +
                     "Uygulama kodundaki <b>APPSCRIPT_URL</b> adresinin doğru olduğundan emin olun."
                 );
             } finally {
@@ -405,34 +409,28 @@
             }
         });
 
-        // "Yenile" (Yenileme) Butonu için Gelişmiş fetchData Fonksiyonu
-        // Hem dönem listesini sıfırdan günceller hem de seçili dönemin canlı verisini çeker.
+        // "Yenile" (Yenileme) Butonu için Gelişmiş ve önbelleksiz veri çekme akışı
         async function fetchData() {
             const sel = document.getElementById('periodSelector');
             const currentSelection = sel.value;
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                // 1. Önce güncel dönem listesini e-tablodan çek
-                const resPeriods = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`, { cache: 'no-store' });
+                const resPeriods = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`);
+                const text = await resPeriods.text();
                 
-                // HTML/CORS Hata Kontrolü
-                const contentType = resPeriods.headers.get("content-type");
-                if (contentType && !contentType.includes("application/json")) {
-                    const text = await resPeriods.text();
-                    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
-                        showErrorModal("Web App Yapılandırma Hatası", 
-                            "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
-                            "Lütfen Google Apps Script dağıtım (deployment) izinlerinizi kontrol edin."
-                        );
-                        return;
-                    }
+                if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
+                    const cleanText = text.replace(/<[^>]*>/g, '').substring(0, 250);
+                    showErrorModal("Web App Yapılandırma Hatası", 
+                        "Yenileme esnasında Google Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
+                        `<code class="block bg-slate-100 p-3 rounded-lg text-xs font-mono text-rose-600 mt-2 break-all">${cleanText}...</code>`
+                    );
+                    return;
                 }
                 
-                const periods = await resPeriods.json();
+                const periods = JSON.parse(text);
                 if (periods && periods.length > 0) {
                     sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
-                    // Eğer önceden seçilmiş dönem hala mevcutsa onu seç, yoksa en yeni dönemi seç
                     if (periods.includes(currentSelection)) {
                         sel.value = currentSelection;
                     } else {
@@ -440,12 +438,11 @@
                     }
                 }
                 
-                // 2. Belirlenen dönemin güncel istatistiklerini getir
                 const activePeriod = sel.value;
                 await fetchDataWithPeriod(activePeriod);
             } catch (e) {
                 console.error(e);
-                showErrorModal("Yenileme Başarısız", "Veriler güncellenirken bir bağlantı hatası oluştu. Lütfen tekrar deneyin.");
+                showErrorModal("Yenileme Başarısız", `Veriler güncellenirken bir bağlantı hatası oluştu:<br><code class="text-rose-600">${e.message}</code>`);
             } finally {
                 loader.classList.add('hidden');
             }
@@ -456,30 +453,27 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                // Önbellek bypass etmek için cache: 'no-store' zorunlu kılınmıştır
-                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`, { cache: 'no-store' });
+                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`);
+                const text = await res.text();
                 
-                // HTML/CORS Hata Kontrolü
-                const contentType = res.headers.get("content-type");
-                if (contentType && !contentType.includes("application/json")) {
-                    const text = await res.text();
-                    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
-                        showErrorModal("Veri Okuma Hatası", 
-                            "Web uygulamasından JSON beklenirken HTML formatında bir yanıt alındı.<br><br>" +
-                            "<b>Çözüm:</b> Dağıtım ayarlarından 'Execute as' kısmının 'Me' ve erişim yetkisinin 'Anyone' olduğunu doğrulayın."
-                        );
-                        return;
-                    }
+                if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
+                    const cleanText = text.replace(/<[^>]*>/g, '').substring(0, 250);
+                    showErrorModal("Veri Okuma Hatası", 
+                        "Web uygulamasından JSON beklenirken HTML formatında bir yanıt alındı.<br><br>" +
+                        `<code class="block bg-slate-100 p-3 rounded-lg text-xs font-mono text-rose-600 mt-2 break-all">${cleanText}...</code><br><br>` +
+                        "<b>Çözüm:</b> Dağıtım ayarlarından 'Execute as' kısmının 'Me' ve erişim yetkisinin 'Anyone' olduğunu doğrulayın."
+                    );
+                    return;
                 }
                 
-                currentData = await res.json();
+                currentData = JSON.parse(text);
                 populateBranchFilter(currentData);
                 render(currentData);
                 const now = new Date(); 
                 safeSetText('lastUpdateTime', now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'));
             } catch (e) { 
                 console.error(e); 
-                showErrorModal("Bağlantı Kesildi", "Veriler sunucudan alınamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.");
+                showErrorModal("Bağlantı Kesildi", `Veriler sunucudan alınamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.<br><br><b>Detay:</b> <code class="text-rose-600">${e.message}</code>`);
             } finally { 
                 loader.classList.add('hidden'); 
             }
@@ -488,7 +482,8 @@
         function populateBranchFilter(data) {
             const branchSelector = document.getElementById('branchSelector');
             const currentSelection = branchSelector.value;
-            const branches = [...new Set(data.customerList.map(i => i.branch))].sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
+            const customerList = data.customerList || [];
+            const branches = [...new Set(customerList.map(i => i.branch))].sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
             branchSelector.innerHTML = '<option value="Tümü">Tüm Şubeler</option>' + branches.map(b => `<option value="${b}">${b}</option>`).join('');
             
             if (branches.includes(currentSelection)) {
@@ -527,11 +522,14 @@
             const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
 
-            let list = data.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0)); 
+            const customerList = data.customerList || [];
+            const branchCharts = (data.charts && data.charts.branch) ? data.charts.branch : [];
+
+            let list = customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0)); 
             if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
 
             if (activeTab === 'dashboard') {
-                let branchSummary = [...data.charts.branch];
+                let branchSummary = [...branchCharts];
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
                 // Performans Sıralaması: Ciro bazında yüksekten düşüğe sıralama
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
@@ -623,12 +621,15 @@
             const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
             const fmt = v => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             
-            let list = currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
+            const customerList = currentData.customerList || [];
+            const branchCharts = (currentData.charts && currentData.charts.branch) ? currentData.charts.branch : [];
+
+            let list = customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
             if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
             let tableHtml = "";
             if (activeTab === 'dashboard') {
-                let branchSummary = [...currentData.charts.branch];
+                let branchSummary = [...branchCharts];
                 if (branch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === branch);
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
                 tableHtml = `<thead><tr><th style="width: 50px; text-align: center;">Sıra</th><th>Şube Tanımı</th><th style="text-align:right">Satış (Adet)</th><th style="text-align:right">Toplam Tutar</th></tr></thead><tbody>` + 
@@ -698,7 +699,8 @@
             const period = document.getElementById('periodSelector').value;
             const branch = document.getElementById('branchSelector').value;
             
-            let list = currentData.customerList.filter(i => (i.status === 'tekrar aranacak' || i.status === 'müşteri mağazaya gelecek' || i.callStatus === 'aranmadı'));
+            const customerList = currentData.customerList || [];
+            let list = customerList.filter(i => (i.status === 'tekrar aranacak' || i.status === 'müşteri mağazaya gelecek' || i.callStatus === 'aranmadı'));
             if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
             const stats = {};
@@ -727,13 +729,16 @@
             const selectedBranch = document.getElementById('branchSelector').value;
             const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
             
-            let list = currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
+            const customerList = currentData.customerList || [];
+            const branchCharts = (currentData.charts && currentData.charts.branch) ? currentData.charts.branch : [];
+
+            let list = customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
             if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
 
             let wsData = [];
             if (activeTab === 'dashboard') {
                 wsData = [["ŞUBE", "SATIŞ ADEDİ (ADET)", "TOPLAM CİRO (TL)"]];
-                let branchSummary = [...currentData.charts.branch];
+                let branchSummary = [...branchCharts];
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
                 branchSummary.forEach(b => {
