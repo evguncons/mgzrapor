@@ -48,9 +48,7 @@
         .nav-link i { @apply text-lg w-6 text-center transition-transform duration-300; }
         .nav-link.active i { @apply scale-110; }
 
-        .stat-card { @apply bg-white p-8 rounded-3xl border border-slate-100 shadow-soft transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative overflow-hidden; }
-        .stat-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100px; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: skewX(-20deg) translateX(-150%); transition: 0.5s; }
-        .stat-card:hover::after { transform: skewX(-20deg) translateX(200%); }
+        .stat-card { @apply bg-white p-6 rounded-3xl border border-slate-100 shadow-soft transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative overflow-hidden flex flex-col justify-between h-[155px]; }
         
         .table-wrapper { @apply bg-white rounded-3xl border border-slate-200/60 shadow-soft overflow-hidden; }
         .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
@@ -113,6 +111,9 @@
             <button onclick="setTab('customers'); maybeCloseSidebar()" id="btn-customers" class="nav-link">
                 <i class="fas fa-users"></i> <span>Müşteri Detayları</span>
             </button>
+            <button onclick="setTab('advanced'); maybeCloseSidebar()" id="btn-advanced" class="nav-link">
+                <i class="fas fa-chart-line"></i> <span class="font-bold text-brand-600">Gelişmiş Rapor</span>
+            </button>
             
             <div class="px-4 mt-6 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aksiyonlar</div>
             <button onclick="setTab('followup'); maybeCloseSidebar()" id="btn-followup" class="nav-link">
@@ -130,7 +131,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.6</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.9</p>
                 </div>
             </div>
         </div>
@@ -152,7 +153,7 @@
             </div>
             
             <div class="flex items-center gap-3">
-                <button onclick="fetchData()" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-slate-50 text-slate-600 rounded-xl border border-slate-200 transition-all active:scale-95 shadow-sm group" title="Verileri Güncelle">
+                <button onclick="fetchData()" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-slate-50 text-slate-600 rounded-xl border border-slate-200 transition-all active:scale-95 shadow-sm group no-print-selector" title="Verileri Güncelle">
                     <i class="fas fa-rotate-right group-active:rotate-180 transition-transform duration-500"></i>
                 </button>
 
@@ -173,26 +174,26 @@
                     <i class="fas fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                 </div>
 
-                <div class="relative group">
+                <div class="relative group no-print-selector">
                     <select id="periodSelector" onchange="fetchData()" class="appearance-none bg-slate-800 border border-slate-800 text-white text-xs font-semibold rounded-xl pl-4 pr-10 py-2.5 outline-none cursor-pointer shadow-sm">
                         <option value="">Yükleniyor...</option>
                     </select>
                     <i class="fas fa-calendar absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                 </div>
                 
-                <div class="h-6 w-px bg-slate-200 mx-1 hidden md:block"></div>
+                <div class="h-6 w-px bg-slate-200 mx-1 hidden md:block no-print-selector"></div>
 
-                <button onclick="printSummaryReport()" class="bg-brand-50 hover:bg-brand-100 text-brand-600 border border-brand-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95" title="Aksiyon Özeti">
+                <button id="btn-printSummary" onclick="printSummaryReport()" class="bg-brand-50 hover:bg-brand-100 text-brand-600 border border-brand-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95" title="Aksiyon Özeti">
                     <i class="fas fa-list-ol text-sm"></i>
                     <span class="hidden xl:inline">Özet PDF</span>
                 </button>
 
-                <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95" title="Excel İndir">
+                <button id="btn-exportExcel" onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95" title="Excel İndir">
                     <i class="fas fa-file-excel text-sm"></i>
                     <span class="hidden xl:inline">Excel</span>
                 </button>
 
-                <button onclick="printReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95" title="PDF İndir">
+                <button id="btn-printReport" onclick="printReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95" title="PDF İndir">
                     <i class="fas fa-file-pdf text-sm"></i>
                     <span class="hidden xl:inline">PDF</span>
                 </button>
@@ -203,12 +204,13 @@
             
             <!-- DASHBOARD TAB -->
             <div id="tab-dashboard" class="space-y-8 max-w-[1400px] mx-auto">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 4 KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                     <div class="stat-card group">
-                        <div class="flex justify-between items-start mb-6">
+                        <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Brüt Toplam Ciro</p>
-                                <h3 id="kpi-revenue" class="text-3xl font-extrabold text-slate-800 tracking-tight">₺0</h3>
+                                <h3 id="kpi-revenue" class="text-2xl font-extrabold text-slate-800 tracking-tight">₺0</h3>
                             </div>
                             <div class="w-12 h-12 bg-brand-50 rounded-2xl flex items-center justify-center text-brand-600 transition-transform group-hover:scale-110">
                                 <i class="fas fa-wallet text-xl"></i>
@@ -216,15 +218,31 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="bg-emerald-100 text-emerald-700 w-5 h-5 rounded-full flex items-center justify-center text-[10px]"><i class="fas fa-check"></i></span>
-                            <span class="text-xs font-medium text-slate-500">Muhasebe Onaylı Veri</span>
+                            <span class="text-[11px] font-medium text-slate-500">Muhasebe Onaylı Veri</span>
                         </div>
                     </div>
 
                     <div class="stat-card group">
-                        <div class="flex justify-between items-start mb-6">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Yönlendirme Adedi</p>
+                                <h3 id="kpi-referrals" class="text-2xl font-extrabold text-slate-800 tracking-tight">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 transition-transform group-hover:scale-110">
+                                <i class="fas fa-bullhorn text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-indigo-100 text-indigo-700 w-5 h-5 rounded-full flex items-center justify-center text-[10px]"><i class="fas fa-users text-[8px]"></i></span>
+                            <span class="text-[11px] font-medium text-slate-500">Tüm Alınan Talepler</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card group">
+                        <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Satış Adedi</p>
-                                <h3 id="kpi-sales" class="text-3xl font-extrabold text-slate-800 tracking-tight">0</h3>
+                                <h3 id="kpi-sales" class="text-2xl font-extrabold text-slate-800 tracking-tight">0</h3>
                             </div>
                             <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 transition-transform group-hover:scale-110">
                                 <i class="fas fa-bag-shopping text-xl"></i>
@@ -232,15 +250,15 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="bg-slate-100 text-slate-600 w-5 h-5 rounded-full flex items-center justify-center text-[10px]"><i class="fas fa-clock"></i></span>
-                            <span class="text-xs font-medium text-slate-500">Son Senk: <strong id="lastUpdateTime" class="text-slate-700">--:--</strong></span>
+                            <span class="text-[11px] font-medium text-slate-500">Son Senk: <strong id="lastUpdateTime" class="text-slate-700">--:--</strong></span>
                         </div>
                     </div>
 
                     <div class="stat-card group">
-                        <div class="flex justify-between items-start mb-6">
+                        <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Ortalama Sepet</p>
-                                <h3 id="kpi-basket" class="text-3xl font-extrabold text-slate-800 tracking-tight">₺0</h3>
+                                <h3 id="kpi-basket" class="text-2xl font-extrabold text-slate-800 tracking-tight">₺0</h3>
                             </div>
                             <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 transition-transform group-hover:scale-110">
                                 <i class="fas fa-chart-line text-xl"></i>
@@ -261,9 +279,24 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="modern-table">
-                            <thead><tr><th class="w-16 text-center">#</th><th>Şube Tanımı</th><th class="text-right">Satış (Adet)</th><th class="text-right">Toplam Tutar</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th class="w-16 text-center">#</th>
+                                    <th>Şube Tanımı</th>
+                                    <th class="text-right">Yönlendirme (Adet)</th>
+                                    <th class="text-right">Satış (Adet)</th>
+                                    <th class="text-right">Toplam Tutar</th>
+                                </tr>
+                            </thead>
                             <tbody id="branch-body"></tbody>
-                            <tfoot class="bg-slate-50/80"><tr><td colspan="2" class="py-6 px-8 text-right font-bold text-slate-500 text-[11px] uppercase tracking-wider">Genel Toplam</td><td id="total-sales-val" class="text-right py-6 px-8 font-extrabold text-emerald-600 text-base">0</td><td id="total-revenue-val" class="text-right py-6 px-8 font-extrabold text-brand-600 text-lg">₺0</td></tr></tfoot>
+                            <tfoot class="bg-slate-50/80">
+                                <tr>
+                                    <td colspan="2" class="py-6 px-8 text-right font-bold text-slate-500 text-[11px] uppercase tracking-wider">Genel Toplam</td>
+                                    <td id="total-referrals-val" class="text-right py-6 px-8 font-extrabold text-indigo-600 text-base">0</td>
+                                    <td id="total-sales-val" class="text-right py-6 px-8 font-extrabold text-emerald-600 text-base">0</td>
+                                    <td id="total-revenue-val" class="text-right py-6 px-8 font-extrabold text-brand-600 text-lg">₺0</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -300,13 +333,67 @@
                     </table>
                 </div>
             </div>
+
+            <!-- ADVANCED REPORT TAB -->
+            <div id="tab-advanced" class="hidden space-y-8 max-w-[1400px] mx-auto">
+                <!-- Advanced Filters -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-soft flex flex-wrap items-end justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Başlangıç Dönemi</label>
+                            <div class="relative">
+                                <select id="advStartPeriod" class="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl pl-4 pr-10 py-3 outline-none cursor-pointer min-w-[170px] shadow-sm">
+                                    <option value="">Yükleniyor...</option>
+                                </select>
+                                <i class="fas fa-calendar-alt absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Bitiş Dönemi</label>
+                            <div class="relative">
+                                <select id="advEndPeriod" class="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl pl-4 pr-10 py-3 outline-none cursor-pointer min-w-[170px] shadow-sm">
+                                    <option value="">Yükleniyor...</option>
+                                </select>
+                                <i class="fas fa-calendar-alt absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                            </div>
+                        </div>
+                        <button onclick="runAdvancedAnalysis()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition-all shadow-glow flex items-center gap-2 h-11 self-end"><i class="fas fa-wand-magic-sparkles"></i> Analiz Et</button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportAdvancedToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 h-11 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95"><i class="fas fa-file-excel"></i> Excel Çıktısı</button>
+                        <button onclick="printAdvancedReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 h-11 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95"><i class="fas fa-file-pdf"></i> PDF Raporu</button>
+                    </div>
+                </div>
+
+                <!-- Monthly Referral and Ciro Header Cards -->
+                <div id="adv-month-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+
+                <!-- Dynamic Comparison Table -->
+                <div class="table-wrapper">
+                    <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                        <div>
+                            <h3 class="font-bold text-base text-slate-800">Dönemsel Şube Karşılaştırma Matrisi</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Seçilen dönem aralığına ait ciro değişimleri.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="modern-table">
+                            <thead id="adv-table-head"></thead>
+                            <tbody id="adv-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Summary Insights -->
+                <div id="adv-insights-container" class="bg-brand-50 border border-brand-100 rounded-3xl p-8 space-y-4 hidden"></div>
+            </div>
         </div>
 
         <!-- Global Loader -->
         <div id="loadingIndicator" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center hidden">
             <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-4">
                 <div class="w-10 h-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-sm font-semibold text-slate-600">Veriler Senkronize Ediliyor...</p>
+                <p id="loader-text" class="text-sm font-semibold text-slate-600">Veriler Senkronize Ediliyor...</p>
             </div>
         </div>
 
@@ -338,6 +425,25 @@
         let currentData = null; 
         let activeTab = 'dashboard';
         const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "GEBZE", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
+        
+        // Gelişmiş rapor dönemsel analiz için önbellek
+        const periodCache = {};
+
+        // Dönemleri kronolojik karşılaştırmak için aylık değer eşlemesi
+        const MONTH_MAP = { 
+            "OCAK": 0, "ŞUBAT": 1, "SUBAT": 1, "MART": 2, "NİSAN": 3, "NISAN": 3, 
+            "MAYIS": 4, "HAZİRAN": 5, "HAZIRAN": 5, "TEMMUZ": 6, "AĞUSTOS": 7, 
+            "AGUSTOS": 7, "EYLÜL": 8, "EYLUL": 8, "EKİM": 9, "EKIM": 9, 
+            "KASIM": 10, "ARALIK": 11 
+        };
+
+        function periodToVal(p) {
+            if(!p) return 0;
+            const parts = p.trim().split(' ');
+            const m = MONTH_MAP[parts[0].toUpperCase()] || 0;
+            const y = parseInt(parts[1]) || 0;
+            return y * 12 + m;
+        }
 
         function getBranchSortIndex(branchName) {
             if (!branchName) return 999;
@@ -365,34 +471,40 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const sel = document.getElementById('periodSelector');
+            const startSel = document.getElementById('advStartPeriod');
+            const endSel = document.getElementById('advEndPeriod');
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                // Tarayıcı ve CORS preflight engellerini kaldırmak için GET isteğini en saf haliyle gönderiyoruz.
-                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`);
+                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`, { cache: 'no-store' });
                 
                 // HTML/CORS Hata Kontrolü
                 const contentType = res.headers.get("content-type");
-                const text = await res.text();
-                
-                if (contentType && !contentType.includes("application/json") || text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
-                    // Google'dan dönen gerçek hata kodunun ilk 250 karakterini teşhis amaçlı ekranda gösteriyoruz
-                    const cleanText = text.replace(/<[^>]*>/g, '').substring(0, 250);
-                    showErrorModal("Web App Yapılandırma Hatası", 
-                        "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
-                        "<b>Google Sunucusundan Dönen Hata Yanıtı:</b><br>" +
-                        `<code class="block bg-slate-100 p-3 rounded-lg text-xs font-mono text-rose-600 mt-2 break-all">${cleanText}...</code><br>` +
-                        "<b>Olası Çözümler:</b><br>" +
-                        "1. Google Apps Script editöründe sağ üstteki <b>Deploy > Manage deployments</b> adımlarını takip edin.<br>" +
-                        "2. <b>Who has access</b> seçeneğini <b>'Anyone' (Herkes)</b>, <b>Execute as</b> seçeneğini ise <b>'Me' (Ben)</b> olarak güncelleyin ve yeni bir sürümle yayına alın."
-                    );
-                    return;
+                if (contentType && !contentType.includes("application/json")) {
+                    const text = await res.text();
+                    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+                        showErrorModal("Web App Yapılandırma Hatası", 
+                            "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
+                            "<b>Olası Çözümler:</b><br>" +
+                            "1. Google Apps Script editöründe sağ üstteki <b>Deploy > Manage deployments</b> adımlarını takip edin.<br>" +
+                            "2. <b>Who has access</b> seçeneğini <b>'Anyone' (Herkes)</b>, <b>Execute as</b> seçeneğini ise <b>'Me' (Ben)</b> olarak güncelleyin ve yeni bir sürümle yayına alın."
+                        );
+                        return;
+                    }
                 }
                 
-                const periods = JSON.parse(text);
+                const periods = await res.json();
                 if (periods && periods.length > 0) {
                     sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
                     sel.value = periods[0];
+
+                    const chronologicalPeriods = [...periods].sort((a, b) => periodToVal(a) - periodToVal(b));
+                    startSel.innerHTML = chronologicalPeriods.map(p => `<option value="${p}">${p}</option>`).join('');
+                    endSel.innerHTML = chronologicalPeriods.map(p => `<option value="${p}">${p}</option>`).join('');
+                    
+                    startSel.value = chronologicalPeriods[Math.max(0, chronologicalPeriods.length - 2)];
+                    endSel.value = chronologicalPeriods[chronologicalPeriods.length - 1];
+
                     await fetchDataWithPeriod(periods[0]);
                 } else {
                     showErrorModal("Veri Yok", "E-Tablonuzda uygun çalışma dönemi sayfası bulunamadı.");
@@ -401,7 +513,6 @@
                 console.error(e); 
                 showErrorModal("Sistem Başlatılamadı", 
                     "Web App ile bağlantı kurulamadı. URL geçersiz olabilir veya Google API kısıtlamalarına takılmış olabilirsiniz.<br><br>" +
-                    `<b>Hata Detayı:</b> <code class="text-rose-600 font-bold">${e.message}</code><br><br>` +
                     "Uygulama kodundaki <b>APPSCRIPT_URL</b> adresinin doğru olduğundan emin olun."
                 );
             } finally {
@@ -409,26 +520,27 @@
             }
         });
 
-        // "Yenile" (Yenileme) Butonu için Gelişmiş ve önbelleksiz veri çekme akışı
         async function fetchData() {
             const sel = document.getElementById('periodSelector');
             const currentSelection = sel.value;
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                const resPeriods = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`);
-                const text = await resPeriods.text();
+                const resPeriods = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`, { cache: 'no-store' });
                 
-                if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
-                    const cleanText = text.replace(/<[^>]*>/g, '').substring(0, 250);
-                    showErrorModal("Web App Yapılandırma Hatası", 
-                        "Yenileme esnasında Google Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
-                        `<code class="block bg-slate-100 p-3 rounded-lg text-xs font-mono text-rose-600 mt-2 break-all">${cleanText}...</code>`
-                    );
-                    return;
+                const contentType = resPeriods.headers.get("content-type");
+                if (contentType && !contentType.includes("application/json")) {
+                    const text = await resPeriods.text();
+                    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+                        showErrorModal("Web App Yapılandırma Hatası", 
+                            "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
+                            "Lütfen Google Apps Script dağıtım (deployment) izinlerinizi kontrol edin."
+                        );
+                        return;
+                    }
                 }
                 
-                const periods = JSON.parse(text);
+                const periods = await resPeriods.json();
                 if (periods && periods.length > 0) {
                     sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
                     if (periods.includes(currentSelection)) {
@@ -442,7 +554,7 @@
                 await fetchDataWithPeriod(activePeriod);
             } catch (e) {
                 console.error(e);
-                showErrorModal("Yenileme Başarısız", `Veriler güncellenirken bir bağlantı hatası oluştu:<br><code class="text-rose-600">${e.message}</code>`);
+                showErrorModal("Yenileme Başarısız", "Veriler güncellenirken bir bağlantı hatası oluştu. Lütfen tekrar deneyin.");
             } finally {
                 loader.classList.add('hidden');
             }
@@ -453,27 +565,34 @@
             const loader = document.getElementById('loadingIndicator');
             loader.classList.remove('hidden');
             try {
-                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`);
-                const text = await res.text();
+                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`, { cache: 'no-store' });
                 
-                if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
-                    const cleanText = text.replace(/<[^>]*>/g, '').substring(0, 250);
-                    showErrorModal("Veri Okuma Hatası", 
-                        "Web uygulamasından JSON beklenirken HTML formatında bir yanıt alındı.<br><br>" +
-                        `<code class="block bg-slate-100 p-3 rounded-lg text-xs font-mono text-rose-600 mt-2 break-all">${cleanText}...</code><br><br>` +
-                        "<b>Çözüm:</b> Dağıtım ayarlarından 'Execute as' kısmının 'Me' ve erişim yetkisinin 'Anyone' olduğunu doğrulayın."
-                    );
-                    return;
+                const contentType = res.headers.get("content-type");
+                if (contentType && !contentType.includes("application/json")) {
+                    const text = await res.text();
+                    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+                        showErrorModal("Veri Okuma Hatası", 
+                            "Web uygulamasından JSON beklenirken HTML formatında bir yanıt alındı.<br><br>" +
+                            "<b>Çözüm:</b> Dağıtım ayarlarından 'Execute as' kısmının 'Me' ve erişim yetkisinin 'Anyone' olduğunu doğrulayın."
+                        );
+                        return;
+                    }
                 }
                 
-                currentData = JSON.parse(text);
+                currentData = await res.json();
+                
+                // Önbelleğe yaz
+                if (currentData && currentData.customerList) {
+                    window.localStorage.setItem(`cache_${period}`, JSON.stringify(currentData));
+                }
+
                 populateBranchFilter(currentData);
                 render(currentData);
                 const now = new Date(); 
                 safeSetText('lastUpdateTime', now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'));
             } catch (e) { 
                 console.error(e); 
-                showErrorModal("Bağlantı Kesildi", `Veriler sunucudan alınamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.<br><br><b>Detay:</b> <code class="text-rose-600">${e.message}</code>`);
+                showErrorModal("Bağlantı Kesildi", "Veriler sunucudan alınamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.");
             } finally { 
                 loader.classList.add('hidden'); 
             }
@@ -482,8 +601,7 @@
         function populateBranchFilter(data) {
             const branchSelector = document.getElementById('branchSelector');
             const currentSelection = branchSelector.value;
-            const customerList = data.customerList || [];
-            const branches = [...new Set(customerList.map(i => i.branch))].sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
+            const branches = [...new Set(data.customerList.map(i => i.branch))].sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
             branchSelector.innerHTML = '<option value="Tümü">Tüm Şubeler</option>' + branches.map(b => `<option value="${b}">${b}</option>`).join('');
             
             if (branches.includes(currentSelection)) {
@@ -497,10 +615,27 @@
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             document.getElementById(`btn-${tab}`).classList.add('active');
+            
+            // Filtreleri gizle/göster
             document.getElementById('followupFilterContainer').classList.toggle('hidden', tab !== 'followup');
-            const titles = { dashboard: 'Performans Analizi', customers: 'Müşteri Detayları', followup: 'Takip Listesi', unspecified: 'No Belirtilmeyenler' };
+            
+            // Gelişmiş raporda şube seçimi ana select elementinde anlamsız olacağından gizlenir, tekil periyot da gizlenir.
+            document.getElementById('branchFilterContainer').classList.toggle('hidden', tab === 'advanced');
+            document.querySelectorAll('.no-print-selector').forEach(el => el.classList.toggle('hidden', tab === 'advanced'));
+            
+            // Yazdırma ve Rapor butonlarını gizle/göster
+            document.getElementById('btn-printSummary').classList.toggle('hidden', tab === 'advanced');
+            document.getElementById('btn-exportExcel').classList.toggle('hidden', tab === 'advanced');
+            document.getElementById('btn-printReport').classList.toggle('hidden', tab === 'advanced');
+
+            const titles = { dashboard: 'Performans Analizi', customers: 'Müşteri Detayları', followup: 'Takip Listesi', unspecified: 'No Belirtilmeyenler', advanced: 'Gelişmiş Dönem Raporu' };
             document.getElementById('tabTitle').innerText = titles[tab];
-            if(currentData) render(currentData);
+            
+            if (tab === 'advanced') {
+                runAdvancedAnalysis();
+            } else if (currentData) {
+                render(currentData);
+            }
         }
 
         function groupDataByBranch(list) {
@@ -515,6 +650,422 @@
             }));
         }
 
+        async function runAdvancedAnalysis() {
+            const startVal = document.getElementById('advStartPeriod').value;
+            const endVal = document.getElementById('advEndPeriod').value;
+            if (!startVal || !endVal) return;
+
+            const allPeriods = Array.from(document.getElementById('periodSelector').options).map(o => o.value);
+            const sortedPeriods = [...allPeriods].sort((a, b) => periodToVal(a) - periodToVal(b));
+            
+            const startIdx = sortedPeriods.indexOf(startVal);
+            const endIdx = sortedPeriods.indexOf(endVal);
+
+            if (startIdx > endIdx) {
+                showErrorModal("Tarih Aralığı Hatası", "Başlangıç dönemi bitiş döneminden daha ileri bir tarih olamaz.");
+                return;
+            }
+
+            const targetPeriods = sortedPeriods.slice(startIdx, endIdx + 1);
+            const loader = document.getElementById('loadingIndicator');
+            const loaderText = document.getElementById('loader-text');
+            loader.classList.remove('hidden');
+
+            for (let i = 0; i < targetPeriods.length; i++) {
+                const p = targetPeriods[i];
+                loaderText.innerText = `Senkronize Ediliyor: ${p} (${i + 1}/${targetPeriods.length})`;
+                
+                try {
+                    const cached = window.localStorage.getItem(`cache_${p}`);
+                    if (!cached) {
+                        const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(p)}&t=${Date.now()}`, { cache: 'no-store' });
+                        
+                        const contentType = res.headers.get("content-type");
+                        if (contentType && !contentType.includes("application/json")) {
+                            const text = await res.text();
+                            if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+                                showErrorModal("Web App Yapılandırma Hatası", 
+                                    "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
+                                    "<b>Olası Çözümler:</b><br>" +
+                                    "1. Google Apps Script editöründe sağ üstteki <b>Deploy > Manage deployments</b> adımlarını takip edin.<br>" +
+                                    "2. <b>Who has access</b> seçeneğini <b>'Anyone' (Herkes)</b>, <b>Execute as</b> seçeneğini ise <b>'Me' (Ben)</b> olarak güncelleyin ve yeni bir sürümle yayına alın."
+                                );
+                                loader.classList.add('hidden');
+                                return;
+                            }
+                        }
+                        
+                        const data = await res.json();
+                        if (data && data.customerList) {
+                            window.localStorage.setItem(`cache_${p}`, JSON.stringify(data));
+                        }
+                    }
+                } catch(e) {
+                    console.warn(`Hata: ${p} verisi çekilemedi.`, e);
+                }
+            }
+
+            buildAdvancedReport(targetPeriods);
+            loader.classList.add('hidden');
+            loaderText.innerText = "Veriler Senkronize Ediliyor...";
+        }
+
+        function buildAdvancedReport(periods) {
+            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
+            
+            const cardsGrid = document.getElementById('adv-month-cards');
+            const tableHead = document.getElementById('adv-table-head');
+            const tableBody = document.getElementById('adv-table-body');
+            const insightsContainer = document.getElementById('adv-insights-container');
+
+            cardsGrid.innerHTML = "";
+            let headHtml = `<tr><th class="w-16 text-center">#</th><th>Şube Adı</th>`;
+            periods.forEach(p => {
+                headHtml += `<th class="text-right">${p} (Ciro)</th>`;
+            });
+            headHtml += `<th class="text-right text-brand-600">Değişim (TL)</th><th class="text-right text-brand-600">Değişim (%)</th></tr>`;
+            tableHead.innerHTML = headHtml;
+
+            const allBranches = new Set();
+            const monthlyStats = {}; 
+
+            periods.forEach(p => {
+                monthlyStats[p] = { totalRevenue: 0, totalYönlendirme: 0, branches: {}, branchReferrals: {} };
+                const cacheStr = window.localStorage.getItem(`cache_${p}`);
+                if (!cacheStr) return;
+                const d = JSON.parse(cacheStr);
+                
+                monthlyStats[p].totalRevenue = d.kpis.totalRevenue;
+                monthlyStats[p].totalYönlendirme = d.customerList.filter(i => i.customerName || i.customerNo || i.revenue > 0).length;
+
+                d.charts.branch.forEach(b => {
+                    allBranches.add(b.name);
+                    monthlyStats[p].branches[b.name] = b.revenue;
+                    
+                    // Her şubenin ilgili dönemdeki gerçek yönlendirme adetlerini sayıyoruz
+                    const refCount = d.customerList.filter(i => i.branch === b.name && (i.customerName || i.customerNo)).length;
+                    monthlyStats[p].branchReferrals[b.name] = refCount;
+                });
+            });
+
+            // Aylık kartları çiz
+            periods.forEach(p => {
+                const s = monthlyStats[p];
+                cardsGrid.innerHTML += `
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-soft">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">${p}</p>
+                        <h4 class="text-xl font-extrabold text-slate-800">${fmt(s.totalRevenue)}</h4>
+                        <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-brand-600">
+                            <i class="fas fa-bullhorn"></i>
+                            <span>${num(s.totalYönlendirme)} Yönlendirme</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const sortedBranches = Array.from(allBranches).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
+            let bodyHtml = "";
+            const branchGrowth = []; 
+
+            sortedBranches.forEach((bName, idx) => {
+                bodyHtml += `<tr><td class="text-center font-bold text-slate-400">${idx + 1}</td><td class="font-bold text-slate-800">${bName}</td>`;
+                
+                let firstVal = null;
+                let lastVal = null;
+
+                periods.forEach((p, pIdx) => {
+                    const rev = monthlyStats[p].branches[bName] || 0;
+                    bodyHtml += `<td class="text-right font-medium text-slate-600">${fmt(rev)}</td>`;
+                    if (pIdx === 0) firstVal = rev;
+                    if (pIdx === periods.length - 1) lastVal = rev;
+                });
+
+                const diffVal = lastVal - firstVal;
+                const percentVal = firstVal > 0 ? (diffVal / firstVal) * 100 : 0;
+                branchGrowth.push({ name: bName, diffVal, percentVal });
+
+                const diffColor = diffVal >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold";
+                const badgeClass = diffVal >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700";
+
+                bodyHtml += `
+                    <td class="text-right ${diffColor}">${fmt(diffVal)}</td>
+                    <td class="text-right"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${badgeClass}">${diffVal >= 0 ? '+' : ''}${percentVal.toFixed(1)}%</span></td>
+                </tr>`;
+            });
+            tableBody.innerHTML = bodyHtml;
+
+            const oldestPeriod = periods[0];
+            const newestPeriod = periods[periods.length - 1];
+            const oldTotal = monthlyStats[oldestPeriod].totalRevenue;
+            const newTotal = monthlyStats[newestPeriod].totalRevenue;
+            const totalDiff = newTotal - oldTotal;
+            const totalPercent = oldTotal > 0 ? (totalDiff / oldTotal) * 100 : 0;
+
+            const topGrower = [...branchGrowth].sort((a, b) => b.diffVal - a.diffVal)[0];
+
+            insightsContainer.classList.remove('hidden');
+            insightsContainer.innerHTML = `
+                <div class="flex items-center gap-3 text-brand-900">
+                    <div class="w-10 h-10 rounded-xl bg-brand-100 flex items-center justify-center text-brand-600">
+                        <i class="fas fa-arrow-trend-up text-lg"></i>
+                    </div>
+                    <h3 class="font-bold text-base">Yönetim Analiz Raporu & Trend Özeti</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div class="space-y-2 text-sm text-slate-600">
+                        <p>• Genel ciro performansı <strong>${oldestPeriod}</strong> döneminden <strong>${newestPeriod}</strong> dönemine kıyasla 
+                        <strong>${fmt(Math.abs(totalDiff))}</strong> (${totalDiff >= 0 ? 'Artış' : 'Azalış'}) göstererek 
+                        <strong class="${totalDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${totalDiff >= 0 ? '+' : ''}${totalPercent.toFixed(1)}%</strong> oranında değişmiştir.</p>
+                        <p>• Analiz aralığında en başarılı büyüme ivmesini yakalayan şube <strong>${topGrower.name}</strong> olmuştur. Şube, cirosunu net 
+                        <strong>${fmt(topGrower.diffVal)}</strong> artırmıştır.</p>
+                    </div>
+                    <div class="space-y-2 text-sm text-slate-600">
+                        <p>• <strong>${oldestPeriod}</strong> ayı toplam yönlendirme adedi <strong>${num(monthlyStats[oldestPeriod].totalYönlendirme)}</strong> iken, 
+                        <strong>${newestPeriod}</strong> ayında bu sayı <strong>${num(monthlyStats[newestPeriod].totalYönlendirme)}</strong> adede ulaşmıştır.</p>
+                    </div>
+                </div>
+            `;
+            
+            window.lastAdvancedStats = { periods, sortedBranches, monthlyStats, branchGrowth };
+        }
+
+        function printAdvancedReport() {
+            if (!window.lastAdvancedStats) return;
+            const { periods, sortedBranches, monthlyStats, branchGrowth } = window.lastAdvancedStats;
+            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
+
+            const startPeriod = periods[0];
+            const endPeriod = periods[periods.length - 1];
+
+            let tableHeadHtml = `
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">Sıra</th>
+                        <th>Şube Tanımı</th>
+            `;
+            periods.forEach(p => {
+                tableHeadHtml += `<th style="text-align:right;">${p} (Ciro)</th>`;
+            });
+            tableHeadHtml += `
+                        <th style="text-align:right;">Değişim (TL)</th>
+                        <th style="text-align:right;">Değişim (%)</th>
+                        <th style="text-align:center; width: 80px;">Durum</th>
+                    </tr>
+                </thead>
+            `;
+
+            let tableBodyHtml = "<tbody>";
+            sortedBranches.forEach((bName, idx) => {
+                let firstVal = null;
+                let lastVal = null;
+
+                tableBodyHtml += `<tr><td style="text-align:center; font-weight:bold; color:#64748b;">${idx + 1}</td><td style="font-weight:bold; color:#1e293b;">${bName.toUpperCase()}</td>`;
+                
+                periods.forEach((p, pIdx) => {
+                    const rev = monthlyStats[p].branches[bName] || 0;
+                    tableBodyHtml += `<td style="text-align:right;">${fmt(rev)}</td>`;
+                    if (pIdx === 0) firstVal = rev;
+                    if (pIdx === periods.length - 1) lastVal = rev;
+                });
+
+                const diffVal = lastVal - firstVal;
+                const percentVal = firstVal > 0 ? (diffVal / firstVal) * 100 : 0;
+                const statusLabel = diffVal >= 0 ? "OK" : "DÜŞÜŞ";
+                const statusColor = diffVal >= 0 ? "color:#10b981; font-weight:bold;" : "color:#f43f5e; font-weight:bold;";
+
+                tableBodyHtml += `
+                    <td style="text-align:right; font-weight:bold; color:${diffVal >= 0 ? '#10b981' : '#f43f5e'}">${fmt(diffVal)}</td>
+                    <td style="text-align:right; font-weight:bold; color:${diffVal >= 0 ? '#10b981' : '#f43f5e'}">${diffVal >= 0 ? '+' : ''}${percentVal.toFixed(1)}%</td>
+                    <td style="text-align:center; ${statusColor}">${statusLabel}</td>
+                </tr>`;
+            });
+
+            // GENEL TOPLAM Satırı (Referans Excel görselindeki mor renk tasarımı gibi)
+            let totalRevOldest = monthlyStats[startPeriod].totalRevenue;
+            let totalRevNewest = monthlyStats[endPeriod].totalRevenue;
+            const totalDiff = totalRevNewest - totalRevOldest;
+            const totalPercent = totalRevOldest > 0 ? (totalDiff / totalRevOldest) * 100 : 0;
+
+            tableBodyHtml += `
+                <tr style="background-color: #ede9fe; font-weight:bold; border-top: 2px solid #7c3aed; color: #4c1d95;">
+                    <td colspan="2" style="text-align:right; text-transform:uppercase; font-size:11px; letter-spacing:1px; padding: 10px;">GENEL TOPLAM</td>
+            `;
+            periods.forEach(p => {
+                tableBodyHtml += `<td style="text-align:right; font-weight:800; font-size:12px;">${fmt(monthlyStats[p].totalRevenue)}</td>`;
+            });
+
+            tableBodyHtml += `
+                    <td style="text-align:right; color:${totalDiff >= 0 ? '#10b981' : '#f43f5e'}; font-weight:800; font-size:12px;">${fmt(totalDiff)}</td>
+                    <td style="text-align:right; color:${totalDiff >= 0 ? '#10b981' : '#f43f5e'}; font-weight:800; font-size:12px;">${totalDiff >= 0 ? '+' : ''}${totalPercent.toFixed(1)}%</td>
+                    <td style="text-align:center; font-weight:800; color: #7c3aed;">OK</td>
+                </tr>
+            `;
+            tableBodyHtml += "</tbody>";
+
+            // Aylık Yönlendirme, Satış ve Ciro Özet Tablosu (Referans görsel cf75e0 benzeri)
+            let summaryListHtml = `
+                <div style="background-color: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #cbd5e1;">
+                    <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; color: #1e293b; border-bottom: 2px solid #7c3aed; padding-bottom: 6px; font-weight:800;">
+                        ${startPeriod} - ${endPeriod} ONLINE DETAY ÖZETİ
+                    </h3>
+                    <table style="width:100%; border-collapse: collapse; font-size: 11px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #94a3b8; text-align: left; color:#1e293b; font-weight:bold; background-color:#f1f5f9;">
+                                <th style="padding: 8px 10px;">Ay</th>
+                                <th style="text-align:right; padding: 8px 10px;">Yönlendirme</th>
+                                <th style="text-align:right; padding: 8px 10px;">Toplam Tutar (TL)</th>
+                                <th style="text-align:center; padding: 8px 10px;">Kontrol</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            let sumTotalReferrals = 0;
+            let sumTotalRevenue = 0;
+            periods.forEach(p => {
+                const s = monthlyStats[p];
+                sumTotalReferrals += s.totalYönlendirme;
+                sumTotalRevenue += s.totalRevenue;
+                summaryListHtml += `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px 10px; font-weight:bold;">${p}</td>
+                        <td style="text-align:right; padding: 8px 10px; font-weight:bold; color:#4f46e5;">${num(s.totalYönlendirme)}</td>
+                        <td style="text-align:right; padding: 8px 10px; font-weight:bold; color:#7c3aed;">${fmt(s.totalRevenue)}</td>
+                        <td style="text-align:center; padding: 8px 10px; font-weight:bold; color:#10b981;">OK</td>
+                    </tr>
+                `;
+            });
+            summaryListHtml += `
+                <tr style="background-color: #ede9fe; font-weight:bold; border-top: 2px solid #7c3aed; color: #4c1d95;">
+                    <td style="padding: 10px; font-weight:800; font-size:12px;">GENEL TOPLAM</td>
+                    <td style="text-align:right; padding: 10px; font-weight:800; color:#4f46e5;">${num(sumReferrals(periods, monthlyStats))}</td>
+                    <td style="text-align:right; padding: 10px; font-weight:800; color:#7c3aed;">${fmt(sumRevenues(periods, monthlyStats))}</td>
+                    <td style="text-align:center; padding: 10px; font-weight:800; color:#10b981;">OK</td>
+                </tr>
+            `;
+            summaryListHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            const now = new Date().toLocaleString('tr-TR');
+            document.getElementById('printArea').innerHTML = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="margin-bottom:5px; font-size:24px; color: #1e293b; letter-spacing: -0.05em; font-weight:800;">HEDEF AVM GELİŞMİŞ DÖNEM RAPORU</h1>
+                    <h2 style="margin-top:0; font-size:14px; color:#64748b; font-weight: 600; text-transform:uppercase;">${startPeriod} - ${endPeriod} ONLINE DETAY ÖZETİ</h2>
+                    <p style="margin:5px 0 0 0; font-size:10px; color:#94a3b8;">Raporlama Tarihi: ${now}</p>
+                </div>
+                
+                ${summaryListHtml}
+                
+                <table class="print-table">
+                    ${tableHeadHtml}
+                    ${tableBodyHtml}
+                </table>
+                
+                <div style="text-align:center; font-size:9px; font-weight: bold; color:#94a3b8; margin-top:40px; border-top: 1px solid #e2e8f0; padding-top:15px; text-transform: uppercase; letter-spacing: 1px;">
+                    Bu rapor Hedef AVM Gelişmiş Yönetim Paneli tarafından dinamik olarak oluşturulmuştur.
+                </div>
+            `;
+            window.print();
+        }
+
+        function sumReferrals(periods, stats) {
+            return periods.reduce((sum, p) => sum + Number(stats[p].totalYönlendirme || 0), 0);
+        }
+        function sumRevenues(periods, stats) {
+            return periods.reduce((sum, p) => sum + Number(stats[p].totalRevenue || 0), 0);
+        }
+
+        // Gelişmiş Rapor Excel Dışa Aktarma Modülü (Yönlendirmeler Eklendi)
+        function exportAdvancedToExcel() {
+            if (!window.lastAdvancedStats) return;
+            const { periods, sortedBranches, monthlyStats, branchGrowth } = window.lastAdvancedStats;
+            const wb = XLSX.utils.book_new();
+            const currencyFormat = '#,##0"₺"';
+
+            let wsData = [
+                ["HEDEF AVM - GELİŞMİŞ DÖNEMSEL KIYASLAMA RAPORU"],
+                ["Analiz Aralığı:", `${periods[0]} - ${periods[periods.length - 1]}`.toUpperCase()],
+                [],
+                ["SIRA", "ŞUBE ADI"]
+            ];
+
+            // Excel Tablo Başlıkları dinamik olarak kuruluyor (Yönlendirme adetleri eklendi)
+            periods.forEach(p => {
+                wsData[3].push(`${p} YÖNLENDİRME`);
+                wsData[3].push(`${p} CİRO`);
+            });
+            wsData[3].push("YÖNLENDİRME DEĞİŞİM (ADET)", "CİRO DEĞİŞİM (TL)", "CİRO DEĞİŞİM (%)");
+
+            sortedBranches.forEach((bName, idx) => {
+                const row = [idx + 1, bName.toUpperCase()];
+                let firstVal = null;
+                let lastVal = null;
+                let firstRef = null;
+                let lastRef = null;
+
+                periods.forEach((p, pIdx) => {
+                    const rev = monthlyStats[p].branches[bName] || 0;
+                    const ref = (monthlyStats[p].branchReferrals && monthlyStats[p].branchReferrals[bName]) || 0;
+                    
+                    row.push(ref); // Yönlendirme Sayısı (Adet)
+                    row.push(rev); // Ciro Değeri (TL)
+                    
+                    if (pIdx === 0) {
+                        firstVal = rev;
+                        firstRef = ref;
+                    }
+                    if (pIdx === periods.length - 1) {
+                        lastVal = rev;
+                        lastRef = ref;
+                    }
+                });
+
+                const diffRef = lastRef - firstRef;
+                const diffVal = lastVal - firstVal;
+                const percentVal = firstVal > 0 ? (diffVal / firstVal) * 100 : 0;
+                
+                row.push(diffRef, diffVal, `${percentVal.toFixed(1)}%`);
+                wsData.push(row);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            
+            // Excel Hücre Formatlama İşlemleri (Sadece para birimi alanlarına ₺ formatı uygulanır)
+            for (let R = 4; R <= range.e.r; ++R) {
+                periods.forEach((p, pIdx) => {
+                    // Ciro Sütunu Formülü: Başlangıç indeksi olan 2'den sonra her periyot için (pIdx * 2) + 1 konumundadır.
+                    const ciroColIdx = 2 + (pIdx * 2) + 1;
+                    const cell = ws[XLSX.utils.encode_cell({ r: R, c: ciroColIdx })];
+                    if (cell && typeof cell.v === 'number') {
+                        cell.z = currencyFormat;
+                    }
+                });
+                
+                // Ciro Değişimi (TL) Sütunu
+                const totalDiffColIdx = 2 + (periods.length * 2) + 1;
+                const cellDiff = ws[XLSX.utils.encode_cell({ r: R, c: totalDiffColIdx })];
+                if (cellDiff && typeof cellDiff.v === 'number') {
+                    cellDiff.z = currencyFormat;
+                }
+            }
+
+            // Sütun genişlikleri optimize ediliyor
+            ws['!cols'] = [{ wch: 10 }, { wch: 30 }];
+            periods.forEach(() => {
+                ws['!cols'].push({ wch: 22 }); // Yönlendirme Sütunu genişliği
+                ws['!cols'].push({ wch: 22 }); // Ciro Sütunu genişliği
+            });
+            ws['!cols'].push({ wch: 25 }, { wch: 22 }, { wch: 15 });
+
+            XLSX.utils.book_append_sheet(wb, ws, "Gelişmiş Rapor");
+            XLSX.writeFile(wb, `Hedef_AVM_Gelismis_Rapor_${periods[0].replace(/ /g, '_')}_${periods[periods.length - 1].replace(/ /g, '_')}.xlsx`);
+        }
+
         function render(data) {
             if (!data) return;
             const selectedBranch = document.getElementById('branchSelector').value;
@@ -522,26 +1073,32 @@
             const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
 
-            const customerList = data.customerList || [];
-            const branchCharts = (data.charts && data.charts.branch) ? data.charts.branch : [];
-
-            let list = customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0)); 
+            let list = data.customerList.filter(i => (i.customerName || i.customerNo)); 
             if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
 
             if (activeTab === 'dashboard') {
-                let branchSummary = [...branchCharts];
+                let branchSummary = [...data.charts.branch];
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
-                // Performans Sıralaması: Ciro bazında yüksekten düşüğe sıralama
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
                 
-                document.getElementById('branch-body').innerHTML = branchSummary.map((b, i) => `<tr><td class="text-center font-bold text-slate-400">${i+1}</td><td class="font-bold text-slate-800">${b.name}</td><td class="text-right font-semibold text-slate-500">${num(b.sales)}</td><td class="text-right font-bold text-brand-600">${fmt(b.revenue)}</td></tr>`).join('');
+                // DİNAMİK YÖNLENDİRME (REFERRALS) ADETLERİ ATAMASI
+                branchSummary.forEach(b => {
+                    b.referrals = data.customerList.filter(i => i.branch === b.name).length;
+                });
+
+                document.getElementById('branch-body').innerHTML = branchSummary.map((b, i) => `<tr><td class="text-center font-bold text-slate-400">${i+1}</td><td class="font-bold text-slate-800">${b.name}</td><td class="text-right font-semibold text-slate-500">${num(b.referrals || 0)}</td><td class="text-right font-semibold text-slate-500">${num(b.sales)}</td><td class="text-right font-bold text-brand-600">${fmt(b.revenue)}</td></tr>`).join('');
                 
                 const currentSales = branchSummary.reduce((a,b)=>a+Number(b.sales || 0),0);
                 const currentRev = branchSummary.reduce((a,b)=>a+Number(b.revenue || 0),0);
+                const currentReferrals = branchSummary.reduce((a,b)=>a+Number(b.referrals || 0),0);
+
                 safeSetText('kpi-revenue', fmt(currentRev));
                 safeSetText('kpi-sales', num(currentSales));
+                safeSetText('kpi-referrals', num(currentReferrals));
                 safeSetText('kpi-basket', fmt(currentSales > 0 ? currentRev / currentSales : 0));
+                
                 safeSetText('total-sales-val', num(currentSales));
+                safeSetText('total-referrals-val', num(currentReferrals));
                 safeSetText('total-revenue-val', fmt(currentRev));
             } else if (activeTab === 'customers') {
                 const specList = list.filter(i => {
@@ -620,20 +1177,63 @@
             const branch = document.getElementById('branchSelector').value;
             const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
             const fmt = v => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const num = v => new Intl.NumberFormat('tr-TR').format(v);
             
-            const customerList = currentData.customerList || [];
-            const branchCharts = (currentData.charts && currentData.charts.branch) ? currentData.charts.branch : [];
-
-            let list = customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
+            let list = currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
             if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
             let tableHtml = "";
             if (activeTab === 'dashboard') {
-                let branchSummary = [...branchCharts];
+                let branchSummary = [...currentData.charts.branch];
                 if (branch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === branch);
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
-                tableHtml = `<thead><tr><th style="width: 50px; text-align: center;">Sıra</th><th>Şube Tanımı</th><th style="text-align:right">Satış (Adet)</th><th style="text-align:right">Toplam Tutar</th></tr></thead><tbody>` + 
-                    branchSummary.map((b, i) => `<tr><td style="text-align:center">${i+1}</td><td>${b.name.toUpperCase()}</td><td style="text-align:right">${b.sales}</td><td style="text-align:right">${fmt(b.revenue)}</td></tr>`).join('') + `</tbody>`;
+                
+                // DİNAMİK YÖNLENDİRME (REFERRALS) ADETLERİ ATAMASI
+                branchSummary.forEach(b => {
+                    b.referrals = currentData.customerList.filter(i => i.branch === b.name).length;
+                });
+
+                const totalSales = branchSummary.reduce((sum, b) => sum + Number(b.sales || 0), 0);
+                const totalReferrals = branchSummary.reduce((sum, b) => sum + Number(b.referrals || 0), 0);
+                const totalRev = branchSummary.reduce((sum, b) => sum + Number(b.revenue || 0), 0);
+
+                tableHtml = `
+                    <div class="print-summary">
+                        <div class="print-summary-item">
+                            <div class="print-summary-label">TOPLAM YÖNLENDİRME</div>
+                            <div class="print-summary-value">${num(totalReferrals)}</div>
+                        </div>
+                        <div class="print-summary-item">
+                            <div class="print-summary-label">SATIŞ ADEDİ</div>
+                            <div class="print-summary-value">${num(totalSales)}</div>
+                        </div>
+                        <div class="print-summary-item">
+                            <div class="print-summary-label">TOPLAM CİRO</div>
+                            <div class="print-summary-value">${fmt(totalRev)}</div>
+                        </div>
+                    </div>
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px; text-align: center;">Sıra</th>
+                                <th>Şube Tanımı</th>
+                                <th style="text-align:right">Yönlendirme (Adet)</th>
+                                <th style="text-align:right">Satış (Adet)</th>
+                                <th style="text-align:right">Toplam Tutar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${branchSummary.map((b, i) => `
+                                <tr>
+                                    <td style="text-align:center">${i+1}</td>
+                                    <td>${b.name.toUpperCase()}</td>
+                                    <td style="text-align:right">${num(b.referrals || 0)}</td>
+                                    <td style="text-align:right">${num(b.sales || 0)}</td>
+                                    <td style="text-align:right">${fmt(b.revenue || 0)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>`;
             } else if (activeTab === 'followup') {
                 let fList = list.filter(i => {
                     const s = String(i.status || "").trim().toLowerCase();
@@ -690,7 +1290,12 @@
             const branchTitle = branch === "Tümü" ? "TÜM ŞUBELER" : branch.toUpperCase();
             const actionTitle = (activeTab === 'followup' && selectedAction !== 'tümü') ? `(${selectedAction.toUpperCase()})` : '';
 
-            document.getElementById('printArea').innerHTML = `<div style="text-align:center"><h1>HEDEF AVM YÖNETİM RAPORU</h1><p>${period.toUpperCase()} - ${branchTitle} - ${activeTab.toUpperCase()} ${actionTitle}</p></div><table class="print-table">${tableHtml}</table>`;
+            document.getElementById('printArea').innerHTML = `
+                <div style="text-align:center">
+                    <h1>HEDEF AVM YÖNETİM RAPORU</h1>
+                    <p>${period.toUpperCase()} - ${branchTitle} - ${activeTab.toUpperCase()} ${actionTitle}</p>
+                </div>
+                ${activeTab === 'dashboard' ? tableHtml : `<table class="print-table">${tableHtml}</table>`}`;
             window.print();
         }
 
@@ -699,8 +1304,7 @@
             const period = document.getElementById('periodSelector').value;
             const branch = document.getElementById('branchSelector').value;
             
-            const customerList = currentData.customerList || [];
-            let list = customerList.filter(i => (i.status === 'tekrar aranacak' || i.status === 'müşteri mağazaya gelecek' || i.callStatus === 'aranmadı'));
+            let list = currentData.customerList.filter(i => (i.status === 'tekrar aranacak' || i.status === 'müşteri mağazaya gelecek' || i.callStatus === 'aranmadı'));
             if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
             const stats = {};
@@ -729,23 +1333,35 @@
             const selectedBranch = document.getElementById('branchSelector').value;
             const selectedAction = document.getElementById('followupFilter').value.toLowerCase();
             
-            const customerList = currentData.customerList || [];
-            const branchCharts = (currentData.charts && currentData.charts.branch) ? currentData.charts.branch : [];
-
-            let list = customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
+            let list = currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0));
             if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
 
-            let wsData = [];
+            const totalReferrals = list.length;
+            const totalSales = list.filter(i => (i.status || "").toLowerCase().trim() === 'satışa döndü' || Number(i.revenue || 0) > 0).length;
+            const totalRevenue = list.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
+
+            let wsData = [
+                ["HEDEF AVM YÖNETİM RAPORU"],
+                [`DÖNEM: ${period.toUpperCase()}`],
+                [`TOPLAM YÖNLENDİRME ADEDİ: ${totalReferrals} ADET`],
+                [`TOPLAM SATIŞ ADEDİ: ${totalSales} ADET`],
+                [`TOPLAM BRÜT CİRO: ${totalRevenue} ₺`],
+                []
+            ];
+
             if (activeTab === 'dashboard') {
-                wsData = [["ŞUBE", "SATIŞ ADEDİ (ADET)", "TOPLAM CİRO (TL)"]];
-                let branchSummary = [...branchCharts];
+                wsData.push(["ŞUBE", "YÖNLENDİRME ADEDİ (ADET)", "SATIŞ ADEDİ (ADET)", "TOPLAM CİRO (TL)"]);
+                let branchSummary = [...currentData.charts.branch];
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
+                
+                // DİNAMİK YÖNLENDİRME (REFERRALS) ADETLERİ ATAMASI
                 branchSummary.forEach(b => {
-                    wsData.push([b.name.toUpperCase(), b.sales, b.revenue]);
+                    const branchReferrals = currentData.customerList.filter(i => i.branch === b.name).length;
+                    wsData.push([b.name.toUpperCase(), branchReferrals, b.sales, b.revenue]);
                 });
             } else if (activeTab === 'followup') {
-                wsData = [["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "AKSİYON DURUMU", "GECİKME BİLGİSİ"]];
+                wsData.push(["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "AKSİYON DURUMU", "GECİKME BİLGİSİ"]);
                 let fList = list.filter(i => {
                     const s = String(i.status || "").trim().toLowerCase();
                     const cs = String(i.callStatus || "").trim().toLowerCase();
@@ -763,7 +1379,7 @@
                     wsData.push([i.branch, i.customerName, i.phone, cs === 'aranmadı' ? 'Aranmadı' : i.status, i.isLate ? i.date + ' tarihinden beri aranmadı' : '']);
                 });
             } else if (activeTab === 'unspecified') {
-                wsData = [["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "HATA/SORUN DURUMU", "TUTAR"]];
+                wsData.push(["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "HATA/SORUN DURUMU", "TUTAR"]);
                 const unspecList = list.filter(i => {
                     const cNo = String(i.customerNo || "").trim();
                     const status = String(i.status || "").trim().toLowerCase();
@@ -782,21 +1398,23 @@
                     wsData.push([i.branch, i.customerName || '---', i.phone || '---', statusLabel, rev]);
                 });
             } else if (activeTab === 'customers') {
-                wsData = [["ŞUBE", "MÜŞTERİ NO", "TELEFON", "TUTAR"]];
-                const list = currentData.customerList.filter(i => {
+                wsData.push(["ŞUBE", "MÜŞTERİ NO", "TELEFON", "TUTAR"]);
+                const specListForExcel = list.filter(i => {
                     const rev = Number(i.revenue || 0);
                     const cNo = String(i.customerNo || "").trim();
                     return rev > 0 && cNo !== "" && cNo.toLowerCase() !== "belirtilmemiş";
                 });
-                list.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
-                list.forEach(i => {
+                specListForExcel.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
+                specListForExcel.forEach(i => {
                     wsData.push([i.branch, i.customerNo, i.phone || '---', i.revenue]);
                 });
             }
             
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, "Rapor");
-            XLSX.writeFile(wb, `Hedef_AVM_${period}_${selectedBranch}_${activeTab}.xlsx`);
+            const cleanPeriodName = period.replace(/ /g, '_');
+            const cleanBranchName = selectedBranch.replace(/ /g, '_');
+            XLSX.writeFile(wb, `Hedef_AVM_${cleanPeriodName}_${totalReferrals}_Yonlendirme_${cleanBranchName}_${activeTab}.xlsx`);
         }
     </script>
 </body>
