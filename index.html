@@ -734,7 +734,7 @@
             periods.forEach(p => {
                 headHtml += `<th class="text-right">${p} (Ciro)</th>`;
             });
-            headHtml += `<th class="text-right text-brand-600">Dönemsel Fark (TL)</th><th class="text-right text-brand-600">Dönemsel Fark (%)</th></tr>`;
+            headHtml += `<th class="text-right text-brand-600">Dönemsel Değişim (%)</th></tr>`;
             tableHead.innerHTML = headHtml;
 
             const allBranches = new Set();
@@ -812,11 +812,9 @@
                 const percentVal = prevSumRev > 0 ? (diffVal / prevSumRev) * 100 : 0;
                 branchGrowth.push({ name: bName, diffVal, percentVal });
 
-                const diffColor = diffVal >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold";
                 const badgeClass = diffVal >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700";
 
                 bodyHtml += `
-                    <td class="text-right ${diffColor}">${fmt(diffVal)}</td>
                     <td class="text-right"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${badgeClass}">${diffVal >= 0 ? '+' : ''}${percentVal.toFixed(1)}%</span></td>
                 </tr>`;
             });
@@ -835,7 +833,6 @@
                 bodyHtml += `<td class="text-right font-extrabold text-slate-900">${fmt(monthlyStats[p].totalRevenue)}</td>`;
             });
             bodyHtml += `
-                    <td class="text-right font-extrabold ${totalDiffVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${fmt(totalDiffVal)}</td>
                     <td class="text-right font-extrabold"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${totalDiffVal >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">${totalDiffVal >= 0 ? '+' : ''}${totalPercentVal.toFixed(1)}%</span></td>
                 </tr>
             `;
@@ -864,7 +861,7 @@
             if (prevPeriods.length > 0) {
                 periodComparisonText = `• Genel ciro performansı, önceki eşit süreli döneme (<strong>${prevPeriods.join(', ')}</strong>) kıyasla 
                 seçtiğiniz dönemde (<strong>${periods.join(', ')}</strong>) 
-                <strong>${fmt(Math.abs(totalDiff))}</strong> (${totalDiff >= 0 ? 'Artış' : 'Azalış'}) göstererek 
+                <strong class="${totalDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${totalDiff >= 0 ? 'Artış' : 'Azalış'}</strong> göstererek 
                 <strong class="${totalDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${totalDiff >= 0 ? '+' : ''}${totalPercent.toFixed(1)}%</strong> oranında değişmiştir.`;
             } else {
                 periodComparisonText = `• Seçilen dönemde (<strong>${periods.join(', ')}</strong>) toplam brüt ciro <strong>${fmt(totalCurrSumRev)}</strong> olarak gerçekleşmiştir. (Kıyaslanacak önceki dönem verisi bulunmamaktadır).`;
@@ -874,8 +871,8 @@
             if (prevPeriods.length > 0) {
                 const topGrower = [...branchGrowth].sort((a, b) => b.diffVal - a.diffVal)[0];
                 if (topGrower) {
-                    topGrowerText = `• Analiz aralığında en başarılı büyüme ivmesini yakalayan şube <strong>${topGrower.name}</strong> olmuştur. Şube, cirosunu önceki döneme kıyasla net 
-                    <strong>${fmt(topGrower.diffVal)}</strong> (${topGrower.diffVal >= 0 ? '+' : ''}${topGrower.percentVal.toFixed(1)}%) artırmıştır.`;
+                    topGrowerText = `• Analiz aralığında en başarılı büyüme ivmesini yakalayan şube <strong>${topGrower.name}</strong> olmuştur. Şube, önceki döneme kıyasla 
+                    ciro bazında <strong class="text-emerald-600">+${topGrower.percentVal.toFixed(1)}%</strong> oranında büyüme kaydetmiştir.`;
                 }
             }
 
@@ -927,7 +924,6 @@
                 tableHeadHtml += `<th style="text-align:right;">${p} (Ciro)</th>`;
             });
             tableHeadHtml += `
-                        <th style="text-align:right;">Değişim (TL)</th>
                         <th style="text-align:right;">Değişim (%)</th>
                         <th style="text-align:center; width: 80px;">Durum</th>
                     </tr>
@@ -936,9 +932,6 @@
 
             let tableBodyHtml = "<tbody>";
             sortedBranches.forEach((bName, idx) => {
-                let firstVal = null;
-                let lastVal = null;
-
                 tableBodyHtml += `<tr><td style="text-align:center; font-weight:bold; color:#64748b;">${idx + 1}</td><td style="font-weight:bold; color:#1e293b;">${bName.toUpperCase()}</td>`;
                 
                 periods.forEach((p, pIdx) => {
@@ -955,7 +948,6 @@
                 const statusColor = diffVal >= 0 ? "color:#10b981; font-weight:bold;" : "color:#f43f5e; font-weight:bold;";
 
                 tableBodyHtml += `
-                    <td style="text-align:right; font-weight:bold; color:${diffVal >= 0 ? '#10b981' : '#f43f5e'}">${fmt(diffVal)}</td>
                     <td style="text-align:right; font-weight:bold; color:${diffVal >= 0 ? '#10b981' : '#f43f5e'}">${diffVal >= 0 ? '+' : ''}${percentVal.toFixed(1)}%</td>
                     <td style="text-align:center; ${statusColor}">${statusLabel}</td>
                 </tr>`;
@@ -976,7 +968,6 @@
             });
 
             tableBodyHtml += `
-                    <td style="text-align:right; color:${totalDiffVal >= 0 ? '#10b981' : '#f43f5e'}; font-weight:800; font-size:12px;">${fmt(totalDiffVal)}</td>
                     <td style="text-align:right; color:${totalDiffVal >= 0 ? '#10b981' : '#f43f5e'}; font-weight:800; font-size:12px;">${totalDiffVal >= 0 ? '+' : ''}${totalPercentVal.toFixed(1)}%</td>
                     <td style="text-align:center; font-weight:800; color: #7c3aed;">OK</td>
                 </tr>
@@ -1070,7 +1061,7 @@
                 wsData[3].push(`${p} YÖNLENDİRME`);
                 wsData[3].push(`${p} CİRO`);
             });
-            wsData[3].push("YÖNLENDİRME DEĞİŞİM (ADET)", "CİRO DEĞİŞİM (TL)", "CİRO DEĞİŞİM (%)");
+            wsData[3].push("CİRO DEĞİŞİM (%)");
 
             sortedBranches.forEach((bName, idx) => {
                 const row = [idx + 1, bName.toUpperCase()];
@@ -1088,11 +1079,7 @@
                 const diffVal = currSumRev - prevSumRev;
                 const percentVal = prevSumRev > 0 ? (diffVal / prevSumRev) * 100 : 0;
 
-                const currSumRef = periods.reduce((sum, p) => sum + ((monthlyStats[p].branchReferrals && monthlyStats[p].branchReferrals[bName]) || 0), 0);
-                const prevSumRef = prevPeriods.reduce((sum, p) => sum + ((monthlyStats[p].branchReferrals && monthlyStats[p].branchReferrals[bName]) || 0), 0);
-                const diffRef = currSumRef - prevSumRef;
-
-                row.push(diffRef, diffVal, `${percentVal.toFixed(1)}%`);
+                row.push(`${percentVal.toFixed(1)}%`);
                 wsData.push(row);
             });
 
@@ -1107,14 +1094,9 @@
 
             const totalCurrSumRev = periods.reduce((sum, p) => sum + Number(monthlyStats[p].totalRevenue || 0), 0);
             const totalPrevSumRev = prevPeriods.reduce((sum, p) => sum + Number(monthlyStats[p].totalRevenue || 0), 0);
-            const grandDiffVal = totalCurrSumRev - totalPrevSumRev;
-            const grandPercentVal = totalPrevSumRev > 0 ? (grandDiffVal / totalPrevSumRev) * 100 : 0;
+            const grandPercentVal = totalPrevSumRev > 0 ? ((totalCurrSumRev - totalPrevSumRev) / totalPrevSumRev) * 100 : 0;
 
-            const totalCurrSumRef = periods.reduce((sum, p) => sum + Number(monthlyStats[p].totalYönlendirme || 0), 0);
-            const totalPrevSumRef = prevPeriods.reduce((sum, p) => sum + Number(monthlyStats[p].totalYönlendirme || 0), 0);
-            const grandDiffRef = totalCurrSumRef - totalPrevSumRef;
-
-            totalRow.push(grandDiffRef, grandDiffVal, `${grandPercentVal.toFixed(1)}%`);
+            totalRow.push(`${grandPercentVal.toFixed(1)}%`);
             wsData.push(totalRow);
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -1129,12 +1111,6 @@
                         cell.z = currencyFormat;
                     }
                 });
-                
-                const totalDiffColIdx = 2 + (periods.length * 2) + 1;
-                const cellDiff = ws[XLSX.utils.encode_cell({ r: R, c: totalDiffColIdx })];
-                if (cellDiff && typeof cellDiff.v === 'number') {
-                    cellDiff.z = currencyFormat;
-                }
             }
 
             ws['!cols'] = [{ wch: 10 }, { wch: 30 }];
@@ -1142,7 +1118,7 @@
                 ws['!cols'].push({ wch: 22 }); 
                 ws['!cols'].push({ wch: 22 }); 
             });
-            ws['!cols'].push({ wch: 25 }, { wch: 22 }, { wch: 15 });
+            ws['!cols'].push({ wch: 15 });
 
             XLSX.utils.book_append_sheet(wb, ws, "Gelişmiş Rapor");
             XLSX.writeFile(wb, `Hedef_AVM_Gelismis_Rapor_${periods[0].replace(/ /g, '_')}_${periods[periods.length - 1].replace(/ /g, '_')}.xlsx`);
