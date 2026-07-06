@@ -131,7 +131,7 @@
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-slate-700 text-sm font-bold truncate">Yönetici</p>
-                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v8.9.9</p>
+                    <p class="text-slate-400 text-[11px] font-medium">Sistem Sürümü v9.0.0</p>
                 </div>
             </div>
         </div>
@@ -373,7 +373,7 @@
                     <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
                         <div>
                             <h3 class="font-bold text-base text-slate-800">Dönemsel Şube Karşılaştırma Matrisi</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Seçilen dönem aralığına ait ciro değişimleri.</p>
+                            <p id="adv-comparison-subtitle" class="text-xs text-slate-500 mt-0.5">Seçilen dönem aralığına ait ciro değişimleri.</p>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -667,13 +667,25 @@
             }
 
             const targetPeriods = sortedPeriods.slice(startIdx, endIdx + 1);
+            const N = targetPeriods.length;
+            
+            // Eşit süreli önceki dönemi belirleme
+            const prevPeriods = [];
+            for (let i = 1; i <= N; i++) {
+                const prevIdx = startIdx - i;
+                if (prevIdx >= 0) {
+                    prevPeriods.unshift(sortedPeriods[prevIdx]);
+                }
+            }
+
+            const allNeededPeriods = [...prevPeriods, ...targetPeriods];
             const loader = document.getElementById('loadingIndicator');
             const loaderText = document.getElementById('loader-text');
             loader.classList.remove('hidden');
 
-            for (let i = 0; i < targetPeriods.length; i++) {
-                const p = targetPeriods[i];
-                loaderText.innerText = `Senkronize Ediliyor: ${p} (${i + 1}/${targetPeriods.length})`;
+            for (let i = 0; i < allNeededPeriods.length; i++) {
+                const p = allNeededPeriods[i];
+                loaderText.innerText = `Senkronize Ediliyor: ${p} (${i + 1}/${allNeededPeriods.length})`;
                 
                 try {
                     const cached = window.localStorage.getItem(`cache_${p}`);
@@ -686,9 +698,7 @@
                             if (text.includes("<!DOCTYPE") || text.includes("<html")) {
                                 showErrorModal("Web App Yapılandırma Hatası", 
                                     "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
-                                    "<b>Olası Çözümler:</b><br>" +
-                                    "1. Google Apps Script editöründe sağ üstteki <b>Deploy > Manage deployments</b> adımlarını takip edin.<br>" +
-                                    "2. <b>Who has access</b> seçeneğini <b>'Anyone' (Herkes)</b>, <b>Execute as</b> seçeneğini ise <b>'Me' (Ben)</b> olarak güncelleyin ve yeni bir sürümle yayına alın."
+                                    "<b>Çözüm:</b> Dağıtım ayarlarından 'Execute as' kısmının 'Me' ve erişim yetkisinin 'Anyone' olduğunu doğrulayın."
                                 );
                                 loader.classList.add('hidden');
                                 return;
@@ -705,12 +715,12 @@
                 }
             }
 
-            buildAdvancedReport(targetPeriods);
+            buildAdvancedReport(targetPeriods, prevPeriods);
             loader.classList.add('hidden');
             loaderText.innerText = "Veriler Senkronize Ediliyor...";
         }
 
-        function buildAdvancedReport(periods) {
+        function buildAdvancedReport(periods, prevPeriods = []) {
             const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
             
@@ -724,7 +734,7 @@
             periods.forEach(p => {
                 headHtml += `<th class="text-right">${p} (Ciro)</th>`;
             });
-            headHtml += `<th class="text-right text-brand-600">Değişim (TL)</th><th class="text-right text-brand-600">Değişim (%)</th></tr>`;
+            headHtml += `<th class="text-right text-brand-600">Dönemsel Fark (TL)</th><th class="text-right text-brand-600">Dönemsel Fark (%)</th></tr>`;
             tableHead.innerHTML = headHtml;
 
             const allBranches = new Set();
@@ -743,7 +753,25 @@
                     allBranches.add(b.name);
                     monthlyStats[p].branches[b.name] = b.revenue;
                     
-                    // Her şubenin ilgili dönemdeki gerçek yönlendirme adetlerini sayıyoruz
+                    const refCount = d.customerList.filter(i => i.branch === b.name && (i.customerName || i.customerNo)).length;
+                    monthlyStats[p].branchReferrals[b.name] = refCount;
+                });
+            });
+
+            // Önceki dönem birikimli verilerini de önbellekten okuyarak eşle
+            prevPeriods.forEach(p => {
+                if (monthlyStats[p]) return;
+                monthlyStats[p] = { totalRevenue: 0, totalYönlendirme: 0, branches: {}, branchReferrals: {} };
+                const cacheStr = window.localStorage.getItem(`cache_${p}`);
+                if (!cacheStr) return;
+                const d = JSON.parse(cacheStr);
+                
+                monthlyStats[p].totalRevenue = d.kpis.totalRevenue;
+                monthlyStats[p].totalYönlendirme = d.customerList.filter(i => i.customerName || i.customerNo || i.revenue > 0).length;
+
+                d.charts.branch.forEach(b => {
+                    allBranches.add(b.name);
+                    monthlyStats[p].branches[b.name] = b.revenue;
                     const refCount = d.customerList.filter(i => i.branch === b.name && (i.customerName || i.customerNo)).length;
                     monthlyStats[p].branchReferrals[b.name] = refCount;
                 });
@@ -771,18 +799,17 @@
             sortedBranches.forEach((bName, idx) => {
                 bodyHtml += `<tr><td class="text-center font-bold text-slate-400">${idx + 1}</td><td class="font-bold text-slate-800">${bName}</td>`;
                 
-                let firstVal = null;
-                let lastVal = null;
-
-                periods.forEach((p, pIdx) => {
+                periods.forEach(p => {
                     const rev = monthlyStats[p].branches[bName] || 0;
                     bodyHtml += `<td class="text-right font-medium text-slate-600">${fmt(rev)}</td>`;
-                    if (pIdx === 0) firstVal = rev;
-                    if (pIdx === periods.length - 1) lastVal = rev;
                 });
 
-                const diffVal = lastVal - firstVal;
-                const percentVal = firstVal > 0 ? (diffVal / firstVal) * 100 : 0;
+                // Seçilen Dönem Toplamı vs Önceki Eşit Dönem Toplamı Kıyaslaması
+                const currSumRev = periods.reduce((sum, p) => sum + (monthlyStats[p].branches[bName] || 0), 0);
+                const prevSumRev = prevPeriods.reduce((sum, p) => sum + (monthlyStats[p].branches[bName] || 0), 0);
+                
+                const diffVal = currSumRev - prevSumRev;
+                const percentVal = prevSumRev > 0 ? (diffVal / prevSumRev) * 100 : 0;
                 branchGrowth.push({ name: bName, diffVal, percentVal });
 
                 const diffColor = diffVal >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold";
@@ -793,18 +820,73 @@
                     <td class="text-right"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${badgeClass}">${diffVal >= 0 ? '+' : ''}${percentVal.toFixed(1)}%</span></td>
                 </tr>`;
             });
+
+            // GENEL TOPLAM Satırı (UI Tablosu İçin)
+            const totalCurrSumRev = periods.reduce((sum, p) => sum + Number(monthlyStats[p].totalRevenue || 0), 0);
+            const totalPrevSumRev = prevPeriods.reduce((sum, p) => sum + Number(monthlyStats[p].totalRevenue || 0), 0);
+            const totalDiffVal = totalCurrSumRev - totalPrevSumRev;
+            const totalPercentVal = totalPrevSumRev > 0 ? (totalDiffVal / totalPrevSumRev) * 100 : 0;
+
+            bodyHtml += `
+                <tr class="bg-brand-50/50 font-bold border-t-2 border-brand-500">
+                    <td colspan="2" class="text-right font-extrabold text-brand-900 uppercase text-xs py-5 px-8">GENEL TOPLAM</td>
+            `;
+            periods.forEach(p => {
+                bodyHtml += `<td class="text-right font-extrabold text-slate-900">${fmt(monthlyStats[p].totalRevenue)}</td>`;
+            });
+            bodyHtml += `
+                    <td class="text-right font-extrabold ${totalDiffVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${fmt(totalDiffVal)}</td>
+                    <td class="text-right font-extrabold"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${totalDiffVal >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">${totalDiffVal >= 0 ? '+' : ''}${totalPercentVal.toFixed(1)}%</span></td>
+                </tr>
+            `;
+
             tableBody.innerHTML = bodyHtml;
 
+            // Altyazı Bilgilendirmesi (Kıyaslama Dönemi)
+            const subtitleEl = document.getElementById('adv-comparison-subtitle');
+            if (subtitleEl) {
+                subtitleEl.innerHTML = prevPeriods.length > 0 
+                    ? `Kıyaslama Dönemi: <strong>[${prevPeriods.join(', ')}]</strong> vs Seçilen Dönem: <strong>[${periods.join(', ')}]</strong> (Eşit süreli birikimli kıyaslama)`
+                    : `Seçilen dönem aralığına ait ciro değişimleri (Kıyaslanacak önceki dönem verisi bulunamadı).`;
+            }
+
+            // Özet Raporu Metinleri
             const oldestPeriod = periods[0];
             const newestPeriod = periods[periods.length - 1];
-            const oldTotal = monthlyStats[oldestPeriod].totalRevenue;
-            const newTotal = monthlyStats[newestPeriod].totalRevenue;
-            const totalDiff = newTotal - oldTotal;
-            const totalPercent = oldTotal > 0 ? (totalDiff / oldTotal) * 100 : 0;
+            const totalDiff = totalDiffVal;
+            const totalPercent = totalPercentVal;
 
-            const topGrower = [...branchGrowth].sort((a, b) => b.diffVal - a.diffVal)[0];
+            const currTotalReferrals = periods.reduce((sum, p) => sum + Number(monthlyStats[p].totalYönlendirme || 0), 0);
+            const prevTotalReferrals = prevPeriods.reduce((sum, p) => sum + Number(monthlyStats[p].totalYönlendirme || 0), 0);
 
             insightsContainer.classList.remove('hidden');
+            let periodComparisonText = "";
+            if (prevPeriods.length > 0) {
+                periodComparisonText = `• Genel ciro performansı, önceki eşit süreli döneme (<strong>${prevPeriods.join(', ')}</strong>) kıyasla 
+                seçtiğiniz dönemde (<strong>${periods.join(', ')}</strong>) 
+                <strong>${fmt(Math.abs(totalDiff))}</strong> (${totalDiff >= 0 ? 'Artış' : 'Azalış'}) göstererek 
+                <strong class="${totalDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${totalDiff >= 0 ? '+' : ''}${totalPercent.toFixed(1)}%</strong> oranında değişmiştir.`;
+            } else {
+                periodComparisonText = `• Seçilen dönemde (<strong>${periods.join(', ')}</strong>) toplam brüt ciro <strong>${fmt(totalCurrSumRev)}</strong> olarak gerçekleşmiştir. (Kıyaslanacak önceki dönem verisi bulunmamaktadır).`;
+            }
+
+            let topGrowerText = "";
+            if (prevPeriods.length > 0) {
+                const topGrower = [...branchGrowth].sort((a, b) => b.diffVal - a.diffVal)[0];
+                if (topGrower) {
+                    topGrowerText = `• Analiz aralığında en başarılı büyüme ivmesini yakalayan şube <strong>${topGrower.name}</strong> olmuştur. Şube, cirosunu önceki döneme kıyasla net 
+                    <strong>${fmt(topGrower.diffVal)}</strong> (${topGrower.diffVal >= 0 ? '+' : ''}${topGrower.percentVal.toFixed(1)}%) artırmıştır.`;
+                }
+            }
+
+            let referralsComparisonText = "";
+            if (prevPeriods.length > 0) {
+                referralsComparisonText = `• Önceki dönemin toplam yönlendirme adedi <strong>${num(prevTotalReferrals)}</strong> iken, 
+                seçtiğiniz dönemde bu sayı <strong>${num(currTotalReferrals)}</strong> adede ulaşmıştır.`;
+            } else {
+                referralsComparisonText = `• Seçilen dönem boyunca alınan toplam yönlendirme adedi: <strong>${num(currTotalReferrals)}</strong>`;
+            }
+
             insightsContainer.innerHTML = `
                 <div class="flex items-center gap-3 text-brand-900">
                     <div class="w-10 h-10 rounded-xl bg-brand-100 flex items-center justify-center text-brand-600">
@@ -814,25 +896,21 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div class="space-y-2 text-sm text-slate-600">
-                        <p>• Genel ciro performansı <strong>${oldestPeriod}</strong> döneminden <strong>${newestPeriod}</strong> dönemine kıyasla 
-                        <strong>${fmt(Math.abs(totalDiff))}</strong> (${totalDiff >= 0 ? 'Artış' : 'Azalış'}) göstererek 
-                        <strong class="${totalDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${totalDiff >= 0 ? '+' : ''}${totalPercent.toFixed(1)}%</strong> oranında değişmiştir.</p>
-                        <p>• Analiz aralığında en başarılı büyüme ivmesini yakalayan şube <strong>${topGrower.name}</strong> olmuştur. Şube, cirosunu net 
-                        <strong>${fmt(topGrower.diffVal)}</strong> artırmıştır.</p>
+                        <p>${periodComparisonText}</p>
+                        ${topGrowerText ? `<p>${topGrowerText}</p>` : ''}
                     </div>
                     <div class="space-y-2 text-sm text-slate-600">
-                        <p>• <strong>${oldestPeriod}</strong> ayı toplam yönlendirme adedi <strong>${num(monthlyStats[oldestPeriod].totalYönlendirme)}</strong> iken, 
-                        <strong>${newestPeriod}</strong> ayında bu sayı <strong>${num(monthlyStats[newestPeriod].totalYönlendirme)}</strong> adede ulaşmıştır.</p>
+                        <p>${referralsComparisonText}</p>
                     </div>
                 </div>
             `;
             
-            window.lastAdvancedStats = { periods, sortedBranches, monthlyStats, branchGrowth };
+            window.lastAdvancedStats = { periods, prevPeriods, sortedBranches, monthlyStats, branchGrowth };
         }
 
         function printAdvancedReport() {
             if (!window.lastAdvancedStats) return;
-            const { periods, sortedBranches, monthlyStats, branchGrowth } = window.lastAdvancedStats;
+            const { periods, prevPeriods, sortedBranches, monthlyStats, branchGrowth } = window.lastAdvancedStats;
             const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
 
@@ -866,12 +944,13 @@
                 periods.forEach((p, pIdx) => {
                     const rev = monthlyStats[p].branches[bName] || 0;
                     tableBodyHtml += `<td style="text-align:right;">${fmt(rev)}</td>`;
-                    if (pIdx === 0) firstVal = rev;
-                    if (pIdx === periods.length - 1) lastVal = rev;
                 });
 
-                const diffVal = lastVal - firstVal;
-                const percentVal = firstVal > 0 ? (diffVal / firstVal) * 100 : 0;
+                const currSumRev = periods.reduce((sum, p) => sum + (monthlyStats[p].branches[bName] || 0), 0);
+                const prevSumRev = prevPeriods.reduce((sum, p) => sum + (monthlyStats[p].branches[bName] || 0), 0);
+                
+                const diffVal = currSumRev - prevSumRev;
+                const percentVal = prevSumRev > 0 ? (diffVal / prevSumRev) * 100 : 0;
                 const statusLabel = diffVal >= 0 ? "OK" : "DÜŞÜŞ";
                 const statusColor = diffVal >= 0 ? "color:#10b981; font-weight:bold;" : "color:#f43f5e; font-weight:bold;";
 
@@ -882,11 +961,11 @@
                 </tr>`;
             });
 
-            // GENEL TOPLAM Satırı (Referans Excel görselindeki mor renk tasarımı gibi)
-            let totalRevOldest = monthlyStats[startPeriod].totalRevenue;
-            let totalRevNewest = monthlyStats[endPeriod].totalRevenue;
-            const totalDiff = totalRevNewest - totalRevOldest;
-            const totalPercent = totalRevOldest > 0 ? (totalDiff / totalRevOldest) * 100 : 0;
+            // GENEL TOPLAM Satırı (Birikimli Karşılaştırma Mantığıyla)
+            const totalCurrSumRev = periods.reduce((sum, p) => sum + Number(monthlyStats[p].totalRevenue || 0), 0);
+            const totalPrevSumRev = prevPeriods.reduce((sum, p) => sum + Number(monthlyStats[p].totalRevenue || 0), 0);
+            const totalDiffVal = totalCurrSumRev - totalPrevSumRev;
+            const totalPercentVal = totalPrevSumRev > 0 ? (totalDiffVal / totalPrevSumRev) * 100 : 0;
 
             tableBodyHtml += `
                 <tr style="background-color: #ede9fe; font-weight:bold; border-top: 2px solid #7c3aed; color: #4c1d95;">
@@ -897,14 +976,14 @@
             });
 
             tableBodyHtml += `
-                    <td style="text-align:right; color:${totalDiff >= 0 ? '#10b981' : '#f43f5e'}; font-weight:800; font-size:12px;">${fmt(totalDiff)}</td>
-                    <td style="text-align:right; color:${totalDiff >= 0 ? '#10b981' : '#f43f5e'}; font-weight:800; font-size:12px;">${totalDiff >= 0 ? '+' : ''}${totalPercent.toFixed(1)}%</td>
+                    <td style="text-align:right; color:${totalDiffVal >= 0 ? '#10b981' : '#f43f5e'}; font-weight:800; font-size:12px;">${fmt(totalDiffVal)}</td>
+                    <td style="text-align:right; color:${totalDiffVal >= 0 ? '#10b981' : '#f43f5e'}; font-weight:800; font-size:12px;">${totalDiffVal >= 0 ? '+' : ''}${totalPercentVal.toFixed(1)}%</td>
                     <td style="text-align:center; font-weight:800; color: #7c3aed;">OK</td>
                 </tr>
             `;
             tableBodyHtml += "</tbody>";
 
-            // Aylık Yönlendirme, Satış ve Ciro Özet Tablosu (Referans görsel cf75e0 benzeri)
+            // Aylık Yönlendirme ve Ciro Özet Tablosu
             let summaryListHtml = `
                 <div style="background-color: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #cbd5e1;">
                     <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; color: #1e293b; border-bottom: 2px solid #7c3aed; padding-bottom: 6px; font-weight:800;">
@@ -939,8 +1018,8 @@
             summaryListHtml += `
                 <tr style="background-color: #ede9fe; font-weight:bold; border-top: 2px solid #7c3aed; color: #4c1d95;">
                     <td style="padding: 10px; font-weight:800; font-size:12px;">GENEL TOPLAM</td>
-                    <td style="text-align:right; padding: 10px; font-weight:800; color:#4f46e5;">${num(sumReferrals(periods, monthlyStats))}</td>
-                    <td style="text-align:right; padding: 10px; font-weight:800; color:#7c3aed;">${fmt(sumRevenues(periods, monthlyStats))}</td>
+                    <td style="text-align:right; padding: 10px; font-weight:800; color:#4f46e5;">${num(sumTotalReferrals)}</td>
+                    <td style="text-align:right; padding: 10px; font-weight:800; color:#7c3aed;">${fmt(sumTotalRevenue)}</td>
                     <td style="text-align:center; padding: 10px; font-weight:800; color:#10b981;">OK</td>
                 </tr>
             `;
@@ -972,17 +1051,10 @@
             window.print();
         }
 
-        function sumReferrals(periods, stats) {
-            return periods.reduce((sum, p) => sum + Number(stats[p].totalYönlendirme || 0), 0);
-        }
-        function sumRevenues(periods, stats) {
-            return periods.reduce((sum, p) => sum + Number(stats[p].totalRevenue || 0), 0);
-        }
-
-        // Gelişmiş Rapor Excel Dışa Aktarma Modülü (Yönlendirmeler Eklendi)
+        // Gelişmiş Rapor Excel Dışa Aktarma Modülü (Yönlendirmeler & Toplam Satırları Eklendi)
         function exportAdvancedToExcel() {
             if (!window.lastAdvancedStats) return;
-            const { periods, sortedBranches, monthlyStats, branchGrowth } = window.lastAdvancedStats;
+            const { periods, prevPeriods, sortedBranches, monthlyStats, branchGrowth } = window.lastAdvancedStats;
             const wb = XLSX.utils.book_new();
             const currencyFormat = '#,##0"₺"';
 
@@ -993,7 +1065,7 @@
                 ["SIRA", "ŞUBE ADI"]
             ];
 
-            // Excel Tablo Başlıkları dinamik olarak kuruluyor (Yönlendirme adetleri eklendi)
+            // Excel başlıklarına yönlendirme ve cirolar ekleniyor
             periods.forEach(p => {
                 wsData[3].push(`${p} YÖNLENDİRME`);
                 wsData[3].push(`${p} CİRO`);
@@ -1002,43 +1074,55 @@
 
             sortedBranches.forEach((bName, idx) => {
                 const row = [idx + 1, bName.toUpperCase()];
-                let firstVal = null;
-                let lastVal = null;
-                let firstRef = null;
-                let lastRef = null;
 
-                periods.forEach((p, pIdx) => {
+                periods.forEach(p => {
                     const rev = monthlyStats[p].branches[bName] || 0;
                     const ref = (monthlyStats[p].branchReferrals && monthlyStats[p].branchReferrals[bName]) || 0;
-                    
-                    row.push(ref); // Yönlendirme Sayısı (Adet)
-                    row.push(rev); // Ciro Değeri (TL)
-                    
-                    if (pIdx === 0) {
-                        firstVal = rev;
-                        firstRef = ref;
-                    }
-                    if (pIdx === periods.length - 1) {
-                        lastVal = rev;
-                        lastRef = ref;
-                    }
+                    row.push(ref);
+                    row.push(rev);
                 });
 
-                const diffRef = lastRef - firstRef;
-                const diffVal = lastVal - firstVal;
-                const percentVal = firstVal > 0 ? (diffVal / firstVal) * 100 : 0;
-                
+                // Seçilen birikimli dönem vs önceki birikimli dönem
+                const currSumRev = periods.reduce((sum, p) => sum + (monthlyStats[p].branches[bName] || 0), 0);
+                const prevSumRev = prevPeriods.reduce((sum, p) => sum + (monthlyStats[p].branches[bName] || 0), 0);
+                const diffVal = currSumRev - prevSumRev;
+                const percentVal = prevSumRev > 0 ? (diffVal / prevSumRev) * 100 : 0;
+
+                const currSumRef = periods.reduce((sum, p) => sum + ((monthlyStats[p].branchReferrals && monthlyStats[p].branchReferrals[bName]) || 0), 0);
+                const prevSumRef = prevPeriods.reduce((sum, p) => sum + ((monthlyStats[p].branchReferrals && monthlyStats[p].branchReferrals[bName]) || 0), 0);
+                const diffRef = currSumRef - prevSumRef;
+
                 row.push(diffRef, diffVal, `${percentVal.toFixed(1)}%`);
                 wsData.push(row);
             });
 
+            // GENEL TOPLAM Satırı
+            const totalRow = ["", "GENEL TOPLAM"];
+            periods.forEach(p => {
+                const totalRef = sortedBranches.reduce((sum, bName) => sum + Number((monthlyStats[p].branchReferrals && monthlyStats[p].branchReferrals[bName]) || 0), 0);
+                const totalRev = monthlyStats[p].totalRevenue;
+                totalRow.push(totalRef);
+                totalRow.push(totalRev);
+            });
+
+            const totalCurrSumRev = periods.reduce((sum, p) => sum + Number(monthlyStats[p].totalRevenue || 0), 0);
+            const totalPrevSumRev = prevPeriods.reduce((sum, p) => sum + Number(monthlyStats[p].totalRevenue || 0), 0);
+            const grandDiffVal = totalCurrSumRev - totalPrevSumRev;
+            const grandPercentVal = totalPrevSumRev > 0 ? (grandDiffVal / totalPrevSumRev) * 100 : 0;
+
+            const totalCurrSumRef = periods.reduce((sum, p) => sum + Number(monthlyStats[p].totalYönlendirme || 0), 0);
+            const totalPrevSumRef = prevPeriods.reduce((sum, p) => sum + Number(monthlyStats[p].totalYönlendirme || 0), 0);
+            const grandDiffRef = totalCurrSumRef - totalPrevSumRef;
+
+            totalRow.push(grandDiffRef, grandDiffVal, `${grandPercentVal.toFixed(1)}%`);
+            wsData.push(totalRow);
+
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             const range = XLSX.utils.decode_range(ws['!ref']);
             
-            // Excel Hücre Formatlama İşlemleri (Sadece para birimi alanlarına ₺ formatı uygulanır)
+            // Para birimi ₺ hücre formatlaması
             for (let R = 4; R <= range.e.r; ++R) {
                 periods.forEach((p, pIdx) => {
-                    // Ciro Sütunu Formülü: Başlangıç indeksi olan 2'den sonra her periyot için (pIdx * 2) + 1 konumundadır.
                     const ciroColIdx = 2 + (pIdx * 2) + 1;
                     const cell = ws[XLSX.utils.encode_cell({ r: R, c: ciroColIdx })];
                     if (cell && typeof cell.v === 'number') {
@@ -1046,7 +1130,6 @@
                     }
                 });
                 
-                // Ciro Değişimi (TL) Sütunu
                 const totalDiffColIdx = 2 + (periods.length * 2) + 1;
                 const cellDiff = ws[XLSX.utils.encode_cell({ r: R, c: totalDiffColIdx })];
                 if (cellDiff && typeof cellDiff.v === 'number') {
@@ -1054,11 +1137,10 @@
                 }
             }
 
-            // Sütun genişlikleri optimize ediliyor
             ws['!cols'] = [{ wch: 10 }, { wch: 30 }];
             periods.forEach(() => {
-                ws['!cols'].push({ wch: 22 }); // Yönlendirme Sütunu genişliği
-                ws['!cols'].push({ wch: 22 }); // Ciro Sütunu genişliği
+                ws['!cols'].push({ wch: 22 }); 
+                ws['!cols'].push({ wch: 22 }); 
             });
             ws['!cols'].push({ wch: 25 }, { wch: 22 }, { wch: 15 });
 
@@ -1081,7 +1163,6 @@
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
                 
-                // DİNAMİK YÖNLENDİRME (REFERRALS) ADETLERİ ATAMASI
                 branchSummary.forEach(b => {
                     b.referrals = data.customerList.filter(i => i.branch === b.name).length;
                 });
@@ -1188,7 +1269,6 @@
                 if (branch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === branch);
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
                 
-                // DİNAMİK YÖNLENDİRME (REFERRALS) ADETLERİ ATAMASI
                 branchSummary.forEach(b => {
                     b.referrals = currentData.customerList.filter(i => i.branch === b.name).length;
                 });
@@ -1355,11 +1435,14 @@
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
                 
-                // DİNAMİK YÖNLENDİRME (REFERRALS) ADETLERİ ATAMASI
                 branchSummary.forEach(b => {
                     const branchReferrals = currentData.customerList.filter(i => i.branch === b.name).length;
                     wsData.push([b.name.toUpperCase(), branchReferrals, b.sales, b.revenue]);
                 });
+                
+                // GENEL TOPLAM Satırı (Excel Tablosuna Eklendi)
+                wsData.push(["GENEL TOPLAM", totalReferrals, totalSales, totalRevenue]);
+
             } else if (activeTab === 'followup') {
                 wsData.push(["ŞUBE", "MÜŞTERİ ADI", "TELEFON", "AKSİYON DURUMU", "GECİKME BİLGİSİ"]);
                 let fList = list.filter(i => {
@@ -1397,6 +1480,11 @@
                     const statusLabel = isZeroRevenue ? "Sıfır Cirolu Satış" : "Müşteri No Eksik";
                     wsData.push([i.branch, i.customerName || '---', i.phone || '---', statusLabel, rev]);
                 });
+                
+                // GENEL TOPLAM Satırı (Excel Tablosuna Eklendi)
+                const totalUnspecRev = unspecList.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
+                wsData.push(["GENEL TOPLAM", "", "", "", totalUnspecRev]);
+
             } else if (activeTab === 'customers') {
                 wsData.push(["ŞUBE", "MÜŞTERİ NO", "TELEFON", "TUTAR"]);
                 const specListForExcel = list.filter(i => {
@@ -1408,6 +1496,10 @@
                 specListForExcel.forEach(i => {
                     wsData.push([i.branch, i.customerNo, i.phone || '---', i.revenue]);
                 });
+                
+                // GENEL TOPLAM Satırı (Excel Tablosuna Eklendi)
+                const totalCustRev = specListForExcel.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
+                wsData.push(["GENEL TOPLAM", "", "", totalCustRev]);
             }
             
             const ws = XLSX.utils.aoa_to_sheet(wsData);
