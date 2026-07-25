@@ -41,7 +41,22 @@
     <style>
         body { background-color: #f1f5f9; color: #334155; font-family: 'Outfit', sans-serif; }
         
-        #sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Sidebar Collapsed Styles on Desktop */
+        @media (min-width: 1024px) {
+            #sidebar.collapsed { width: 88px; }
+            #sidebar.collapsed .sidebar-text,
+            #sidebar.collapsed .sidebar-header-text,
+            #sidebar.collapsed .sidebar-footer-text { display: none !important; }
+            #sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+            #sidebar.collapsed .nav-section-title { display: none !important; }
+        }
+
+        @media (max-width: 1023px) {
+            #sidebar { transform: translateX(-100%); position: fixed; z-index: 50; }
+            #sidebar.open { transform: translateX(0); }
+        }
         
         .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1.25rem; border-radius: 1rem; color: #94a3b8; font-weight: 500; font-size: 0.875rem; transition: all 0.2s; border: 1px solid transparent; width: 100%; text-align: left; }
         .nav-item:hover { color: #ffffff; background-color: rgba(30, 41, 59, 0.6); }
@@ -49,7 +64,7 @@
         .nav-item i { font-size: 1rem; width: 1.25rem; text-align: center; transition: transform 0.2s; }
         .nav-item.active i { transform: scale(1.1); }
 
-        .kpi-card { background-color: #ffffff; padding: 1.5rem; border-radius: 1.5rem; border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05); transition: all 0.3s; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; }
+        .kpi-card { background-color: #ffffff; padding: 1.25rem 1.25rem; border-radius: 1.5rem; border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05); transition: all 0.3s; display: flex; flex-direction: column; justify-content: space-between; min-height: 135px; }
         .kpi-card:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.07); transform: translateY(-2px); }
         
         .table-wrapper { background-color: #ffffff; border-radius: 1.5rem; border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05); overflow: hidden; }
@@ -70,14 +85,9 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        @media (max-width: 1024px) { 
-            #sidebar { transform: translateX(-100%); }
-            #sidebar.open { transform: translateX(0); }
-        }
-
         #printArea { display: none; }
         @media print {
-            html, body { height: auto !important; width: auto !important; overflow: visible !important; background-color: white !important; margin: 0; padding: 0; }
+            html, body { height: auto !important; width: auto !important; overflow: visible !important; background-color: white !important; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             body > * { display: none !important; }
             body > #printArea { display: block !important; width: 100%; color: black; font-family: 'Outfit', sans-serif; padding: 20px; }
             .print-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; }
@@ -86,76 +96,92 @@
         }
     </style>
 </head>
-<body class="flex h-screen w-full overflow-hidden bg-[#f1f5f9]">
+<body class="flex h-screen w-full overflow-hidden antialiased bg-slate-100">
 
-    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-30 hidden transition-opacity"></div>
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-40 hidden lg:hidden"></div>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-[270px] bg-[#0f172a] text-slate-300 flex flex-col flex-shrink-0 z-40 lg:transform-none shadow-2xl lg:shadow-none">
-        <div class="h-20 flex items-center px-7 shrink-0 border-b border-slate-800/80">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-glow text-white">
-                    <i class="fas fa-chart-pie text-lg"></i>
+    <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 h-full border-r border-slate-800 shadow-2xl">
+        <div class="p-5 flex flex-col h-full overflow-y-auto custom-scrollbar">
+            <!-- Header Logo -->
+            <div class="flex items-center justify-between pb-6 mb-4 border-b border-slate-800">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-blue-500 flex items-center justify-center text-white shrink-0 shadow-glow">
+                        <i class="fas fa-building-circle-check text-lg"></i>
+                    </div>
+                    <div class="sidebar-header-text">
+                        <h1 class="text-white font-extrabold text-lg tracking-tight leading-none">Hedef <span class="font-light text-blue-400">AVM</span></h1>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Yönetim Paneli</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-white font-extrabold text-lg tracking-tight leading-none">Hedef <span class="font-light text-slate-400">AVM</span></h1>
-                    <p class="text-blue-400 text-[10px] font-bold uppercase tracking-widest mt-1">CRM Analytics Pro</p>
-                </div>
+                <button onclick="toggleSidebar()" class="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition" title="Menüyü Daralt/Genişlet">
+                    <i class="fas fa-angles-left sidebar-toggle-icon text-xs"></i>
+                </button>
             </div>
-        </div>
 
-        <nav class="flex-1 px-4 py-6 overflow-y-auto custom-scrollbar flex flex-col gap-1.5">
-            <div class="px-4 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Ana Menü</div>
-            <button onclick="setTab('dashboard'); maybeCloseSidebar()" id="sidebar-btn-dashboard" class="nav-item active">
-                <i class="fas fa-border-all"></i> <span>Genel Bakış</span>
-            </button>
-            <button onclick="setTab('customers'); maybeCloseSidebar()" id="sidebar-btn-customers" class="nav-item">
-                <i class="fas fa-users"></i> <span>Müşteri Detayları</span>
-            </button>
-            <button onclick="setTab('advanced'); maybeCloseSidebar()" id="sidebar-btn-advanced" class="nav-item">
-                <i class="fas fa-chart-line"></i> <span>Gelişmiş Rapor</span>
-            </button>
-            
-            <div class="px-4 mt-6 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Aksiyonlar</div>
-            <button onclick="setTab('followup'); maybeCloseSidebar()" id="sidebar-btn-followup" class="nav-item">
-                <i class="fas fa-headset"></i> <span>Takip Listesi</span>
-            </button>
-            <button onclick="setTab('unspecified'); maybeCloseSidebar()" id="sidebar-btn-unspecified" class="nav-item">
-                <i class="fas fa-triangle-exclamation"></i> <span>No Belirtilmeyenler</span>
-            </button>
-        </nav>
+            <!-- Navigation Links -->
+            <nav class="space-y-1.5 flex-1">
+                <div class="nav-section-title text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 mb-2">Performans</div>
+                
+                <button onclick="setTab('dashboard'); maybeCloseSidebar();" id="sidebar-btn-dashboard" class="nav-item active">
+                    <i class="fas fa-chart-pie"></i>
+                    <span class="sidebar-text">Performans Analizi</span>
+                </button>
 
-        <div class="p-5 border-t border-slate-800/80 bg-slate-900/40">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700/80">
-                    <i class="fas fa-user-astronaut text-sm"></i>
+                <button onclick="setTab('customers'); maybeCloseSidebar();" id="sidebar-btn-customers" class="nav-item">
+                    <i class="fas fa-users-gear"></i>
+                    <span class="sidebar-text">Müşteri Detayları</span>
+                </button>
+
+                <button onclick="setTab('followup'); maybeCloseSidebar();" id="sidebar-btn-followup" class="nav-item">
+                    <i class="fas fa-headset"></i>
+                    <span class="sidebar-text">Takip Listesi</span>
+                </button>
+
+                <button onclick="setTab('unspecified'); maybeCloseSidebar();" id="sidebar-btn-unspecified" class="nav-item">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <span class="sidebar-text">No Belirtilmeyenler</span>
+                </button>
+
+                <div class="nav-section-title text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 mt-6 mb-2">Raporlama</div>
+
+                <button onclick="setTab('advanced'); maybeCloseSidebar();" id="sidebar-btn-advanced" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="sidebar-text">Gelişmiş Dönem Raporu</span>
+                </button>
+            </nav>
+
+            <!-- Footer User Info -->
+            <div class="pt-4 mt-auto border-t border-slate-800 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 font-bold shrink-0">
+                    <i class="fas fa-user-shield text-xs"></i>
                 </div>
-                <div class="overflow-hidden">
-                    <p class="text-white text-xs font-bold truncate">Yönetici Paneli</p>
-                    <p class="text-slate-500 text-[10px] font-medium">Sistem v9.5.0</p>
+                <div class="sidebar-footer-text overflow-hidden">
+                    <p class="text-xs font-bold text-slate-200 truncate">Sistem Yöneticisi</p>
+                    <p class="text-[10px] text-slate-500 font-medium">Hedef AVM CRM v9.6</p>
                 </div>
             </div>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-w-0 relative h-full">
-        <!-- HEADER -->
-        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-6 lg:px-8 flex items-center justify-between z-20 shrink-0 sticky top-0 shadow-sm">
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        
+        <!-- HEADER BAR -->
+        <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-8 flex items-center justify-between shrink-0 z-30 shadow-sm">
             <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all shadow-sm">
+                <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div>
-                    <h2 id="tabTitle" class="text-lg font-extrabold text-slate-800 tracking-tight">Performans Analizi</h2>
-                    <div class="flex items-center gap-2 mt-0.5">
-                        <span id="syncPulse" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <p id="syncText" class="text-slate-500 text-[11px] font-medium">Canlı Otomatik Senkronizasyon Etkin</p>
-                    </div>
+                    <h2 id="tabTitle" class="text-lg lg:text-xl font-extrabold text-slate-800 tracking-tight">Performans Analizi</h2>
+                    <p class="text-xs text-slate-400 font-medium">Hedef AVM Müşteri Yönlendirme Portalı</p>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-3">
-                <div class="text-right hidden sm:block mr-2">
+
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <div class="text-right hidden md:block mr-2">
                     <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Son Güncelleme</p>
                     <p id="lastUpdateTime" class="text-slate-700 text-xs font-extrabold mt-1">--:--:--</p>
                 </div>
@@ -190,19 +216,19 @@
                 
                 <div class="h-5 w-px bg-slate-200 mx-1 hidden md:block no-print-selector"></div>
 
-                <button id="btn-printSummary" onclick="printSummaryReport()" class="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 h-9 px-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95" title="Aksiyon Özeti">
+                <button id="btn-printSummary" onclick="printSummaryReport()" class="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95" title="Aksiyon Özeti">
                     <i class="fas fa-list-ol text-xs"></i>
-                    <span class="hidden xl:inline">Özet PDF</span>
+                    <span class="hidden sm:inline">Özet PDF</span>
                 </button>
 
-                <button id="btn-exportExcel" onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 h-9 px-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95" title="Excel İndir">
+                <button id="btn-exportExcel" onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95" title="Excel İndir">
                     <i class="fas fa-file-excel text-xs"></i>
-                    <span class="hidden xl:inline">Excel</span>
+                    <span class="hidden sm:inline">Excel</span>
                 </button>
 
-                <button id="btn-printReport" onclick="printReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 h-9 px-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95" title="PDF İndir">
+                <button id="btn-printReport" onclick="printReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95" title="PDF İndir">
                     <i class="fas fa-file-pdf text-xs"></i>
-                    <span class="hidden xl:inline">PDF</span>
+                    <span class="hidden sm:inline">PDF</span>
                 </button>
             </div>
         </header>
@@ -218,85 +244,85 @@
                     <!-- Toplam Yönlendirme -->
                     <div class="kpi-card border-t-4 border-t-blue-500">
                         <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Toplam Yönlendirme</p>
-                                <h3 id="kpi-referrals" class="text-2xl font-extrabold text-slate-800 tracking-tight leading-none">0</h3>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Toplam Yönlendirme</p>
+                                <h3 id="kpi-referrals" class="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight leading-none">0</h3>
                             </div>
-                            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500">
+                            <div class="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 shrink-0 ml-2">
                                 <i class="fas fa-share-nodes text-xs"></i>
                             </div>
                         </div>
-                        <div class="text-[10px] font-bold text-blue-500 uppercase tracking-wider">bu dönem</div>
+                        <div class="text-[10px] font-bold text-blue-500 uppercase tracking-wider mt-2">bu dönem</div>
                     </div>
 
                     <!-- Toplam Aranan -->
                     <div class="kpi-card border-t-4 border-t-purple-500">
                         <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Toplam Aranan</p>
-                                <h3 id="kpi-aranan" class="text-2xl font-extrabold text-slate-800 tracking-tight leading-none">0</h3>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Toplam Aranan</p>
+                                <h3 id="kpi-aranan" class="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight leading-none">0</h3>
                             </div>
-                            <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500">
+                            <div class="w-8 h-8 bg-purple-50 rounded-xl flex items-center justify-center text-purple-500 shrink-0 ml-2">
                                 <i class="fas fa-phone-volume text-xs"></i>
                             </div>
                         </div>
-                        <div class="text-[10px] font-bold text-purple-500 uppercase tracking-wider">müşteri ulaşıldı</div>
+                        <div class="text-[10px] font-bold text-purple-500 uppercase tracking-wider mt-2">müşteri ulaşıldı</div>
                     </div>
 
                     <!-- Satış Adedi -->
                     <div class="kpi-card border-t-4 border-t-emerald-500">
                         <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Satış Adedi</p>
-                                <h3 id="kpi-sales" class="text-2xl font-extrabold text-slate-800 tracking-tight leading-none">0</h3>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Satış Adedi</p>
+                                <h3 id="kpi-sales" class="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight leading-none">0</h3>
                             </div>
-                            <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500">
+                            <div class="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 ml-2">
                                 <i class="fas fa-circle-check text-xs"></i>
                             </div>
                         </div>
-                        <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">başarılı işlem</div>
+                        <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mt-2">başarılı işlem</div>
                     </div>
 
                     <!-- Aylık Toplam Ciro -->
                     <div class="kpi-card border-t-4 border-t-rose-500">
                         <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Aylık Toplam Ciro</p>
-                                <h3 id="kpi-revenue" class="text-xl font-extrabold text-slate-800 tracking-tight leading-none">₺0</h3>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Aylık Toplam Ciro</p>
+                                <h3 id="kpi-revenue" class="text-xl lg:text-2xl font-extrabold text-slate-800 tracking-tight leading-none truncate">₺0</h3>
                             </div>
-                            <div class="w-8 h-8 bg-rose-50 rounded-lg flex items-center justify-center text-rose-500">
+                            <div class="w-8 h-8 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500 shrink-0 ml-2">
                                 <i class="fas fa-wallet text-xs"></i>
                             </div>
                         </div>
-                        <div class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">kazanç</div>
+                        <div class="text-[10px] font-bold text-rose-500 uppercase tracking-wider mt-2">kazanç</div>
                     </div>
 
-                    <!-- En Çok Satan Kategori -->
+                    <!-- En Çok Satan Kategori (H Sütunu Hesabı) -->
                     <div class="kpi-card border-t-4 border-t-amber-500">
                         <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">En Çok Satan</p>
-                                <h3 id="kpi-top-category" class="text-sm font-extrabold text-slate-800 tracking-tight leading-none truncate max-w-[120px]">---</h3>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">En Çok Satan Kategori</p>
+                                <h3 id="kpi-top-category" class="text-sm font-extrabold text-slate-800 tracking-tight leading-snug truncate">---</h3>
                             </div>
-                            <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center text-amber-500">
+                            <div class="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 shrink-0 ml-2">
                                 <i class="fas fa-trophy text-xs"></i>
                             </div>
                         </div>
-                        <div id="kpi-top-category-sub" class="text-[10px] font-bold text-amber-500 uppercase tracking-wider">0 satış</div>
+                        <div id="kpi-top-category-sub" class="text-[10px] font-bold text-amber-600 uppercase tracking-wider mt-2">0 satış</div>
                     </div>
 
                     <!-- Ortalama Sepet -->
                     <div class="kpi-card border-t-4 border-t-cyan-500">
                         <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ortalama Sepet</p>
-                                <h3 id="kpi-basket" class="text-xl font-extrabold text-slate-800 tracking-tight leading-none">₺0</h3>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Ortalama Sepet</p>
+                                <h3 id="kpi-basket" class="text-xl lg:text-2xl font-extrabold text-slate-800 tracking-tight leading-none truncate">₺0</h3>
                             </div>
-                            <div class="w-8 h-8 bg-cyan-50 rounded-lg flex items-center justify-center text-cyan-500">
+                            <div class="w-8 h-8 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-500 shrink-0 ml-2">
                                 <i class="fas fa-cart-shopping text-xs"></i>
                             </div>
                         </div>
-                        <div class="text-[10px] font-bold text-cyan-500 uppercase tracking-wider">satış başına</div>
+                        <div class="text-[10px] font-bold text-cyan-500 uppercase tracking-wider mt-2">satış başına</div>
                     </div>
                 </div>
 
@@ -473,7 +499,7 @@
         </div>
     </main>
 
-    <!-- Global Loader (Sadece manuel yenilemelerde görünür) -->
+    <!-- Global Loader -->
     <div id="loadingIndicator" class="fixed inset-0 bg-slate-950/20 backdrop-blur-sm z-50 flex items-center justify-center hidden">
         <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3 border border-slate-100">
             <div class="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -548,51 +574,35 @@
 
         function startContinuousSync() {
             if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-            // 30 saniyede bir sessiz arka plan güncellemelerini başlat
             autoRefreshInterval = setInterval(async () => {
                 const errorModal = document.getElementById('errorModal');
                 const isErrorHidden = errorModal ? errorModal.classList.contains('hidden') : true;
-                
                 if (document.visibilityState === 'visible' && isErrorHidden) {
-                    if (activeTab === 'advanced') {
-                        const startSel = document.getElementById('advStartPeriod');
-                        const endSel = document.getElementById('advEndPeriod');
-                        const startVal = startSel ? startSel.value : '';
-                        const endVal = endSel ? endSel.value : '';
-                        if (startVal && endVal) await runAdvancedAnalysis(false);
-                    } else {
-                        await fetchDataSilent();
-                    }
+                    await fetchData(false);
                 }
             }, 30000);
-        }
-
-        async function fetchDataSilent() {
-            const sel = document.getElementById('periodSelector');
-            const activePeriod = sel ? sel.value : '';
-            if (!activePeriod) return;
-            try {
-                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(activePeriod)}&t=${Date.now()}`, { cache: 'no-store' });
-                if (res.ok) {
-                    const contentType = res.headers.get("content-type");
-                    if (contentType && contentType.includes("application/json")) {
-                        currentData = await res.json();
-                        if (currentData && currentData.customerList) {
-                            safeStorage.setItem(`cache_${activePeriod}`, JSON.stringify(currentData));
-                        }
-                        render(currentData);
-                        safeSetText('lastUpdateTime', new Date().toLocaleTimeString('tr-TR'));
-                    }
-                }
-            } catch (e) {}
         }
 
         function toggleSidebar() { 
             const sb = document.getElementById('sidebar');
             const ob = document.getElementById('sidebarOverlay');
-            if (sb && ob) {
+            if (!sb) return;
+            
+            if (window.innerWidth >= 1024) {
+                sb.classList.toggle('collapsed');
+                const toggleIcon = sb.querySelector('.sidebar-toggle-icon');
+                if (toggleIcon) {
+                    if (sb.classList.contains('collapsed')) {
+                        toggleIcon.classList.remove('fa-angles-left');
+                        toggleIcon.classList.add('fa-angles-right');
+                    } else {
+                        toggleIcon.classList.remove('fa-angles-right');
+                        toggleIcon.classList.add('fa-angles-left');
+                    }
+                }
+            } else {
                 sb.classList.toggle('open');
-                ob.classList.toggle('hidden');
+                if (ob) ob.classList.toggle('hidden');
             }
         }
         
@@ -653,7 +663,7 @@
                         endSel.value = chronological[chronological.length - 1];
                     }
 
-                    // Anında Önbellekten Göster (Sıfır Bekleme)
+                    // Anında Önbellekten Göster
                     const cached = safeStorage.getItem(`cache_${periods[0]}`);
                     if (cached) {
                         try {
@@ -783,7 +793,6 @@
             if (showLoader && loader) loader.classList.remove('hidden');
 
             try {
-                // PARALEL İNDİRME: Tüm dönem verileri tek seferde paralel olarak çekilir
                 await Promise.all(allNeeded.map(async (p) => {
                     const cached = safeStorage.getItem(`cache_${p}`);
                     if (!cached) {
@@ -955,15 +964,24 @@
             const totalRevenue = list.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
             const avgBasket = totalSales > 0 ? (totalRevenue / totalSales) : 0;
 
+            // EN ÇOK SATAN KATEGORİ HESAPLAMASI (H Sütunundan Çekilir)
             let categoryCounts = {};
             list.forEach(i => {
-                const stat = String(i.status || "").trim();
-                if (stat && stat.toLowerCase() !== "satışa döndü" && stat.toLowerCase() !== "satisa dondu" && stat.toLowerCase() !== "belirtilmemiş") {
-                    categoryCounts[stat] = (categoryCounts[stat] || 0) + 1;
+                const ciro = Number(i.revenue || 0);
+                const stat = String(i.status || "").trim().toLowerCase();
+                const isSale = ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu';
+
+                if (isSale) {
+                    const rawCat = String(i.category || "").trim();
+                    if (rawCat && !["belirtilmemiş", "diğer", "diger", "---", ""].includes(rawCat.toLowerCase())) {
+                        const cleanKey = rawCat.toLocaleUpperCase('tr-TR');
+                        categoryCounts[cleanKey] = (categoryCounts[cleanKey] || 0) + 1;
+                    }
                 }
             });
+
             let maxCount = 0;
-            let topCategory = "LİMİT ÖĞREN"; 
+            let topCategory = "---";
             Object.entries(categoryCounts).forEach(([cat, count]) => {
                 if (count > maxCount) {
                     maxCount = count;
@@ -975,8 +993,8 @@
             safeSetText('kpi-aranan', num(totalAranan));
             safeSetText('kpi-sales', num(totalSales));
             safeSetText('kpi-revenue', fmt(totalRevenue));
-            safeSetText('kpi-top-category', topCategory.toUpperCase());
-            safeSetText('kpi-top-category-sub', `${maxCount} satış`);
+            safeSetText('kpi-top-category', topCategory);
+            safeSetText('kpi-top-category-sub', maxCount > 0 ? `${maxCount} satış` : "0 satış");
             safeSetText('kpi-basket', fmt(avgBasket));
 
             if (activeTab === 'dashboard') {
@@ -1047,7 +1065,21 @@
                             let badgeClass = 'badge badge-brand'; let label = 'Mağazaya Gelecek';
                             if (callStatus === 'aranmadı') { badgeClass = 'badge badge-rose'; label = 'Aranmadı'; }
                             else if (status === 'tekrar aranacak') { badgeClass = 'badge badge-amber'; label = 'Tekrar Aranacak'; }
-                            return `<tr><td class="text-center text-slate-400 font-bold">${idx+1}</td><td><div class="font-bold text-slate-700">${item.customerName || "---"}</div></td><td>${item.phone || '---'}</td><td><span class="${badgeClass}">${label}</span></td></tr>`;
+                            
+                            // 2 GÜNÜ GEÇMİŞ ARANMADI UYARISI
+                            const lateWarning = item.isLate 
+                                ? `<div class="text-[10px] text-rose-600 font-extrabold mt-1 animate-pulse flex items-center gap-1"><i class="fas fa-clock text-rose-500"></i> ${item.date} TARİHİNDEN BERİ ARANMADI!</div>` 
+                                : '';
+
+                            return `<tr>
+                                <td class="text-center text-slate-400 font-bold">${idx+1}</td>
+                                <td>
+                                    <div class="font-bold text-slate-700">${item.customerName || "---"}</div>
+                                    ${lateWarning}
+                                </td>
+                                <td>${item.phone || '---'}</td>
+                                <td><span class="${badgeClass}">${label}</span></td>
+                            </tr>`;
                         }).join('')}
                     `).join('');
                     if(grouped.length === 0) followupBody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-xs text-slate-400">Kayıt bulunamadı.</td></tr>';
