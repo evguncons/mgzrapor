@@ -20,8 +20,8 @@
                     fontFamily: { sans: ['Outfit', 'sans-serif'] },
                     colors: {
                         brand: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
+                            50: '#eff6ff',
+                            100: '#dbeafe',
                             500: '#3b82f6',
                             600: '#2563eb', 
                             700: '#1d4ed8',
@@ -30,8 +30,8 @@
                         },
                     },
                     boxShadow: {
-                        'card': '0 10px 30px -5px rgba(15, 23, 42, 0.05)',
-                        'glow': '0 0 25px rgba(37, 99, 235, 0.2)',
+                        'card': '0 4px 20px -2px rgba(15, 23, 42, 0.08)',
+                        'glow': '0 0 20px rgba(37, 99, 235, 0.25)',
                     }
                 }
             }
@@ -39,7 +39,7 @@
     </script>
     
     <style>
-        body { background-color: #f1f5f9; color: #334155; font-family: 'Outfit', sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; font-family: 'Outfit', sans-serif; }
         
         #sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         
@@ -58,29 +58,29 @@
             #sidebar.open { transform: translateX(0); }
         }
         
-        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1.25rem; border-radius: 1rem; color: #94a3b8; font-weight: 500; font-size: 0.875rem; transition: all 0.2s; border: 1px solid transparent; width: 100%; text-align: left; }
-        .nav-item:hover { color: #ffffff; background-color: rgba(30, 41, 59, 0.6); }
-        .nav-item.active { background: linear-gradient(to right, #2563eb, #3b82f6); color: #ffffff; box-shadow: 0 0 25px rgba(37, 99, 235, 0.2); border-color: rgba(96, 165, 250, 0.3); font-weight: 600; }
-        .nav-item i { font-size: 1rem; width: 1.25rem; text-align: center; transition: transform 0.2s; }
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1.25rem; border-radius: 0.875rem; color: #94a3b8; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; border: 1px solid transparent; width: 100%; text-align: left; }
+        .nav-item:hover { color: #ffffff; background-color: #1e293b; }
+        .nav-item.active { background: linear-gradient(to right, #2563eb, #3b82f6); color: #ffffff; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35); border-color: rgba(96, 165, 250, 0.3); font-weight: 700; }
+        .nav-item i { font-size: 1.1rem; width: 1.25rem; text-align: center; transition: transform 0.2s; }
         .nav-item.active i { transform: scale(1.1); }
 
-        .kpi-card { background-color: #ffffff; padding: 1.25rem 1.25rem; border-radius: 1.5rem; border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05); transition: all 0.3s; display: flex; flex-direction: column; justify-content: space-between; min-height: 135px; }
-        .kpi-card:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.07); transform: translateY(-2px); }
+        .kpi-card { background-color: #ffffff; padding: 1.25rem 1.25rem; border-radius: 1.25rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px -2px rgba(15, 23, 42, 0.05); transition: all 0.2s ease-in-out; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; }
+        .kpi-card:hover { box-shadow: 0 12px 25px -4px rgba(15, 23, 42, 0.1); transform: translateY(-2px); border-color: #cbd5e1; }
         
-        .table-wrapper { background-color: #ffffff; border-radius: 1.5rem; border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05); overflow: hidden; }
+        .table-wrapper { background-color: #ffffff; border-radius: 1.25rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05); overflow: hidden; }
         .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .modern-table th { background-color: rgba(248, 250, 252, 0.9); color: #94a3b8; font-weight: 700; padding: 1rem 1.5rem; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #f1f5f9; }
-        .modern-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; font-size: 0.875rem; color: #475569; font-weight: 500; transition: background-color 0.2s; }
-        .modern-table tr:hover td { background-color: rgba(248, 250, 252, 0.8); }
+        .modern-table th { background-color: #f1f5f9; color: #475569; font-weight: 800; padding: 1rem 1.25rem; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #e2e8f0; }
+        .modern-table td { padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; font-size: 0.875rem; color: #334155; font-weight: 500; transition: background-color 0.15s; }
+        .modern-table tr:hover td { background-color: #f8fafc; }
         .modern-table tr:last-child td { border-bottom: 0; }
 
-        .badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid transparent; display: inline-block; text-align: center; }
-        .badge-rose { background-color: #fff1f2; color: #e11d48; border-color: #ffe4e6; }
-        .badge-amber { background-color: #fffbeb; color: #d97706; border-color: #fef3c7; }
-        .badge-emerald { background-color: #ecfdf5; color: #059669; border-color: #d1fae5; }
-        .badge-brand { background-color: #eff6ff; color: #2563eb; border-color: #dbeafe; }
+        .badge { padding: 0.35rem 0.875rem; border-radius: 9999px; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border: 1px solid transparent; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; }
+        .badge-rose { background-color: #ffe4e6; color: #be123c; border-color: #fecdd3; }
+        .badge-amber { background-color: #fef3c7; color: #b45309; border-color: #fde68a; }
+        .badge-emerald { background-color: #d1fae5; color: #047857; border-color: #a7f3d0; }
+        .badge-brand { background-color: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -92,37 +92,37 @@
             body > #printArea { display: block !important; width: 100%; color: black; font-family: 'Outfit', sans-serif; padding: 20px; }
             .print-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; }
             .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px 12px; text-align: left; }
-            .print-table th { background-color: #f1f5f9 !important; font-weight: 800; color: #334155; }
+            .print-table th { background-color: #f1f5f9 !important; font-weight: 800; color: #1e293b; }
         }
     </style>
 </head>
-<body class="flex h-screen w-full overflow-hidden antialiased bg-slate-100">
+<body class="flex h-screen w-full overflow-hidden antialiased bg-slate-50 text-slate-800">
 
     <!-- Mobile Sidebar Overlay -->
-    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-40 hidden lg:hidden"></div>
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 hidden lg:hidden"></div>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 h-full border-r border-slate-800 shadow-2xl">
+    <aside id="sidebar" class="w-64 bg-slate-900 text-slate-200 flex flex-col justify-between shrink-0 h-full border-r border-slate-800 shadow-xl">
         <div class="p-5 flex flex-col h-full overflow-y-auto custom-scrollbar">
             <!-- Header Logo -->
-            <div class="flex items-center justify-between pb-6 mb-4 border-b border-slate-800">
+            <div class="flex items-center justify-between pb-6 mb-4 border-b border-slate-800/80">
                 <div class="flex items-center gap-3 overflow-hidden">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-blue-500 flex items-center justify-center text-white shrink-0 shadow-glow">
                         <i class="fas fa-building-circle-check text-lg"></i>
                     </div>
                     <div class="sidebar-header-text">
                         <h1 class="text-white font-extrabold text-lg tracking-tight leading-none">Hedef <span class="font-light text-blue-400">AVM</span></h1>
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Yönetim Paneli</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Yönetim Paneli</p>
                     </div>
                 </div>
-                <button onclick="toggleSidebar()" class="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition" title="Menüyü Daralt/Genişlet">
+                <button onclick="toggleSidebar()" class="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Menüyü Daralt/Genişlet">
                     <i class="fas fa-angles-left sidebar-toggle-icon text-xs"></i>
                 </button>
             </div>
 
             <!-- Navigation Links -->
-            <nav class="space-y-1.5 flex-1">
-                <div class="nav-section-title text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 mb-2">Performans</div>
+            <nav class="space-y-2 flex-1">
+                <div class="nav-section-title text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Performans</div>
                 
                 <button onclick="setTab('dashboard'); maybeCloseSidebar();" id="sidebar-btn-dashboard" class="nav-item active">
                     <i class="fas fa-chart-pie"></i>
@@ -144,7 +144,7 @@
                     <span class="sidebar-text">No Belirtilmeyenler</span>
                 </button>
 
-                <div class="nav-section-title text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 mt-6 mb-2">Raporlama</div>
+                <div class="nav-section-title text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mt-6 mb-2">Raporlama</div>
 
                 <button onclick="setTab('advanced'); maybeCloseSidebar();" id="sidebar-btn-advanced" class="nav-item">
                     <i class="fas fa-chart-line"></i>
@@ -153,80 +153,80 @@
             </nav>
 
             <!-- Footer User Info -->
-            <div class="pt-4 mt-auto border-t border-slate-800 flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 font-bold shrink-0">
+            <div class="pt-4 mt-auto border-t border-slate-800/80 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-blue-400 font-bold shrink-0 border border-slate-700">
                     <i class="fas fa-user-shield text-xs"></i>
                 </div>
                 <div class="sidebar-footer-text overflow-hidden">
-                    <p class="text-xs font-bold text-slate-200 truncate">Sistem Yöneticisi</p>
-                    <p class="text-[10px] text-slate-500 font-medium">Hedef AVM CRM v9.6</p>
+                    <p class="text-xs font-bold text-slate-100 truncate">Sistem Yöneticisi</p>
+                    <p class="text-[10px] text-slate-400 font-semibold">Hedef AVM CRM v9.8</p>
                 </div>
             </div>
         </div>
     </aside>
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+    <main class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-slate-50">
         
         <!-- HEADER BAR -->
-        <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-8 flex items-center justify-between shrink-0 z-30 shadow-sm">
+        <header class="h-20 bg-white border-b border-slate-200 px-6 lg:px-8 flex items-center justify-between shrink-0 z-30 shadow-sm">
             <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition">
+                <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition border border-slate-200">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div>
-                    <h2 id="tabTitle" class="text-lg lg:text-xl font-extrabold text-slate-800 tracking-tight">Performans Analizi</h2>
-                    <p class="text-xs text-slate-400 font-medium">Hedef AVM Müşteri Yönlendirme Portalı</p>
+                    <h2 id="tabTitle" class="text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">Performans Analizi</h2>
+                    <p class="text-xs text-slate-500 font-semibold mt-0.5">Hedef AVM Müşteri Yönlendirme Portalı</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
                 <div class="text-right hidden md:block mr-2">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Son Güncelleme</p>
-                    <p id="lastUpdateTime" class="text-slate-700 text-xs font-extrabold mt-1">--:--:--</p>
+                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest leading-none">Son Güncelleme</p>
+                    <p id="lastUpdateTime" class="text-slate-800 text-xs font-extrabold mt-1">--:--:--</p>
                 </div>
 
-                <button onclick="fetchData(true)" class="w-9 h-9 flex items-center justify-center bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-200 transition-all active:scale-95 shadow-sm group no-print-selector" title="Verileri Şimdi Güncelle">
+                <button onclick="fetchData(true)" class="w-9 h-9 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-300 transition-all active:scale-95 shadow-sm group no-print-selector" title="Verileri Şimdi Güncelle">
                     <i class="fas fa-rotate-right text-blue-600 group-active:rotate-180 transition-transform duration-500"></i>
                 </button>
 
                 <div id="followupFilterContainer" class="relative group hidden">
-                    <select id="followupFilter" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl pl-3 pr-8 h-9 outline-none cursor-pointer shadow-sm">
+                    <select id="followupFilter" onchange="render(currentData)" class="appearance-none bg-white border border-slate-300 text-slate-800 text-xs font-bold rounded-xl pl-3 pr-8 h-9 outline-none cursor-pointer shadow-sm hover:border-slate-400 focus:border-blue-500">
                         <option value="Tümü">Tüm Aksiyonlar</option>
                         <option value="aranmadı">Aranmadı</option>
                         <option value="müşteri mağazaya gelecek">Mağazaya Gelecek</option>
                         <option value="tekrar aranacak">Tekrar Aranacak</option>
                     </select>
-                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
+                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[9px] pointer-events-none"></i>
                 </div>
 
                 <div id="branchFilterContainer" class="relative group">
-                    <select id="branchSelector" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl pl-3 pr-8 h-9 outline-none cursor-pointer shadow-sm">
+                    <select id="branchSelector" onchange="render(currentData)" class="appearance-none bg-white border border-slate-300 text-slate-800 text-xs font-bold rounded-xl pl-3 pr-8 h-9 outline-none cursor-pointer shadow-sm hover:border-slate-400 focus:border-blue-500">
                         <option value="Tümü">Tüm Şubeler</option>
                     </select>
-                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
+                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[9px] pointer-events-none"></i>
                 </div>
 
                 <div class="relative group no-print-selector">
-                    <select id="periodSelector" onchange="fetchData(true)" class="appearance-none bg-slate-900 border border-slate-900 text-white text-xs font-semibold rounded-xl pl-3 pr-8 h-9 outline-none cursor-pointer shadow-sm">
+                    <select id="periodSelector" onchange="fetchData(true)" class="appearance-none bg-slate-900 border border-slate-900 text-white text-xs font-bold rounded-xl pl-3 pr-8 h-9 outline-none cursor-pointer shadow-sm hover:bg-slate-800">
                         <option value="">Yükleniyor...</option>
                     </select>
                     <i class="fas fa-calendar absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
                 </div>
                 
-                <div class="h-5 w-px bg-slate-200 mx-1 hidden md:block no-print-selector"></div>
+                <div class="h-5 w-px bg-slate-300 mx-1 hidden md:block no-print-selector"></div>
 
-                <button id="btn-printSummary" onclick="printSummaryReport()" class="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95" title="Aksiyon Özeti">
+                <button id="btn-printSummary" onclick="printSummaryReport()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm" title="Aksiyon Özeti">
                     <i class="fas fa-list-ol text-xs"></i>
                     <span class="hidden sm:inline">Özet PDF</span>
                 </button>
 
-                <button id="btn-exportExcel" onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95" title="Excel İndir">
+                <button id="btn-exportExcel" onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm" title="Excel İndir">
                     <i class="fas fa-file-excel text-xs"></i>
                     <span class="hidden sm:inline">Excel</span>
                 </button>
 
-                <button id="btn-printReport" onclick="printReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95" title="PDF İndir">
+                <button id="btn-printReport" onclick="printReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm" title="PDF İndir">
                     <i class="fas fa-file-pdf text-xs"></i>
                     <span class="hidden sm:inline">PDF</span>
                 </button>
@@ -239,99 +239,99 @@
             <!-- DASHBOARD TAB -->
             <div id="tab-dashboard" class="space-y-8 max-w-[1400px] mx-auto">
                 
-                <!-- 6 Modern KPI Cards -->
+                <!-- 6 High-Contrast KPI Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
                     <!-- Toplam Yönlendirme -->
-                    <div class="kpi-card border-t-4 border-t-blue-500">
+                    <div class="kpi-card border-t-4 border-t-blue-600">
                         <div class="flex justify-between items-start w-full">
                             <div class="min-w-0 flex-1">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Toplam Yönlendirme</p>
-                                <h3 id="kpi-referrals" class="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight leading-none">0</h3>
+                                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1 truncate">Toplam Yönlendirme</p>
+                                <h3 id="kpi-referrals" class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
                             </div>
-                            <div class="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 shrink-0 ml-2">
+                            <div class="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 shrink-0 ml-2">
                                 <i class="fas fa-share-nodes text-xs"></i>
                             </div>
                         </div>
-                        <div class="text-[10px] font-bold text-blue-500 uppercase tracking-wider mt-2">bu dönem</div>
+                        <div class="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider mt-3">bu dönem</div>
                     </div>
 
                     <!-- Toplam Aranan -->
-                    <div class="kpi-card border-t-4 border-t-purple-500">
+                    <div class="kpi-card border-t-4 border-t-purple-600">
                         <div class="flex justify-between items-start w-full">
                             <div class="min-w-0 flex-1">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Toplam Aranan</p>
-                                <h3 id="kpi-aranan" class="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight leading-none">0</h3>
+                                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1 truncate">Toplam Aranan</p>
+                                <h3 id="kpi-aranan" class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
                             </div>
-                            <div class="w-8 h-8 bg-purple-50 rounded-xl flex items-center justify-center text-purple-500 shrink-0 ml-2">
+                            <div class="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 shrink-0 ml-2">
                                 <i class="fas fa-phone-volume text-xs"></i>
                             </div>
                         </div>
-                        <div class="text-[10px] font-bold text-purple-500 uppercase tracking-wider mt-2">müşteri ulaşıldı</div>
+                        <div class="text-[10px] font-extrabold text-purple-700 uppercase tracking-wider mt-3">müşteri ulaşıldı</div>
                     </div>
 
                     <!-- Satış Adedi -->
-                    <div class="kpi-card border-t-4 border-t-emerald-500">
+                    <div class="kpi-card border-t-4 border-t-emerald-600">
                         <div class="flex justify-between items-start w-full">
                             <div class="min-w-0 flex-1">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Satış Adedi</p>
-                                <h3 id="kpi-sales" class="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight leading-none">0</h3>
+                                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1 truncate">Satış Adedi</p>
+                                <h3 id="kpi-sales" class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
                             </div>
-                            <div class="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 ml-2">
+                            <div class="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-700 shrink-0 ml-2">
                                 <i class="fas fa-circle-check text-xs"></i>
                             </div>
                         </div>
-                        <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mt-2">başarılı işlem</div>
+                        <div class="text-[10px] font-extrabold text-emerald-700 uppercase tracking-wider mt-3">başarılı işlem</div>
                     </div>
 
                     <!-- Aylık Toplam Ciro -->
-                    <div class="kpi-card border-t-4 border-t-rose-500">
+                    <div class="kpi-card border-t-4 border-t-rose-600">
                         <div class="flex justify-between items-start w-full">
                             <div class="min-w-0 flex-1">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Aylık Toplam Ciro</p>
-                                <h3 id="kpi-revenue" class="text-xl lg:text-2xl font-extrabold text-slate-800 tracking-tight leading-none truncate">₺0</h3>
+                                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1 truncate">Aylık Toplam Ciro</p>
+                                <h3 id="kpi-revenue" class="text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight leading-none truncate">₺0</h3>
                             </div>
-                            <div class="w-8 h-8 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500 shrink-0 ml-2">
+                            <div class="w-8 h-8 bg-rose-100 rounded-xl flex items-center justify-center text-rose-700 shrink-0 ml-2">
                                 <i class="fas fa-wallet text-xs"></i>
                             </div>
                         </div>
-                        <div class="text-[10px] font-bold text-rose-500 uppercase tracking-wider mt-2">kazanç</div>
+                        <div class="text-[10px] font-extrabold text-rose-700 uppercase tracking-wider mt-3">kazanç</div>
                     </div>
 
                     <!-- En Çok Satan Kategori (H Sütunu Hesabı) -->
                     <div class="kpi-card border-t-4 border-t-amber-500">
                         <div class="flex justify-between items-start w-full">
                             <div class="min-w-0 flex-1">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">En Çok Satan Kategori</p>
-                                <h3 id="kpi-top-category" class="text-sm font-extrabold text-slate-800 tracking-tight leading-snug truncate">---</h3>
+                                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1 truncate">En Çok Satan Kategori</p>
+                                <h3 id="kpi-top-category" class="text-sm font-extrabold text-slate-900 tracking-tight leading-snug truncate">---</h3>
                             </div>
-                            <div class="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 shrink-0 ml-2">
+                            <div class="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center text-amber-700 shrink-0 ml-2">
                                 <i class="fas fa-trophy text-xs"></i>
                             </div>
                         </div>
-                        <div id="kpi-top-category-sub" class="text-[10px] font-bold text-amber-600 uppercase tracking-wider mt-2">0 satış</div>
+                        <div id="kpi-top-category-sub" class="text-[10px] font-extrabold text-amber-700 uppercase tracking-wider mt-3">0 satış</div>
                     </div>
 
                     <!-- Ortalama Sepet -->
-                    <div class="kpi-card border-t-4 border-t-cyan-500">
+                    <div class="kpi-card border-t-4 border-t-cyan-600">
                         <div class="flex justify-between items-start w-full">
                             <div class="min-w-0 flex-1">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Ortalama Sepet</p>
-                                <h3 id="kpi-basket" class="text-xl lg:text-2xl font-extrabold text-slate-800 tracking-tight leading-none truncate">₺0</h3>
+                                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1 truncate">Ortalama Sepet</p>
+                                <h3 id="kpi-basket" class="text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight leading-none truncate">₺0</h3>
                             </div>
-                            <div class="w-8 h-8 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-500 shrink-0 ml-2">
+                            <div class="w-8 h-8 bg-cyan-100 rounded-xl flex items-center justify-center text-cyan-700 shrink-0 ml-2">
                                 <i class="fas fa-cart-shopping text-xs"></i>
                             </div>
                         </div>
-                        <div class="text-[10px] font-bold text-cyan-500 uppercase tracking-wider mt-2">satış başına</div>
+                        <div class="text-[10px] font-extrabold text-cyan-700 uppercase tracking-wider mt-3">satış başına</div>
                     </div>
                 </div>
 
                 <!-- Şube Performans Çizelgesi -->
                 <div class="table-wrapper">
-                    <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                    <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
                         <div>
-                            <h3 class="font-bold text-base text-slate-800">Şube Performans Çizelgesi</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Ciro performansına göre sıralı şube dökümü.</p>
+                            <h3 class="font-extrabold text-base text-slate-900">Şube Performans Çizelgesi</h3>
+                            <p class="text-xs text-slate-500 font-semibold mt-0.5">Ciro performansına göre sıralı şube dökümü.</p>
                         </div>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
@@ -346,12 +346,12 @@
                                 </tr>
                             </thead>
                             <tbody id="branch-body"></tbody>
-                            <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
+                            <tfoot class="bg-slate-100/90 font-bold border-t-2 border-slate-200">
                                 <tr>
-                                    <td colspan="2" class="py-5 px-6 text-right font-extrabold text-slate-500 text-[11px] uppercase tracking-wider">Genel Toplam</td>
-                                    <td id="total-referrals-val" class="text-right py-5 px-6 font-extrabold text-blue-600 text-sm">0</td>
-                                    <td id="total-sales-val" class="text-right py-5 px-6 font-extrabold text-emerald-600 text-sm">0</td>
-                                    <td id="total-revenue-val" class="text-right py-5 px-6 font-extrabold text-indigo-600 text-base">₺0</td>
+                                    <td colspan="2" class="py-4 px-6 text-right font-extrabold text-slate-700 text-xs uppercase tracking-wider">Genel Toplam</td>
+                                    <td id="total-referrals-val" class="text-right py-4 px-6 font-extrabold text-blue-700 text-sm">0</td>
+                                    <td id="total-sales-val" class="text-right py-4 px-6 font-extrabold text-emerald-700 text-sm">0</td>
+                                    <td id="total-revenue-val" class="text-right py-4 px-6 font-extrabold text-indigo-700 text-base">₺0</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -362,10 +362,10 @@
             <!-- CUSTOMERS TAB -->
             <div id="tab-customers" class="hidden space-y-8 max-w-[1400px] mx-auto">
                 <div class="table-wrapper">
-                    <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                    <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
                         <div>
-                            <h3 class="font-bold text-base text-slate-800">Müşteri Detay Çizelgesi</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Gerçekleşen cirolu müşteri işlemlerinin dökümü.</p>
+                            <h3 class="font-extrabold text-base text-slate-900">Müşteri Detay Çizelgesi</h3>
+                            <p class="text-xs text-slate-500 font-semibold mt-0.5">Gerçekleşen cirolu müşteri işlemlerinin dökümü.</p>
                         </div>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
@@ -379,10 +379,10 @@
                                 </tr>
                             </thead>
                             <tbody id="customer-body-specified"></tbody>
-                            <tfoot class="bg-slate-50 border-t border-slate-200 font-bold">
+                            <tfoot class="bg-slate-100/90 border-t-2 border-slate-200 font-bold">
                                 <tr>
-                                    <td colspan="3" class="text-right py-5 px-6 font-extrabold text-slate-500 text-[11px] uppercase">Liste Toplamı</td>
-                                    <td id="customer-total-val" class="text-right py-5 px-6 font-extrabold text-blue-600 text-lg">₺0</td>
+                                    <td colspan="3" class="text-right py-4 px-6 font-extrabold text-slate-700 text-xs uppercase">Liste Toplamı</td>
+                                    <td id="customer-total-val" class="text-right py-4 px-6 font-extrabold text-blue-700 text-base">₺0</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -393,10 +393,10 @@
             <!-- FOLLOW-UP TAB -->
             <div id="tab-followup" class="hidden space-y-8 max-w-[1400px] mx-auto">
                 <div class="table-wrapper">
-                    <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                    <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
                         <div>
-                            <h3 class="font-bold text-base text-slate-800">Aksiyon & Takip Listesi</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Yeniden aranacak veya mağazaya gelmeyi planlayan yönlendirmeler.</p>
+                            <h3 class="font-extrabold text-base text-slate-900">Aksiyon & Takip Listesi</h3>
+                            <p class="text-xs text-slate-500 font-semibold mt-0.5">Yeniden aranacak veya mağazaya gelmeyi planlayan yönlendirmeler.</p>
                         </div>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
@@ -418,10 +418,10 @@
             <!-- UNSPECIFIED TAB -->
             <div id="tab-unspecified" class="hidden space-y-8 max-w-[1400px] mx-auto">
                 <div class="table-wrapper">
-                    <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                    <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
                         <div>
-                            <h3 class="font-bold text-base text-slate-800">Belirtilmeyen Kayıtlar Listesi</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Numarası eksik veya ciro atanmamış kayıtlar.</p>
+                            <h3 class="font-extrabold text-base text-slate-900">Belirtilmeyen Kayıtlar Listesi</h3>
+                            <p class="text-xs text-slate-500 font-semibold mt-0.5">Numarası eksik veya ciro atanmamış kayıtlar.</p>
                         </div>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
@@ -435,10 +435,10 @@
                                 </tr>
                             </thead>
                             <tbody id="unspecified-body"></tbody>
-                            <tfoot class="bg-rose-50/50 border-t border-rose-100 font-bold">
+                            <tfoot class="bg-rose-50 border-t-2 border-rose-200 font-bold">
                                 <tr>
-                                    <td colspan="3" class="text-right py-5 px-6 font-extrabold text-rose-500 text-[11px] uppercase">Hatalı Ciro Toplamı</td>
-                                    <td id="unspecified-total-val" class="text-right py-5 px-6 font-extrabold text-rose-600 text-lg">₺0</td>
+                                    <td colspan="3" class="text-right py-4 px-6 font-extrabold text-rose-800 text-xs uppercase">Hatalı Ciro Toplamı</td>
+                                    <td id="unspecified-total-val" class="text-right py-4 px-6 font-extrabold text-rose-700 text-base">₺0</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -449,41 +449,41 @@
             <!-- ADVANCED REPORT TAB -->
             <div id="tab-advanced" class="hidden space-y-8 max-w-[1400px] mx-auto">
                 <!-- Advanced Filters -->
-                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-card flex flex-wrap items-end justify-between gap-4">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-end justify-between gap-4">
                     <div class="flex flex-wrap items-center gap-4">
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Başlangıç Dönemi</label>
+                            <label class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Başlangıç Dönemi</label>
                             <div class="relative">
-                                <select id="advStartPeriod" class="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl pl-4 pr-10 py-2.5 outline-none cursor-pointer min-w-[170px] shadow-sm">
+                                <select id="advStartPeriod" class="appearance-none bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl pl-4 pr-10 py-2.5 outline-none cursor-pointer min-w-[170px] shadow-sm hover:border-slate-400">
                                     <option value="">Yükleniyor...</option>
                                 </select>
-                                <i class="fas fa-calendar-alt absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                                <i class="fas fa-calendar-alt absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-[10px] pointer-events-none"></i>
                             </div>
                         </div>
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Bitiş Dönemi</label>
+                            <label class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Bitiş Dönemi</label>
                             <div class="relative">
-                                <select id="advEndPeriod" class="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl pl-4 pr-10 py-2.5 outline-none cursor-pointer min-w-[170px] shadow-sm">
+                                <select id="advEndPeriod" class="appearance-none bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl pl-4 pr-10 py-2.5 outline-none cursor-pointer min-w-[170px] shadow-sm hover:border-slate-400">
                                     <option value="">Yükleniyor...</option>
                                 </select>
-                                <i class="fas fa-calendar-alt absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                                <i class="fas fa-calendar-alt absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-[10px] pointer-events-none"></i>
                             </div>
                         </div>
                         <button onclick="runAdvancedAnalysis()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-glow flex items-center gap-2 h-10 self-end"><i class="fas fa-wand-magic-sparkles"></i> Analiz Et</button>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="exportAdvancedToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95"><i class="fas fa-file-excel"></i> Excel Çıktısı</button>
-                        <button onclick="printAdvancedReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95"><i class="fas fa-file-pdf"></i> PDF Raporu</button>
+                        <button onclick="exportAdvancedToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95"><i class="fas fa-file-excel"></i> Excel Çıktısı</button>
+                        <button onclick="printAdvancedReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95"><i class="fas fa-file-pdf"></i> PDF Raporu</button>
                     </div>
                 </div>
 
                 <div id="adv-month-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"></div>
 
                 <div class="table-wrapper">
-                    <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                    <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
                         <div>
-                            <h3 class="font-bold text-base text-slate-800">Dönemsel Şube Karşılaştırma Matrisi</h3>
-                            <p id="adv-comparison-subtitle" class="text-xs text-slate-400 mt-0.5">Seçilen dönem aralığına ait ciro değişimleri.</p>
+                            <h3 class="font-extrabold text-base text-slate-900">Dönemsel Şube Karşılaştırma Matrisi</h3>
+                            <p id="adv-comparison-subtitle" class="text-xs text-slate-500 font-semibold mt-0.5">Seçilen dönem aralığına ait ciro değişimleri.</p>
                         </div>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
@@ -494,33 +494,33 @@
                     </div>
                 </div>
 
-                <div id="adv-insights-container" class="bg-blue-50/80 border border-blue-100 rounded-3xl p-7 space-y-3 hidden"></div>
+                <div id="adv-insights-container" class="bg-blue-50 border border-blue-200 rounded-2xl p-6 space-y-3 hidden text-slate-800"></div>
             </div>
         </div>
     </main>
 
     <!-- Global Loader -->
-    <div id="loadingIndicator" class="fixed inset-0 bg-slate-950/20 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3 border border-slate-100">
-            <div class="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <p id="loader-text" class="text-xs font-semibold text-slate-600">Veriler Yükleniyor...</p>
+    <div id="loadingIndicator" class="fixed inset-0 bg-slate-950/30 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3 border border-slate-200">
+            <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p id="loader-text" class="text-xs font-bold text-slate-700">Veriler Yükleniyor...</p>
         </div>
     </div>
 
     <!-- HATA MODALI -->
     <div id="errorModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] flex items-center justify-center hidden">
-        <div class="bg-white p-7 rounded-3xl max-w-lg w-full mx-4 border border-rose-100 shadow-2xl relative">
-            <div class="flex items-center gap-3 text-rose-600 mb-3">
-                <div class="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
+        <div class="bg-white p-7 rounded-2xl max-w-lg w-full mx-4 border border-rose-200 shadow-2xl relative">
+            <div class="flex items-center gap-3 text-rose-700 mb-3">
+                <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
                     <i class="fas fa-triangle-exclamation text-lg"></i>
                 </div>
-                <h3 id="errorModalTitle" class="text-base font-bold">Web App Bağlantı Hatası</h3>
+                <h3 id="errorModalTitle" class="text-base font-extrabold">Web App Bağlantı Hatası</h3>
             </div>
-            <div id="errorModalMessage" class="text-xs text-slate-600 leading-relaxed mb-5">
+            <div id="errorModalMessage" class="text-xs text-slate-700 font-medium leading-relaxed mb-5">
                 Hata detayı yükleniyor...
             </div>
             <div class="flex justify-end gap-2">
-                <button onclick="closeErrorModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Kapat</button>
+                <button onclick="closeErrorModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition">Kapat</button>
                 <button onclick="fetchData(true)" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition">Yeniden Bağlan</button>
             </div>
         </div>
@@ -856,10 +856,10 @@
                 const s = monthlyStats[p];
                 if (cardsGrid && s) {
                     cardsGrid.innerHTML += `
-                        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-card">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">${p}</p>
-                            <h4 class="text-lg font-extrabold text-slate-800">${fmt(s.totalRevenue || 0)}</h4>
-                            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-blue-600">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">${p}</p>
+                            <h4 class="text-lg font-extrabold text-slate-900">${fmt(s.totalRevenue || 0)}</h4>
+                            <div class="flex items-center gap-1.5 mt-2 text-xs font-bold text-blue-600">
                                 <i class="fas fa-bullhorn text-xs"></i>
                                 <span>${num(s.totalYönlendirme || 0)} Yönlendirme</span>
                             </div>
@@ -876,7 +876,7 @@
                 bodyHtml += `<tr><td class="text-center font-bold text-slate-400">${idx + 1}</td><td class="font-bold text-slate-800">${bName}</td>`;
                 periods.forEach(p => {
                     const rev = (monthlyStats[p] && monthlyStats[p].branches) ? (monthlyStats[p].branches[bName] || 0) : 0;
-                    bodyHtml += `<td class="text-right font-medium text-slate-600">${fmt(rev)}</td>`;
+                    bodyHtml += `<td class="text-right font-semibold text-slate-700">${fmt(rev)}</td>`;
                 });
 
                 const currSumRev = periods.reduce((sum, p) => sum + (monthlyStats[p] && monthlyStats[p].branches ? (monthlyStats[p].branches[bName] || 0) : 0), 0);
@@ -889,7 +889,7 @@
 
             const totalCurrSumRev = periods.reduce((sum, p) => sum + Number((monthlyStats[p] && monthlyStats[p].totalRevenue) || 0), 0);
             bodyHtml += `
-                <tr class="bg-blue-50/50 font-bold border-t-2 border-blue-500">
+                <tr class="bg-blue-50/70 font-bold border-t-2 border-blue-500">
                     <td colspan="2" class="text-right font-extrabold text-blue-900 uppercase text-xs py-4 px-6">GENEL TOPLAM</td>
             `;
             periods.forEach(p => {
@@ -915,7 +915,7 @@
             if (insightsContainer) {
                 insightsContainer.classList.remove('hidden');
                 let periodComparisonText = prevPeriods.length > 0 
-                    ? `• Genel ciro performansı, önceki döneme (<strong>${prevPeriods.join(', ')}</strong>) kıyasla <strong>${fmt(Math.abs(totalDiff))}</strong> (${totalDiff >= 0 ? 'Artış' : 'Azalış'}) göstererek <strong class="${totalDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${totalDiff >= 0 ? '+' : ''}${totalPercent.toFixed(1)}%</strong> oranında değişmiştir.`
+                    ? `• Genel ciro performansı, önceki döneme (<strong>${prevPeriods.join(', ')}</strong>) kıyasla <strong>${fmt(Math.abs(totalDiff))}</strong> (${totalDiff >= 0 ? 'Artış' : 'Azalış'}) göstererek <strong class="${totalDiff >= 0 ? 'text-emerald-700' : 'text-rose-700'}">${totalDiff >= 0 ? '+' : ''}${totalPercent.toFixed(1)}%</strong> oranında değişmiştir.`
                     : `• Seçilen dönemde (<strong>${periods.join(', ')}</strong>) toplam brüt ciro <strong>${fmt(totalCurrSumRev)}</strong> olarak gerçekleşmiştir.`;
 
                 let topGrowerText = (prevPeriods.length > 0 && branchGrowth.length > 0)
@@ -925,9 +925,9 @@
                 insightsContainer.innerHTML = `
                     <div class="flex items-center gap-2 text-blue-950">
                         <i class="fas fa-chart-line text-blue-600"></i>
-                        <h3 class="font-bold text-sm">Yönetim Analiz Raporu & Trend Özeti</h3>
+                        <h3 class="font-extrabold text-sm">Yönetim Analiz Raporu & Trend Özeti</h3>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-600 mt-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-slate-700 mt-2">
                         <div><p>${periodComparisonText}</p>${topGrowerText ? `<p class="mt-1">${topGrowerText}</p>` : ''}</div>
                         <div><p>• Alınan toplam yönlendirme adedi: <strong>${num(currTotalReferrals)}</strong></p></div>
                     </div>
@@ -1016,9 +1016,9 @@
                     branchBody.innerHTML = branchSummary.map((b, i) => `
                         <tr>
                             <td class="text-center font-bold text-slate-400">${i+1}</td>
-                            <td class="font-bold text-slate-800">${b.name}</td>
-                            <td class="text-right font-semibold text-slate-500">${num(b.referrals)}</td>
-                            <td class="text-right font-semibold text-slate-500">${num(b.sales)}</td>
+                            <td class="font-bold text-slate-900">${b.name}</td>
+                            <td class="text-right font-semibold text-slate-600">${num(b.referrals)}</td>
+                            <td class="text-right font-semibold text-slate-600">${num(b.sales)}</td>
                             <td class="text-right font-bold text-blue-600">${fmt(b.revenue)}</td>
                         </tr>
                     `).join('');
@@ -1038,8 +1038,8 @@
                 const customerBody = document.getElementById('customer-body-specified');
                 if (customerBody) {
                     customerBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-slate-50"><td colspan="4" class="px-6 py-2.5 font-bold text-blue-600 text-[10px] uppercase tracking-widest bg-blue-50/40 border-y border-slate-100"><i class="fas fa-store mr-2"></i> ${group.branch}</td></tr>
-                        ${group.items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-bold">${idx+1}</td><td><div class="font-bold text-slate-700">${item.customerNo}</div></td><td>${item.phone || '---'}</td><td class="text-right font-bold text-blue-600">${fmt(item.revenue)}</td></tr>`).join('')}
+                        <tr class="bg-slate-100/70"><td colspan="4" class="px-6 py-2.5 font-extrabold text-blue-700 text-xs uppercase tracking-wider border-y border-slate-200"><i class="fas fa-store mr-2"></i> ${group.branch}</td></tr>
+                        ${group.items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-bold">${idx+1}</td><td><div class="font-bold text-slate-800">${item.customerNo}</div></td><td><span class="font-medium text-slate-700">${item.phone || '---'}</span></td><td class="text-right font-bold text-blue-700">${fmt(item.revenue)}</td></tr>`).join('')}
                     `).join('');
                 }
                 safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
@@ -1058,7 +1058,7 @@
                 const followupBody = document.getElementById('followup-body');
                 if (followupBody) {
                     followupBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-slate-50"><td colspan="4" class="px-6 py-2.5 font-bold text-slate-700 text-[10px] uppercase tracking-widest border-y border-slate-100"><i class="fas fa-building mr-2"></i> ${group.branch} (${group.items.length})</td></tr>
+                        <tr class="bg-slate-100/70"><td colspan="4" class="px-6 py-2.5 font-extrabold text-slate-800 text-xs uppercase tracking-wider border-y border-slate-200"><i class="fas fa-building mr-2"></i> ${group.branch} (${group.items.length})</td></tr>
                         ${group.items.map((item, idx) => {
                             const callStatus = String(item.callStatus || "").trim().toLowerCase();
                             const status = String(item.status || "").trim().toLowerCase();
@@ -1068,21 +1068,21 @@
                             
                             // 2 GÜNÜ GEÇMİŞ ARANMADI UYARISI
                             const lateWarning = item.isLate 
-                                ? `<div class="text-[10px] text-rose-600 font-extrabold mt-1 animate-pulse flex items-center gap-1"><i class="fas fa-clock text-rose-500"></i> ${item.date} TARİHİNDEN BERİ ARANMADI!</div>` 
+                                ? `<div class="text-[11px] text-rose-700 font-extrabold mt-1.5 animate-pulse flex items-center gap-1.5 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200 w-fit"><i class="fas fa-clock text-rose-600"></i> ${item.date} TARİHİNDEN BERİ ARANMADI!</div>` 
                                 : '';
 
                             return `<tr>
                                 <td class="text-center text-slate-400 font-bold">${idx+1}</td>
                                 <td>
-                                    <div class="font-bold text-slate-700">${item.customerName || "---"}</div>
+                                    <div class="font-bold text-slate-800">${item.customerName || "---"}</div>
                                     ${lateWarning}
                                 </td>
-                                <td>${item.phone || '---'}</td>
+                                <td><span class="font-medium text-slate-700">${item.phone || '---'}</span></td>
                                 <td><span class="${badgeClass}">${label}</span></td>
                             </tr>`;
                         }).join('')}
                     `).join('');
-                    if(grouped.length === 0) followupBody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-xs text-slate-400">Kayıt bulunamadı.</td></tr>';
+                    if(grouped.length === 0) followupBody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-xs font-bold text-slate-500">Kayıt bulunamadı.</td></tr>';
                 }
 
             } else if (activeTab === 'unspecified') {
@@ -1096,20 +1096,20 @@
                 const unspecifiedBody = document.getElementById('unspecified-body');
                 if (unspecifiedBody) {
                     unspecifiedBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-rose-50/30"><td colspan="4" class="px-6 py-2.5 font-bold text-rose-600 text-[10px] uppercase tracking-widest border-y border-rose-100"><i class="fas fa-triangle-exclamation mr-2"></i> ${group.branch} (${group.items.length})</td></tr>
+                        <tr class="bg-rose-100/50"><td colspan="4" class="px-6 py-2.5 font-extrabold text-rose-800 text-xs uppercase tracking-wider border-y border-rose-200"><i class="fas fa-triangle-exclamation mr-2"></i> ${group.branch} (${group.items.length})</td></tr>
                         ${group.items.map((item, idx) => {
                             const status = String(item.status || "").trim().toLowerCase();
                             const rev = Number(item.revenue || 0);
                             const isZero = status === 'satışa döndü' && rev === 0;
                             return `<tr>
                                 <td class="text-center text-slate-400 font-bold">${idx+1}</td>
-                                <td><div class="font-bold text-slate-700">${item.customerName || "---"}</div></td>
+                                <td><div class="font-bold text-slate-800">${item.customerName || "---"}</div></td>
                                 <td><span class="badge ${isZero ? 'badge-amber' : 'badge-rose'}">${isZero ? "Sıfır Cirolu Satış" : "Numara Eksik"}</span></td>
-                                <td class="text-right font-bold text-rose-600">${fmt(rev)}</td>
+                                <td class="text-right font-bold text-rose-700">${fmt(rev)}</td>
                             </tr>`;
                         }).join('')}
                     `).join('');
-                    if(grouped.length === 0) unspecifiedBody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-xs text-slate-400">Hatalı kayıt bulunmuyor.</td></tr>';
+                    if(grouped.length === 0) unspecifiedBody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-xs font-bold text-slate-500">Hatalı kayıt bulunmuyor.</td></tr>';
                 }
                 safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
             }
