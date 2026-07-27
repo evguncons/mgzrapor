@@ -392,6 +392,17 @@
 
             <!-- FOLLOW-UP TAB -->
             <div id="tab-followup" class="hidden space-y-8 max-w-[1400px] mx-auto">
+                <!-- Şube Bazlı Aranmadı & Takip KPI Kartları -->
+                <div>
+                    <div class="flex items-center justify-between mb-3 px-1">
+                        <h4 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-phone-slash text-rose-600"></i> Şube Bazlı Aranmadı ve Aksiyon Özeti
+                        </h4>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Öncelikli Şube Sıralaması</span>
+                    </div>
+                    <div id="followup-branch-cards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3"></div>
+                </div>
+
                 <div class="table-wrapper">
                     <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
                         <div>
@@ -1045,6 +1056,44 @@
                 safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
 
             } else if (activeTab === 'followup') {
+                // Şube Bazlı Aranmadı & Aksiyon KPI Kartlarının Hesaplanması
+                const followupCardsContainer = document.getElementById('followup-branch-cards');
+                if (followupCardsContainer) {
+                    const allBranchesList = [...new Set(data.customerList.map(i => i.branch))]
+                        .sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
+
+                    let cardsHtml = "";
+                    allBranchesList.forEach(bName => {
+                        const branchItems = data.customerList.filter(i => i.branch === bName);
+                        const aranmadiCount = branchItems.filter(i => String(i.callStatus || "").trim().toLowerCase() === 'aranmadı').length;
+                        const tekrarCount = branchItems.filter(i => String(i.status || "").trim().toLowerCase() === 'tekrar aranacak').length;
+                        const gelecekCount = branchItems.filter(i => String(i.status || "").trim().toLowerCase() === 'müşteri mağazaya gelecek').length;
+                        
+                        if (selectedBranch !== "Tümü" && selectedBranch !== bName) return;
+
+                        const cleanBranchName = bName.replace(" Şubesi", "").toUpperCase();
+                        const cardBg = aranmadiCount > 0 ? "border-rose-200 bg-white" : "border-slate-200 bg-slate-50/60";
+                        const badgeStyle = aranmadiCount > 0 ? "bg-rose-100 text-rose-700 border-rose-200 font-black" : "bg-emerald-100 text-emerald-700 border-emerald-200 font-bold";
+
+                        cardsHtml += `
+                            <div class="p-3.5 rounded-2xl border ${cardBg} shadow-sm flex flex-col justify-between transition-all hover:shadow-md">
+                                <div class="flex items-center justify-between mb-2 gap-1">
+                                    <span class="text-xs font-extrabold text-slate-900 truncate" title="${bName}">${cleanBranchName}</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full border ${badgeStyle} shrink-0">
+                                        ${aranmadiCount} ARANMADI
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between text-[11px] font-bold text-slate-600 pt-2 border-t border-slate-100 mt-1">
+                                    <span class="text-amber-700 flex items-center gap-1"><i class="fas fa-rotate text-[9px]"></i>${tekrarCount} Tekrar</span>
+                                    <span class="text-blue-700 flex items-center gap-1"><i class="fas fa-store text-[9px]"></i>${gelecekCount} Gelecek</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    followupCardsContainer.innerHTML = cardsHtml || '<div class="col-span-full text-center py-4 text-xs font-bold text-slate-400">Şube verisi bulunamadı.</div>';
+                }
+
                 let fList = list.filter(i => {
                     const s = String(i.status || "").trim().toLowerCase();
                     const cs = String(i.callStatus || "").trim().toLowerCase();
