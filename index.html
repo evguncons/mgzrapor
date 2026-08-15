@@ -534,6 +534,19 @@
             return y * 12 + m;
         }
 
+        function getCurrentPeriod(periods) {
+            if (!periods || periods.length === 0) return '';
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth(); // 0: Ocak, 7: Ağustos vb.
+            const targetVal = currentYear * 12 + currentMonth;
+
+            // Mevcut ay ve yıla tam uyan dönemi arar
+            const matched = periods.find(p => periodToVal(p) === targetVal);
+            // Bulunamazsa listedeki en güncel dönemi varsayılan yapar
+            return matched || periods[0];
+        }
+
         function getBranchSortIndex(branchName) {
             if (!branchName) return 999;
             const upperName = branchName.toLocaleUpperCase('tr-TR');
@@ -714,9 +727,12 @@
                 
                 const periods = await res.json();
                 if (periods && periods.length > 0) {
+                    // Otomatik olarak güncel dönemi belirler (Örn: AĞUSTOS 2026)
+                    const defaultPeriod = getCurrentPeriod(periods);
+
                     if (sel) {
                         sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
-                        sel.value = periods[0];
+                        sel.value = defaultPeriod;
                     }
 
                     const chronologicalPeriods = [...periods].sort((a, b) => periodToVal(a) - periodToVal(b));
@@ -729,7 +745,7 @@
                         endSel.value = chronologicalPeriods[chronologicalPeriods.length - 1];
                     }
 
-                    await fetchDataWithPeriod(periods[0]);
+                    await fetchDataWithPeriod(defaultPeriod);
                     startContinuousSync();
                 } else {
                     showErrorModal("Veri Yok", "E-Tablonuzda uygun çalışma dönemi sayfası bulunamadı.");
