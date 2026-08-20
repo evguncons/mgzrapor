@@ -833,7 +833,7 @@
             const dupRevenueText = document.getElementById('dup-kpi-revenue')?.innerText || '₺0';
 
             const msg = `
-                Seçili çalışma döneminde (<strong>${activePeriod}</strong>) tespit edilen <strong>${dupCountText} adet mükerrer müşteriye</strong> ait ilk işlem orijinal kayıtlar koruncak;<br><br>
+                Seçili çalışma döneminde (<strong>${activePeriod}</strong>) tespit edilen <strong>${dupCountText} adet mükerrer müşteriye</strong> ait ilk işlem orijinal kayıtlar korunarak;<br><br>
                 Farklı şubelerde mükerrer girilip satış işleyen <strong>${dupRevenueText} tutarındaki tüm çift kayıtlar</strong> Google Sheets tablolarından kalıcı olarak silinecektir.<br><br>
                 <strong class="text-rose-600">Bu işlem geri alınamaz. Devam etmek istiyor musunuz?</strong>
             `;
@@ -1512,6 +1512,7 @@
             const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
 
+            // Group entries by normalized phone number or customer identifiers
             const phoneGroups = {};
             list.forEach(item => {
                 const cleanPhone = cleanPhoneNumber(item.phone);
@@ -1524,6 +1525,7 @@
                 }
             });
 
+            // Filter groups that have entries across multiple branches or multiple entries
             const duplicateGroups = [];
             let totalDupCustomers = 0;
             let totalDupEntries = 0;
@@ -1532,16 +1534,23 @@
 
             Object.entries(phoneGroups).forEach(([key, items]) => {
                 if (items.length > 1) {
+                    // Sort items chronologically by date
                     items.sort((a, b) => parseTurkishDate(a.date) - parseTurkishDate(b.date));
 
-                    const distinctBranches = new Set(items.map(i => i.branch));
+                    // Sadece satışa dönen mükerrerler filtresi seçildiğinde 0 ciro olanları eleyip ciro tutarı > 0 olan gerçek satışları alıyoruz
+                    let displayItems = items;
+                    if (filterVal === 'satislar') {
+                        displayItems = items.filter(i => Number(i.revenue || 0) > 0 && (String(i.status || "").toLowerCase().includes("satış") || String(i.status || "").toLowerCase().includes("satisa") || Number(i.revenue || 0) > 0));
+                        if (displayItems.length < 2) return;
+                    }
+
+                    // Check if entries span multiple branches or duplicate records
+                    const distinctBranches = new Set(displayItems.map(i => i.branch));
                     const isMultiBranch = distinctBranches.size > 1;
 
-                    const duplicateEntries = items.slice(1);
+                    // Calculate duplicate stats (entries after the first one)
+                    const duplicateEntries = displayItems.slice(1);
                     const duplicateRevenue = duplicateEntries.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
-                    const hasSales = items.some(i => Number(i.revenue || 0) > 0 || String(i.status || "").toLowerCase().includes("satış"));
-
-                    if (filterVal === 'satislar' && !hasSales) return;
 
                     totalDupCustomers++;
                     totalDupEntries += duplicateEntries.length;
@@ -1550,7 +1559,7 @@
 
                     duplicateGroups.push({
                         key,
-                        items,
+                        items: displayItems,
                         isMultiBranch,
                         distinctBranchesCount: distinctBranches.size,
                         duplicateRevenue
@@ -1558,6 +1567,7 @@
                 }
             });
 
+            // Update Duplicate KPI Cards
             safeSetText('dup-kpi-count', num(totalDupCustomers));
             safeSetText('dup-kpi-entries', num(totalDupEntries));
             safeSetText('dup-kpi-revenue', fmt(totalDupRevenue));
