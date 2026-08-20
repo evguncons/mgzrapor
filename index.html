@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -442,9 +441,25 @@
                 </div>
             </div>
 
-            <!-- DUPLICATES CHECK TAB (MÜKERRER SATIŞ KONTROLÜ) -->
+            <!-- DUPLICATES CHECK TAB (MÜKERRER SATIŞ KONTROLÜ & TEMİZLEME) -->
             <div id="tab-duplicates" class="hidden space-y-8 max-w-[1500px] mx-auto">
                 
+                <!-- Action Header Banner with Clean Button -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                            <i class="fas fa-shield-halved text-brand-600"></i> Mükerrer Satış Denetimi & Otomatik Temizleme
+                        </h3>
+                        <p class="text-xs font-semibold text-slate-500 mt-1 leading-relaxed">
+                            Aynı müşterinin birden fazla şubede kayıtlı olduğu durumlarda ilk işlem <strong>ORİJİNAL KAYIT</strong> olarak korunur. Sonraki girilip satış işleyen mükerrer kayıtlar tek tıkla Google Sheets'ten temizlenebilir.
+                        </p>
+                    </div>
+                    <button onclick="confirmCleanAllDuplicateSales()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold px-6 py-3.5 rounded-xl transition shadow-glow flex items-center gap-2.5 active:scale-95 shrink-0">
+                        <i class="fas fa-broom text-sm"></i>
+                        <span>Mükerrer Satışları Temizle</span>
+                    </button>
+                </div>
+
                 <!-- Duplicate Audit KPI Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="stat-card border-t-[5px] border-t-amber-500">
@@ -504,7 +519,7 @@
                 <div class="bg-amber-50/80 border border-amber-200 p-5 rounded-2xl flex items-start gap-3.5 text-xs text-amber-900 font-semibold">
                     <i class="fas fa-lightbulb text-amber-600 text-lg mt-0.5 shrink-0"></i>
                     <div class="leading-relaxed">
-                        <strong class="font-extrabold">Mükerrer Satış Denetim Mimarısı:</strong> Bu sayfa, seçili aya ait tüm şubelerdeki telefon numaralarını tarayarak aynı müşterinin birden fazla şubenin Excel tablosuna işlendiği durumları tespit eder. Kayıtlar Google Sheets A sütunundaki tarih sırasına konulur; ilk işlenen şube <strong>İLK İŞLEM / ORİJİNAL KAYIT</strong> olarak kabul edilirken sonraki girişler <strong>MÜKERRER KAYIT</strong> olarak işaretlenir.
+                        <strong class="font-extrabold">Mükerrer Satış Denetim Mimarısı:</strong> Bu sayfa, seçili aya ait tüm şubelerdeki telefon numaralarını tarayarak aynı müşterinin birden fazla şubenin Excel tablosuna işlendiği durumları tespit eder. Kayıtlar A sütunundaki tarih sırasına konulur; ilk işlenen şube <strong>İLK İŞLEM / ORİJİNAL KAYIT</strong> olarak saklanır, sonraki girişler <strong>MÜKERRER KAYIT</strong> olarak işaretlenir. <strong>"Mükerrer Satışları Temizle"</strong> butonu orijinal kayıtları koruyarak diğer şubelerdeki mükerrer satış satırlarını Google Sheets'ten kalıcı olarak temizler.
                     </div>
                 </div>
 
@@ -575,6 +590,30 @@
             </div>
         </div>
 
+        <!-- Custom Clean Action Confirmation Modal -->
+        <div id="cleanConfirmModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[160] flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded-3xl max-w-lg w-full mx-4 border border-rose-200 shadow-2xl relative">
+                <div class="flex items-center gap-4 text-rose-600 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center shrink-0">
+                        <i class="fas fa-broom text-xl text-rose-600"></i>
+                    </div>
+                    <div>
+                        <h3 id="cleanModalTitle" class="text-lg font-extrabold text-slate-900">Mükerrer Satış Temizleme Onayı</h3>
+                        <p id="cleanModalSubtitle" class="text-xs font-bold text-slate-500 mt-0.5">Google Sheets Kalıcı İşlem</p>
+                    </div>
+                </div>
+                <div id="cleanModalMessage" class="text-sm font-semibold text-slate-700 leading-relaxed mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    Açıklama yükleniyor...
+                </div>
+                <div class="flex items-center justify-end gap-3">
+                    <button onclick="closeCleanConfirmModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold rounded-xl transition">Vazgeç</button>
+                    <button id="cleanModalConfirmBtn" onclick="executeCleanAction()" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition shadow-glow flex items-center gap-2">
+                        <i class="fas fa-trash-can"></i> Evet, Mükerrerleri Sil
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Global Error Modal -->
         <div id="errorModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] flex items-center justify-center hidden">
             <div class="bg-white p-8 rounded-3xl max-w-lg w-full mx-4 border border-rose-200 shadow-2xl relative">
@@ -603,6 +642,7 @@
         let currentData = null; 
         let activeTab = 'dashboard';
         let isSidebarCollapsed = false;
+        let pendingCleanAction = null; // Store pending cleanup payload
 
         const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "GEBZE", "DÜZCE", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
         
@@ -641,7 +681,6 @@
             return 999;
         }
 
-        // Clean phone number helper to extract standard 10 digit number
         function cleanPhoneNumber(phone) {
             if (!phone) return "";
             const digits = String(phone).replace(/\D/g, "");
@@ -651,7 +690,6 @@
             return digits;
         }
 
-        // Date parser helper for chronological sorting
         function parseTurkishDate(dateStr) {
             if (!dateStr || dateStr === "---") return new Date(0);
             const parts = String(dateStr).split('.');
@@ -733,6 +771,111 @@
         function closeErrorModal() {
             const errorModal = document.getElementById('errorModal');
             if (errorModal) errorModal.classList.add('hidden');
+        }
+
+        function openCleanConfirmModal(title, msg, actionPayload) {
+            safeSetText('cleanModalTitle', title);
+            const msgEl = document.getElementById('cleanModalMessage');
+            if (msgEl) msgEl.innerHTML = msg;
+            pendingCleanAction = actionPayload;
+            
+            const modal = document.getElementById('cleanConfirmModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeCleanConfirmModal() {
+            const modal = document.getElementById('cleanConfirmModal');
+            if (modal) modal.classList.add('hidden');
+            pendingCleanAction = null;
+        }
+
+        async function executeCleanAction() {
+            if (!pendingCleanAction) return;
+            const payload = pendingCleanAction;
+            closeCleanConfirmModal();
+
+            const loader = document.getElementById('loadingIndicator');
+            const loaderText = document.getElementById('loader-text');
+            if (loader) loader.classList.remove('hidden');
+            if (loaderText) loaderText.innerText = "Mükerrer Kayıtlar Google Sheets'ten Siliniyor...";
+
+            try {
+                let url = "";
+                if (payload.type === 'ALL' || payload.type === 'CUSTOMER') {
+                    url = `${APPSCRIPT_URL}?action=cleanDuplicateSales&sheetName=${encodeURIComponent(payload.sheetName)}&targetKey=${encodeURIComponent(payload.targetKey || 'ALL')}&t=${Date.now()}`;
+                } else if (payload.type === 'SINGLE') {
+                    url = `${APPSCRIPT_URL}?action=deleteSingleDuplicate&sheetId=${encodeURIComponent(payload.sheetId)}&sheetName=${encodeURIComponent(payload.sheetName)}&rowNum=${payload.rowNum}&t=${Date.now()}`;
+                }
+
+                const res = await fetch(url, { cache: 'no-store' });
+                const resData = await res.json();
+
+                if (resData && resData.success) {
+                    await fetchData();
+                } else {
+                    showErrorModal("Temizleme Başarısız", resData.message || "İşlem sırasında bir hata oluştu.");
+                }
+            } catch (err) {
+                console.error(err);
+                showErrorModal("Bağlantı Hatası", "Mükerrer kayıtlar silinirken sunucuyla iletişim kesildi.");
+            } finally {
+                if (loader) loader.classList.add('hidden');
+                if (loaderText) loaderText.innerText = "Veriler Senkronize Ediliyor...";
+            }
+        }
+
+        function confirmCleanAllDuplicateSales() {
+            const periodSelector = document.getElementById('periodSelector');
+            const activePeriod = periodSelector ? periodSelector.value : '';
+            if (!activePeriod) return;
+
+            const dupCountText = document.getElementById('dup-kpi-count')?.innerText || '0';
+            const dupRevenueText = document.getElementById('dup-kpi-revenue')?.innerText || '₺0';
+
+            const msg = `
+                Seçili çalışma döneminde (<strong>${activePeriod}</strong>) tespit edilen <strong>${dupCountText} adet mükerrer müşteriye</strong> ait ilk işlem orijinal kayıtlar koruncak;<br><br>
+                Farklı şubelerde mükerrer girilip satış işleyen <strong>${dupRevenueText} tutarındaki tüm çift kayıtlar</strong> Google Sheets tablolarından kalıcı olarak silinecektir.<br><br>
+                <strong class="text-rose-600">Bu işlem geri alınamaz. Devam etmek istiyor musunuz?</strong>
+            `;
+
+            openCleanConfirmModal("Tüm Mükerrer Satışları Temizle", msg, {
+                type: 'ALL',
+                sheetName: activePeriod,
+                targetKey: 'ALL'
+            });
+        }
+
+        function confirmCleanCustomerDuplicates(targetKey, custName) {
+            const periodSelector = document.getElementById('periodSelector');
+            const activePeriod = periodSelector ? periodSelector.value : '';
+
+            const msg = `
+                <strong>${custName}</strong> isimli müşterinin <strong>${activePeriod}</strong> dönemindeki ilk işlem orijinal satışı saklanacak, diğer şubelerdeki tüm mükerrer satış kayıtları silinecektir.<br><br>
+                <strong class="text-rose-600">Google Sheets'ten kalıcı olarak silmek istiyor musunuz?</strong>
+            `;
+
+            openCleanConfirmModal("Müşteri Mükerrerlerini Temizle", msg, {
+                type: 'CUSTOMER',
+                sheetName: activePeriod,
+                targetKey: targetKey
+            });
+        }
+
+        function confirmDeleteSingleRow(sheetId, branchName, dateStr, rowNum, custName) {
+            const periodSelector = document.getElementById('periodSelector');
+            const activePeriod = periodSelector ? periodSelector.value : '';
+
+            const msg = `
+                <strong>${custName}</strong> isimli müşterinin <strong>${branchName}</strong> şubesindeki (Tarih: ${dateStr}, Satır: ${rowNum}) mükerrer satırı silinecektir.<br><br>
+                <strong class="text-rose-600">Google Sheets tablosundan tekil olarak silinsin mi?</strong>
+            `;
+
+            openCleanConfirmModal("Mükerrer Kayıt Silme Onayı", msg, {
+                type: 'SINGLE',
+                sheetId: sheetId,
+                sheetName: activePeriod,
+                rowNum: rowNum
+            });
         }
 
         let autoRefreshInterval = null;
@@ -1294,7 +1437,6 @@
             XLSX.writeFile(wb, `Hedef_AVM_Gelismis_Rapor_${periods[0].replace(/ /g, '_')}_${periods[periods.length - 1].replace(/ /g, '_')}.xlsx`);
         }
 
-        // Apply Excel styles & auto-calculate column widths to prevent '###' clipping
         function applyExcelStylesAndColWidths(ws, wsData) {
             for (let cellRef in ws) {
                 if (!cellRef.startsWith('!') && ws[cellRef] && ws[cellRef].t === 'n') {
@@ -1370,7 +1512,6 @@
             const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
 
-            // Group entries by normalized phone number or customer identifiers
             const phoneGroups = {};
             list.forEach(item => {
                 const cleanPhone = cleanPhoneNumber(item.phone);
@@ -1383,7 +1524,6 @@
                 }
             });
 
-            // Filter groups that have entries across multiple branches or multiple entries
             const duplicateGroups = [];
             let totalDupCustomers = 0;
             let totalDupEntries = 0;
@@ -1392,14 +1532,11 @@
 
             Object.entries(phoneGroups).forEach(([key, items]) => {
                 if (items.length > 1) {
-                    // Sort items chronologically by date
                     items.sort((a, b) => parseTurkishDate(a.date) - parseTurkishDate(b.date));
 
-                    // Check if entries span multiple branches or duplicate records
                     const distinctBranches = new Set(items.map(i => i.branch));
                     const isMultiBranch = distinctBranches.size > 1;
 
-                    // Calculate duplicate stats (entries after the first one)
                     const duplicateEntries = items.slice(1);
                     const duplicateRevenue = duplicateEntries.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
                     const hasSales = items.some(i => Number(i.revenue || 0) > 0 || String(i.status || "").toLowerCase().includes("satış"));
@@ -1421,7 +1558,6 @@
                 }
             });
 
-            // Update Duplicate KPI Cards
             safeSetText('dup-kpi-count', num(totalDupCustomers));
             safeSetText('dup-kpi-entries', num(totalDupEntries));
             safeSetText('dup-kpi-revenue', fmt(totalDupRevenue));
@@ -1465,7 +1601,10 @@
                                     <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Mükerrer Ciro Riski</p>
                                     <p class="text-sm font-extrabold text-rose-400">${fmt(group.duplicateRevenue)}</p>
                                 </div>
-                                ${group.isMultiBranch ? '<span class="px-3 py-1 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[10px] font-extrabold rounded-full uppercase"><i class="fas fa-triangle-exclamation mr-1"></i> Şubeler Arası Mükerrer</span>' : '<span class="px-3 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-extrabold rounded-full uppercase">Şube İçi Çift Kayıt</span>'}
+                                <button onclick="confirmCleanCustomerDuplicates('${group.key}', '${custName.replace(/'/g, "\\'")}')" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95" title="Bu Müşterinin Mükerrer Satışlarını Temizle">
+                                    <i class="fas fa-trash-can text-xs"></i>
+                                    <span>Bu Müşterinin Mükerrerlerini Temizle</span>
+                                </button>
                             </div>
                         </div>
 
@@ -1479,6 +1618,7 @@
                                         <th>Tespit Durumu / Etiket</th>
                                         <th>İşlem / Aksiyon</th>
                                         <th class="text-right">Ciro Tutarı</th>
+                                        <th class="w-28 text-center">Aksiyon</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1491,6 +1631,10 @@
                                             ? '<span class="badge badge-emerald"><i class="fas fa-star mr-1"></i> İLK İŞLEM (ORİJİNAL)</span>' 
                                             : '<span class="badge badge-rose"><i class="fas fa-copy mr-1"></i> MÜKERRER KAYIT</span>';
 
+                                        let actionBtn = isFirst 
+                                            ? '<span class="text-[11px] font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">KORUNUYOR</span>'
+                                            : `<button onclick="confirmDeleteSingleRow('${item.sheetId}', '${item.branch.replace(/'/g, "\\'")}', '${item.date}', ${item.rowNum}, '${custName.replace(/'/g, "\\'")}')" class="px-3 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-extrabold rounded-xl border border-rose-300 transition flex items-center gap-1.5 active:scale-95 shadow-sm" title="Bu Tekil Kaydı Sil"><i class="fas fa-trash-can text-[10px]"></i> Kaydı Sil</button>`;
+
                                         return `
                                             <tr class="${isFirst ? 'bg-emerald-50/30' : 'bg-rose-50/20'}">
                                                 <td class="text-center font-bold text-slate-400">${idx + 1}</td>
@@ -1502,6 +1646,7 @@
                                                     ${item.category ? `<span class="ml-2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">${item.category}</span>` : ''}
                                                 </td>
                                                 <td class="text-right font-extrabold ${rev > 0 ? (isFirst ? 'text-emerald-700' : 'text-rose-600') : 'text-slate-400'}">${fmt(rev)}</td>
+                                                <td class="text-center">${actionBtn}</td>
                                             </tr>
                                         `;
                                     }).join('')}
