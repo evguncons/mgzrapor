@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -89,7 +90,6 @@
 </head>
 <body class="flex h-screen w-full overflow-hidden font-sans antialiased bg-[#f8fafc]">
 
-    <!-- Mobile Drawer Overlay -->
     <div id="sidebarOverlay" onclick="toggleSidebarMobile()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden transition-opacity"></div>
 
     <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-[260px] bg-[#0f172a] text-slate-300 flex flex-col flex-shrink-0 z-40 shadow-2xl lg:shadow-none">
@@ -121,13 +121,16 @@
                 <i class="fas fa-chart-line"></i> <span class="nav-text">Gelişmiş Rapor</span>
             </button>
             
-            <div class="px-3 mt-6 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider logo-text">Aksiyonlar</div>
+            <div class="px-3 mt-6 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider logo-text">Aksiyonlar & Denetim</div>
             
             <button onclick="setTab('followup'); maybeCloseSidebar()" id="sidebar-btn-followup" class="nav-link">
                 <i class="fas fa-headset"></i> <span class="nav-text">Takip Listesi</span>
             </button>
             <button onclick="setTab('unspecified'); maybeCloseSidebar()" id="sidebar-btn-unspecified" class="nav-link">
                 <i class="fas fa-triangle-exclamation"></i> <span class="nav-text">No Belirtilmeyenler</span>
+            </button>
+            <button onclick="setTab('duplicates'); maybeCloseSidebar()" id="sidebar-btn-duplicates" class="nav-link">
+                <i class="fas fa-users-between-lines"></i> <span class="nav-text">Mükerrer Satış Kontrolü</span>
             </button>
         </nav>
 
@@ -180,6 +183,14 @@
                     <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                 </div>
 
+                <div id="duplicateFilterContainer" class="relative group hidden">
+                    <select id="duplicateFilter" onchange="render(currentData)" class="appearance-none bg-white border border-slate-300 text-slate-800 text-xs font-extrabold rounded-xl pl-3.5 pr-8 h-10 outline-none cursor-pointer shadow-sm">
+                        <option value="tumu">Tüm Mükerrer Kayıtlar</option>
+                        <option value="satislar">Sadece Satışa Dönen Mükerrerler</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                </div>
+
                 <div id="branchFilterContainer" class="relative group">
                     <select id="branchSelector" onchange="render(currentData)" class="appearance-none bg-white border border-slate-300 text-slate-800 text-xs font-extrabold rounded-xl pl-3.5 pr-8 h-10 outline-none cursor-pointer shadow-sm">
                         <option value="Tümü">Tüm Şubeler</option>
@@ -215,6 +226,7 @@
 
         <div class="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar">
             
+            <!-- DASHBOARD TAB -->
             <div id="tab-dashboard" class="space-y-8 max-w-[1500px] mx-auto">
                 
                 <!-- 6 Responsive KPI Cards -->
@@ -304,6 +316,7 @@
                     </div>
                 </div>
 
+                <!-- Şube Performans Çizelgesi -->
                 <div class="table-wrapper">
                     <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-white">
                         <div>
@@ -336,6 +349,7 @@
                 </div>
             </div>
 
+            <!-- CUSTOMERS TAB -->
             <div id="tab-customers" class="hidden space-y-8 max-w-[1500px] mx-auto">
                 <div class="table-wrapper">
                     <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-white">
@@ -366,6 +380,7 @@
                 </div>
             </div>
 
+            <!-- FOLLOW-UP TAB -->
             <div id="tab-followup" class="hidden space-y-6 max-w-[1500px] mx-auto">
                 <!-- Branch Followup KPI Cards Row -->
                 <div>
@@ -396,6 +411,7 @@
                 </div>
             </div>
 
+            <!-- UNSPECIFIED TAB -->
             <div id="tab-unspecified" class="hidden space-y-8 max-w-[1500px] mx-auto">
                 <div class="table-wrapper">
                     <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-white">
@@ -426,6 +442,77 @@
                 </div>
             </div>
 
+            <!-- DUPLICATES CHECK TAB (MÜKERRER SATIŞ KONTROLÜ) -->
+            <div id="tab-duplicates" class="hidden space-y-8 max-w-[1500px] mx-auto">
+                
+                <!-- Duplicate Audit KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="stat-card border-t-[5px] border-t-amber-500">
+                        <div class="flex justify-between items-start w-full">
+                            <div>
+                                <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1">Mükerrer Müşteri</p>
+                                <h3 id="dup-kpi-count" class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
+                            </div>
+                            <div class="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 font-bold shrink-0">
+                                <i class="fas fa-users-viewfinder text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider">birden fazla şubede</div>
+                    </div>
+
+                    <div class="stat-card border-t-[5px] border-t-purple-500">
+                        <div class="flex justify-between items-start w-full">
+                            <div>
+                                <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1">Mükerrer Kayıt Adedi</p>
+                                <h3 id="dup-kpi-entries" class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
+                            </div>
+                            <div class="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 font-bold shrink-0">
+                                <i class="fas fa-copy text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-[10px] font-extrabold text-purple-600 uppercase tracking-wider">fazladan açılan kayıt</div>
+                    </div>
+
+                    <div class="stat-card border-t-[5px] border-t-rose-500">
+                        <div class="flex justify-between items-start w-full">
+                            <div>
+                                <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1">Mükerrer Ciro Riski</p>
+                                <h3 id="dup-kpi-revenue" class="text-xl font-extrabold text-slate-900 tracking-tight leading-none">₺0</h3>
+                            </div>
+                            <div class="w-9 h-9 bg-rose-100 rounded-xl flex items-center justify-center text-rose-600 font-bold shrink-0">
+                                <i class="fas fa-hand-holding-dollar text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-[10px] font-extrabold text-rose-600 uppercase tracking-wider">şişirilmiş ciro tutarı</div>
+                    </div>
+
+                    <div class="stat-card border-t-[5px] border-t-blue-500">
+                        <div class="flex justify-between items-start w-full">
+                            <div>
+                                <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1">Etkilenen Şubeler</p>
+                                <h3 id="dup-kpi-branches" class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
+                            </div>
+                            <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-bold shrink-0">
+                                <i class="fas fa-store text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider">çift kayıt giren şube</div>
+                    </div>
+                </div>
+
+                <!-- Info Notice Box -->
+                <div class="bg-amber-50/80 border border-amber-200 p-5 rounded-2xl flex items-start gap-3.5 text-xs text-amber-900 font-semibold">
+                    <i class="fas fa-lightbulb text-amber-600 text-lg mt-0.5 shrink-0"></i>
+                    <div class="leading-relaxed">
+                        <strong class="font-extrabold">Mükerrer Satış Denetim Mimarısı:</strong> Bu sayfa, seçili aya ait tüm şubelerdeki telefon numaralarını tarayarak aynı müşterinin birden fazla şubenin Excel tablosuna işlendiği durumları tespit eder. Kayıtlar Google Sheets A sütunundaki tarih sırasına konulur; ilk işlenen şube <strong>İLK İŞLEM / ORİJİNAL KAYIT</strong> olarak kabul edilirken sonraki girişler <strong>MÜKERRER KAYIT</strong> olarak işaretlenir.
+                    </div>
+                </div>
+
+                <!-- Duplicate Details List/Cards -->
+                <div id="duplicates-container" class="space-y-6"></div>
+            </div>
+
+            <!-- ADVANCED REPORT TAB -->
             <div id="tab-advanced" class="hidden space-y-8 max-w-[1500px] mx-auto">
                 <!-- Advanced Filters -->
                 <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft flex flex-wrap items-end justify-between gap-4">
@@ -538,12 +625,10 @@
             if (!periods || periods.length === 0) return '';
             const now = new Date();
             const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth(); // 0: Ocak, 7: Ağustos vb.
+            const currentMonth = now.getMonth(); 
             const targetVal = currentYear * 12 + currentMonth;
 
-            // Mevcut ay ve yıla tam uyan dönemi arar
             const matched = periods.find(p => periodToVal(p) === targetVal);
-            // Bulunamazsa listedeki en güncel dönemi varsayılan yapar
             return matched || periods[0];
         }
 
@@ -554,6 +639,30 @@
                 if (upperName.includes(PREFERRED_BRANCH_ORDER[i])) return i;
             }
             return 999;
+        }
+
+        // Clean phone number helper to extract standard 10 digit number
+        function cleanPhoneNumber(phone) {
+            if (!phone) return "";
+            const digits = String(phone).replace(/\D/g, "");
+            if (digits.length >= 10) {
+                return digits.slice(-10);
+            }
+            return digits;
+        }
+
+        // Date parser helper for chronological sorting
+        function parseTurkishDate(dateStr) {
+            if (!dateStr || dateStr === "---") return new Date(0);
+            const parts = String(dateStr).split('.');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1;
+                const year = parseInt(parts[2], 10);
+                return new Date(year, month, day);
+            }
+            const d = new Date(dateStr);
+            return isNaN(d.getTime()) ? new Date(0) : d;
         }
 
         const safeStorage = {
@@ -727,7 +836,6 @@
                 
                 const periods = await res.json();
                 if (periods && periods.length > 0) {
-                    // Otomatik olarak güncel dönemi belirler (Örn: AĞUSTOS 2026)
                     const defaultPeriod = getCurrentPeriod(periods);
 
                     if (sel) {
@@ -852,6 +960,9 @@
             const followupFilterContainer = document.getElementById('followupFilterContainer');
             if (followupFilterContainer) followupFilterContainer.classList.toggle('hidden', tab !== 'followup');
             
+            const duplicateFilterContainer = document.getElementById('duplicateFilterContainer');
+            if (duplicateFilterContainer) duplicateFilterContainer.classList.toggle('hidden', tab !== 'duplicates');
+
             const branchFilterContainer = document.getElementById('branchFilterContainer');
             if (branchFilterContainer) branchFilterContainer.classList.toggle('hidden', tab === 'advanced');
             
@@ -863,7 +974,8 @@
                 dashboard: 'Performans Analizi', 
                 customers: 'Müşteri Detayları', 
                 followup: 'Takip Listesi', 
-                unspecified: 'No Belirtilmeyenler', 
+                unspecified: 'No Belirtilmeyenler',
+                duplicates: 'Mükerrer Satış Kontrolü',
                 advanced: 'Gelişmiş Dönem Raporu' 
             };
             const tabTitle = document.getElementById('tabTitle');
@@ -1182,7 +1294,7 @@
             XLSX.writeFile(wb, `Hedef_AVM_Gelismis_Rapor_${periods[0].replace(/ /g, '_')}_${periods[periods.length - 1].replace(/ /g, '_')}.xlsx`);
         }
 
-        // Excel hücre biçimlendirmesi ve sütun genişliklerinin otomatik ayarlanması (### işaretini engeller)
+        // Apply Excel styles & auto-calculate column widths to prevent '###' clipping
         function applyExcelStylesAndColWidths(ws, wsData) {
             for (let cellRef in ws) {
                 if (!cellRef.startsWith('!') && ws[cellRef] && ws[cellRef].t === 'n') {
@@ -1247,6 +1359,160 @@
             }).join('');
 
             container.innerHTML = cardsHtml || `<div class="col-span-full text-center py-4 text-xs font-bold text-slate-400">Takip edilecek aksiyon kaydı bulunmuyor.</div>`;
+        }
+
+        function renderDuplicates(list) {
+            const container = document.getElementById('duplicates-container');
+            const dupFilter = document.getElementById('duplicateFilter');
+            const filterVal = dupFilter ? dupFilter.value : 'tumu';
+            if (!container) return;
+
+            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
+
+            // Group entries by normalized phone number or customer identifiers
+            const phoneGroups = {};
+            list.forEach(item => {
+                const cleanPhone = cleanPhoneNumber(item.phone);
+                const cNo = String(item.customerNo || "").trim().toLowerCase();
+                const key = cleanPhone.length >= 7 ? cleanPhone : (cNo !== "" && cNo !== "belirtilmemiş" ? `no_${cNo}` : null);
+                
+                if (key) {
+                    if (!phoneGroups[key]) phoneGroups[key] = [];
+                    phoneGroups[key].push(item);
+                }
+            });
+
+            // Filter groups that have entries across multiple branches or multiple entries
+            const duplicateGroups = [];
+            let totalDupCustomers = 0;
+            let totalDupEntries = 0;
+            let totalDupRevenue = 0;
+            const affectedBranchesSet = new Set();
+
+            Object.entries(phoneGroups).forEach(([key, items]) => {
+                if (items.length > 1) {
+                    // Sort items chronologically by date
+                    items.sort((a, b) => parseTurkishDate(a.date) - parseTurkishDate(b.date));
+
+                    // Check if entries span multiple branches or duplicate records
+                    const distinctBranches = new Set(items.map(i => i.branch));
+                    const isMultiBranch = distinctBranches.size > 1;
+
+                    // Calculate duplicate stats (entries after the first one)
+                    const duplicateEntries = items.slice(1);
+                    const duplicateRevenue = duplicateEntries.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
+                    const hasSales = items.some(i => Number(i.revenue || 0) > 0 || String(i.status || "").toLowerCase().includes("satış"));
+
+                    if (filterVal === 'satislar' && !hasSales) return;
+
+                    totalDupCustomers++;
+                    totalDupEntries += duplicateEntries.length;
+                    totalDupRevenue += duplicateRevenue;
+                    distinctBranches.forEach(b => affectedBranchesSet.add(b));
+
+                    duplicateGroups.push({
+                        key,
+                        items,
+                        isMultiBranch,
+                        distinctBranchesCount: distinctBranches.size,
+                        duplicateRevenue
+                    });
+                }
+            });
+
+            // Update Duplicate KPI Cards
+            safeSetText('dup-kpi-count', num(totalDupCustomers));
+            safeSetText('dup-kpi-entries', num(totalDupEntries));
+            safeSetText('dup-kpi-revenue', fmt(totalDupRevenue));
+            safeSetText('dup-kpi-branches', num(affectedBranchesSet.size));
+
+            if (duplicateGroups.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-12 rounded-3xl border border-slate-200 text-center shadow-soft">
+                        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                            <i class="fas fa-circle-check"></i>
+                        </div>
+                        <h4 class="font-extrabold text-slate-800 text-lg">Mükerrer Kayıt Bulunamadı</h4>
+                        <p class="text-slate-500 text-xs mt-1 font-semibold">Seçilen dönemdeki şube verilerinde mükerrer müşteri kaydı veya çakışan satış bulunmamaktadır.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = duplicateGroups.map((group, gIdx) => {
+                const firstItem = group.items[0];
+                const custName = group.items.find(i => i.customerName)?.customerName || firstItem.customerNo || "İsimsiz Müşteri";
+                const phoneDisplay = firstItem.phone || group.key;
+
+                return `
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-soft overflow-hidden">
+                        <div class="bg-slate-900 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
+                                    <i class="fas fa-user-tag"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-sm text-white flex items-center gap-2">
+                                        ${custName}
+                                        <span class="text-xs font-semibold text-slate-400">(${phoneDisplay})</span>
+                                    </h4>
+                                    <p class="text-[11px] text-slate-400 font-semibold mt-0.5">${group.items.length} Farklı Kayıt Bulundu • ${group.distinctBranchesCount} Farklı Şube</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="text-right">
+                                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Mükerrer Ciro Riski</p>
+                                    <p class="text-sm font-extrabold text-rose-400">${fmt(group.duplicateRevenue)}</p>
+                                </div>
+                                ${group.isMultiBranch ? '<span class="px-3 py-1 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[10px] font-extrabold rounded-full uppercase"><i class="fas fa-triangle-exclamation mr-1"></i> Şubeler Arası Mükerrer</span>' : '<span class="px-3 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-extrabold rounded-full uppercase">Şube İçi Çift Kayıt</span>'}
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th class="w-16 text-center">Sıra</th>
+                                        <th>Giriş Tarihi</th>
+                                        <th>Kayıt Edilen Şube</th>
+                                        <th>Tespit Durumu / Etiket</th>
+                                        <th>İşlem / Aksiyon</th>
+                                        <th class="text-right">Ciro Tutarı</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${group.items.map((item, idx) => {
+                                        const isFirst = idx === 0;
+                                        const statusStr = String(item.status || "").trim();
+                                        const rev = Number(item.revenue || 0);
+                                        
+                                        let tagBadge = isFirst 
+                                            ? '<span class="badge badge-emerald"><i class="fas fa-star mr-1"></i> İLK İŞLEM (ORİJİNAL)</span>' 
+                                            : '<span class="badge badge-rose"><i class="fas fa-copy mr-1"></i> MÜKERRER KAYIT</span>';
+
+                                        return `
+                                            <tr class="${isFirst ? 'bg-emerald-50/30' : 'bg-rose-50/20'}">
+                                                <td class="text-center font-bold text-slate-400">${idx + 1}</td>
+                                                <td class="font-extrabold text-slate-800"><i class="fas fa-calendar-day text-slate-400 mr-2"></i>${item.date || '---'}</td>
+                                                <td class="font-extrabold text-slate-900">${item.branch}</td>
+                                                <td>${tagBadge}</td>
+                                                <td>
+                                                    <span class="font-bold text-slate-700 text-xs">${statusStr || item.callStatus || '---'}</span>
+                                                    ${item.category ? `<span class="ml-2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">${item.category}</span>` : ''}
+                                                </td>
+                                                <td class="text-right font-extrabold ${rev > 0 ? (isFirst ? 'text-emerald-700' : 'text-rose-600') : 'text-slate-400'}">${fmt(rev)}</td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            window.lastDuplicateGroups = duplicateGroups;
         }
 
         function render(data) {
@@ -1451,6 +1717,9 @@
                     if(grouped.length === 0) unspecifiedBody.innerHTML = '<tr><td colspan="4" class="text-center py-10 font-bold text-slate-500">Sorunsuz ve eksiksiz kayıtlar.</td></tr>';
                 }
                 safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
+
+            } else if (activeTab === 'duplicates') {
+                renderDuplicates(list);
             }
         }
 
@@ -1553,6 +1822,20 @@
                         
                         return `<tr><td style="text-align:center;">${idx+1}</td><td>${group.branch}</td><td>${i.customerName || '---'}</td><td>${i.phone || '---'}</td><td><b>${label}</b> ${i.isLate ? '<span style="color:#e11d48; font-weight:bold;">('+i.date+' TARİHİNDEN BERİ ARANMADI)</span>' : ''}</td></tr>`;
                     }).join('')).join('') + `</tbody></table>`;
+            } else if (activeTab === 'duplicates') {
+                reportTitle = "MÜKERRER SATIŞ VE MÜŞTERİ DENETİM RAPORU";
+                const groups = window.lastDuplicateGroups || [];
+                tableHtml = `<table class="print-table"><thead><tr><th>Sıra</th><th>Müşteri</th><th>Giriş Tarihi</th><th>Şube</th><th>Durum</th><th style="text-align:right">Ciro (TL)</th></tr></thead><tbody>` +
+                    groups.map((g, gIdx) => g.items.map((item, idx) => `
+                        <tr>
+                            <td style="text-align:center;">${gIdx + 1}.${idx + 1}</td>
+                            <td><b>${item.customerName || 'İsimsiz'}</b> (${item.phone || '---'})</td>
+                            <td>${item.date || '---'}</td>
+                            <td><b>${item.branch}</b></td>
+                            <td>${idx === 0 ? 'İLK KAYIT (ORİJİNAL)' : 'MÜKERRER KAYIT'}</td>
+                            <td style="text-align:right">${fmt(item.revenue || 0)}</td>
+                        </tr>
+                    `).join('')).join('') + `</tbody></table>`;
             } else if (activeTab === 'unspecified') {
                 reportTitle = "BELİRTİLMEYEN KAYITLAR RAPORU";
                 let unspecList = list.filter(i => {
@@ -1680,6 +1963,23 @@
                 
                 wsData.push(["", "GENEL TOPLAM", totalReferrals, totalSales, totalRevenue]);
 
+            } else if (activeTab === 'duplicates') {
+                wsData.push(["GRUP NO", "MÜŞTERİ ADI", "TELEFON", "GİRİŞ TARİHİ", "İŞLEYEN ŞUBE", "ETİKET / DURUM", "SATIŞ / AKSİYON", "CİRO (TL)"]);
+                const groups = window.lastDuplicateGroups || [];
+                groups.forEach((g, gIdx) => {
+                    g.items.forEach((item, idx) => {
+                        wsData.push([
+                            gIdx + 1,
+                            item.customerName || '---',
+                            item.phone || '---',
+                            item.date || '---',
+                            item.branch,
+                            idx === 0 ? 'İLK KAYIT (ORİJİNAL)' : 'MÜKERRER KAYIT',
+                            item.status || item.callStatus || '---',
+                            item.revenue || 0
+                        ]);
+                    });
+                });
             } else if (activeTab === 'followup') {
                 wsData.push(["SIRA", "ŞUBE", "MÜŞTERİ ADI SOYADI", "TELEFON", "AKSİYON DURUMU", "GECİKME UYARISI"]);
                 let fList = list.filter(i => {
