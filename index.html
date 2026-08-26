@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hedef AVM CRM | Yönetim Portalı</title>
+    <title>Hedef AVM CRM | Yönetim Portalı v11.0</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SheetJS (Excel) -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <!-- Font Awesome Icons -->
@@ -23,17 +25,19 @@
                             50: '#eef2ff',
                             100: '#e0e7ff',
                             200: '#c7d2fe',
+                            400: '#818cf8',
                             500: '#6366f1',
                             600: '#4f46e5',
                             700: '#4338ca',
+                            800: '#3730a3',
                             900: '#312e81',
                             950: '#1e1b4b'
                         }
                     },
                     boxShadow: {
-                        'card': '0 2px 8px -1px rgba(15, 23, 42, 0.06), 0 1px 4px -1px rgba(15, 23, 42, 0.04)',
-                        'card-hover': '0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03)',
-                        'glow': '0 0 20px rgba(79, 70, 229, 0.25)'
+                        'card': '0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03)',
+                        'card-hover': '0 16px 32px -6px rgba(15, 23, 42, 0.1), 0 6px 12px -3px rgba(15, 23, 42, 0.04)',
+                        'glow': '0 0 25px rgba(79, 70, 229, 0.22)'
                     }
                 }
             }
@@ -43,9 +47,9 @@
         body { background-color: #f8fafc; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif; }
         
         #sidebar { transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-        .nav-btn { @apply flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-400 font-semibold text-xs tracking-wide transition-all duration-150; }
-        .nav-btn:hover { @apply text-white bg-slate-800/70; }
-        .nav-btn.active { @apply bg-brand-600 text-white font-bold shadow-md; }
+        .nav-btn { @apply flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-400 font-semibold text-xs tracking-wide transition-all duration-150 select-none cursor-pointer; }
+        .nav-btn:hover { @apply text-white bg-slate-800/80; }
+        .nav-btn.active { @apply bg-brand-600 text-white font-bold shadow-md shadow-brand-600/30; }
         .nav-btn i { @apply text-base w-5 text-center; }
 
         .sidebar-collapsed .logo-details,
@@ -53,24 +57,43 @@
         .sidebar-collapsed .user-meta { display: none !important; }
         .sidebar-collapsed .nav-btn { justify-content: center; padding-left: 0; padding-right: 0; }
 
-        .kpi-card { @apply bg-white p-5 rounded-2xl border border-slate-200 shadow-card transition-all duration-200 hover:shadow-card-hover flex flex-col justify-between relative overflow-hidden; }
+        .kpi-card { @apply bg-white p-5 rounded-2xl border border-slate-200/90 shadow-card transition-all duration-300 hover:shadow-card-hover flex flex-col justify-between relative overflow-hidden; }
         
         .portal-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .portal-table th { @apply bg-slate-50 text-slate-500 font-bold py-3.5 px-5 text-left text-[11px] uppercase tracking-wider border-b border-slate-200; }
+        .portal-table th { @apply bg-slate-50 text-slate-500 font-bold py-3.5 px-5 text-left text-[11px] uppercase tracking-wider border-b border-slate-200 select-none; }
+        .portal-table th.sortable { cursor: pointer; }
+        .portal-table th.sortable:hover { @apply bg-slate-100 text-slate-700; }
         .portal-table td { @apply py-3.5 px-5 border-b border-slate-100 text-xs text-slate-800 font-medium; }
-        .portal-table tr:hover td { @apply bg-slate-50/80; }
+        .portal-table tr:hover td { @apply bg-slate-50/90; }
         .portal-table tr:last-child td { border-b: 0; }
 
-        .badge-pill { @apply px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 border; }
+        .badge-pill { @apply px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 border; }
         .badge-rose { @apply bg-rose-50 text-rose-700 border-rose-200; }
         .badge-amber { @apply bg-amber-50 text-amber-700 border-amber-200; }
         .badge-emerald { @apply bg-emerald-50 text-emerald-700 border-emerald-200; }
         .badge-brand { @apply bg-indigo-50 text-indigo-700 border-indigo-200; }
+        .badge-purple { @apply bg-purple-50 text-purple-700 border-purple-200; }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Skeleton shimmer animation */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Toast notifications */
+        .toast-enter { transform: translateY(100%); opacity: 0; }
+        .toast-show { transform: translateY(0); opacity: 1; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .toast-exit { transform: translateY(-20px); opacity: 0; transition: all 0.2s ease-in; }
 
         @media (max-width: 1024px) { 
             #sidebar { transform: translateX(-100%); }
@@ -89,7 +112,10 @@
 </head>
 <body class="flex h-screen w-full overflow-hidden bg-slate-100">
 
-    <!-- Mobile Overlay -->
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-[200] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Mobile Sidebar Overlay -->
     <div id="sidebarOverlay" onclick="toggleSidebarMobile()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 hidden transition-opacity"></div>
 
     <!-- Collapsible Sidebar -->
@@ -97,15 +123,15 @@
         <!-- Logo Area -->
         <div class="h-16 flex items-center justify-between px-5 shrink-0 border-b border-slate-800/80">
             <div class="flex items-center gap-3 overflow-hidden">
-                <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shrink-0 shadow-md shadow-brand-600/30">
                     <i class="fas fa-layer-group text-sm"></i>
                 </div>
                 <div class="logo-details">
-                    <h1 class="text-white font-extrabold text-sm tracking-tight leading-none">Hedef <span class="text-brand-500">AVM</span></h1>
-                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">Yönetim Portalı</p>
+                    <h1 class="text-white font-extrabold text-sm tracking-tight leading-none">Hedef <span class="text-brand-400">AVM</span></h1>
+                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">Yönetim Portalı v11.0</p>
                 </div>
             </div>
-            <button onclick="toggleSidebarDesktop()" class="hidden lg:flex w-7 h-7 items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
+            <button onclick="toggleSidebarDesktop()" class="hidden lg:flex w-7 h-7 items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Daralt / Genişlet">
                 <i id="sidebarToggleIcon" class="fas fa-chevron-left text-xs"></i>
             </button>
         </div>
@@ -139,13 +165,13 @@
 
         <!-- Footer User Info -->
         <div class="p-4 border-t border-slate-800/80 bg-slate-950/40 shrink-0 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 border border-slate-700 shrink-0 text-xs">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 border border-slate-700 shrink-0 text-xs shadow-xs">
                 <i class="fas fa-shield-halved"></i>
             </div>
             <div class="overflow-hidden user-meta">
                 <p class="text-white text-xs font-bold truncate">Yönetici Paneli</p>
                 <p class="text-emerald-400 text-[9px] font-semibold flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Çevrimiçi
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Canlı Senkronize
                 </p>
             </div>
         </div>
@@ -155,20 +181,33 @@
     <main class="flex-1 flex flex-col min-w-0 relative h-full overflow-hidden">
         
         <!-- Header Bar -->
-        <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-20 shrink-0 shadow-xs">
-            <div class="flex items-center gap-3">
+        <header class="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between z-20 shrink-0 shadow-xs gap-3">
+            <div class="flex items-center gap-3 shrink-0">
                 <button onclick="toggleSidebarMobile()" class="lg:hidden w-8 h-8 flex items-center justify-center text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
                     <i class="fas fa-bars text-xs"></i>
                 </button>
                 <div>
                     <h2 id="tabTitle" class="text-base font-extrabold text-slate-900 tracking-tight leading-none">Performans Analizi</h2>
-                    <p id="syncStatusSubtitle" class="text-slate-600 text-[10px] font-semibold mt-0.5">Otomatik Senkronizasyon Etkin</p>
+                    <p id="syncStatusSubtitle" class="text-slate-500 text-[10px] font-semibold mt-0.5 flex items-center gap-1">
+                        <i class="fas fa-circle-check text-emerald-500 text-[9px]"></i> Otomatik Senkronizasyon Etkin
+                    </p>
+                </div>
+            </div>
+
+            <!-- Global Live Search Bar -->
+            <div class="flex-1 max-w-xs md:max-w-md relative hidden sm:block">
+                <div class="relative">
+                    <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="globalSearchInput" oninput="onGlobalSearch(this.value)" placeholder="Müşteri adı, tel, no veya şube ara..." class="w-full bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-brand-500 text-xs font-semibold text-slate-800 pl-9 pr-8 h-9 rounded-xl outline-none transition shadow-xs">
+                    <button id="clearSearchBtn" onclick="clearGlobalSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                        <i class="fas fa-xmark"></i>
+                    </button>
                 </div>
             </div>
 
             <!-- Global Action Bar Filters -->
-            <div class="flex items-center gap-2">
-                <div class="text-right hidden sm:block mr-1">
+            <div class="flex items-center gap-2 shrink-0">
+                <div class="text-right hidden lg:block mr-1">
                     <p class="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">Son Güncelleme</p>
                     <p id="lastUpdateTime" class="text-slate-700 text-[11px] font-extrabold">--:--:--</p>
                 </div>
@@ -207,21 +246,21 @@
 
                 <!-- Active Period Selector -->
                 <div class="relative group no-print-selector">
-                    <select id="periodSelector" onchange="fetchData()" class="appearance-none bg-slate-900 border border-slate-900 text-white text-xs font-bold rounded-xl pl-3 pr-7 h-9 outline-none cursor-pointer shadow-xs">
+                    <select id="periodSelector" onchange="fetchData()" class="appearance-none bg-slate-900 hover:bg-slate-800 border border-slate-900 text-white text-xs font-bold rounded-xl pl-3 pr-7 h-9 outline-none cursor-pointer shadow-xs transition">
                         <option value="">Yükleniyor...</option>
                     </select>
-                    <i class="fas fa-calendar absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
+                    <i class="fas fa-calendar-days absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
                 </div>
                 
                 <div class="h-5 w-px bg-slate-200 mx-0.5 hidden md:block no-print-selector"></div>
 
                 <!-- Export Actions -->
-                <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs" title="Excel İndir">
+                <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 h-9 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs" title="Excel İndir">
                     <i class="fas fa-file-excel text-xs"></i>
                     <span class="hidden md:inline">Excel</span>
                 </button>
 
-                <button onclick="printReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs" title="PDF Yazdır">
+                <button onclick="printReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 h-9 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs" title="PDF Yazdır">
                     <i class="fas fa-file-pdf text-xs"></i>
                     <span class="hidden md:inline">PDF</span>
                 </button>
@@ -229,8 +268,23 @@
         </header>
 
         <!-- Dynamic Scrollable Viewport -->
-        <div class="flex-1 overflow-y-auto p-5 lg:p-6 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar space-y-6">
             
+            <!-- Mobile Search Bar -->
+            <div class="sm:hidden relative">
+                <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="globalSearchInputMobile" oninput="onGlobalSearch(this.value)" placeholder="Müşteri adı, tel, no veya şube ara..." class="w-full bg-white border border-slate-200 text-xs font-semibold text-slate-800 pl-9 pr-8 h-9 rounded-xl outline-none shadow-xs">
+            </div>
+
+            <!-- Search Status Notice Banner -->
+            <div id="searchNoticeBanner" class="hidden bg-indigo-50 border border-indigo-200/80 rounded-2xl p-3 px-4 flex items-center justify-between text-xs font-semibold text-indigo-900 max-w-[1500px] mx-auto">
+                <div class="flex items-center gap-2 truncate">
+                    <i class="fas fa-filter text-brand-600"></i>
+                    <span>Arama Filtresi Aktif: "<strong id="searchNoticeQuery"></strong>" (<span id="searchNoticeCount">0</span> kayıt bulundu)</span>
+                </div>
+                <button onclick="clearGlobalSearch()" class="text-indigo-600 hover:text-indigo-900 font-bold underline text-[11px] shrink-0 ml-2">Filtreyi Temizle</button>
+            </div>
+
             <!-- 1. DASHBOARD VIEW -->
             <div id="tab-dashboard" class="space-y-6 max-w-[1500px] mx-auto">
                 
@@ -291,23 +345,58 @@
                     </div>
                 </div>
 
+                <!-- Interactive Visual Analytics Charts Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Branch Performance Bar Chart -->
+                    <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-card flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                                    <i class="fas fa-chart-column text-brand-600"></i> Şube Ciro & Satış Performansı
+                                </h3>
+                                <p class="text-[11px] font-medium text-slate-500">Şubelerin elde ettiği toplam ciro tutarları (TRY)</p>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">Canlı Grafik</span>
+                        </div>
+                        <div class="relative w-full h-[260px]">
+                            <canvas id="chartBranchRevenue"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Category Breakdown Doughnut Chart -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                                    <i class="fas fa-chart-pie text-indigo-500"></i> Kategori Dağılımı
+                                </h3>
+                                <p class="text-[11px] font-medium text-slate-500">Satış yapılan ürün kategorileri</p>
+                            </div>
+                        </div>
+                        <div class="relative w-full h-[260px] flex items-center justify-center">
+                            <canvas id="chartCategoryDoughnut"></canvas>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Branch Performance Table Card -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                         <div>
                             <h3 class="font-bold text-sm text-slate-900">Şube Performans Çizelgesi</h3>
-                            <p class="text-[11px] font-medium text-slate-600">Ciro büyüklüğüne göre sıralanmıştır.</p>
+                            <p class="text-[11px] font-medium text-slate-500">Ciro büyüklüğüne göre sıralanmıştır.</p>
                         </div>
+                        <span id="branchTableCountBadge" class="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-lg">13 Şube</span>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
                         <table class="portal-table">
                             <thead>
                                 <tr>
                                     <th class="w-14 text-center">#</th>
-                                    <th>Şube Adı</th>
-                                    <th class="text-right">Yönlendirme</th>
-                                    <th class="text-right">Satış Adedi</th>
-                                    <th class="text-right">Toplam Ciro</th>
+                                    <th class="sortable" onclick="sortBranchTable('name')">Şube Adı <i class="fas fa-sort text-[9px] ml-1 text-slate-400"></i></th>
+                                    <th class="text-right sortable" onclick="sortBranchTable('referrals')">Yönlendirme <i class="fas fa-sort text-[9px] ml-1 text-slate-400"></i></th>
+                                    <th class="text-right sortable" onclick="sortBranchTable('sales')">Satış Adedi <i class="fas fa-sort text-[9px] ml-1 text-slate-400"></i></th>
+                                    <th class="text-right sortable" onclick="sortBranchTable('revenue')">Toplam Ciro <i class="fas fa-sort text-[9px] ml-1 text-slate-400"></i></th>
                                 </tr>
                             </thead>
                             <tbody id="branch-body"></tbody>
@@ -327,9 +416,12 @@
             <!-- 2. CUSTOMERS VIEW -->
             <div id="tab-customers" class="hidden space-y-6 max-w-[1500px] mx-auto">
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100">
-                        <h3 class="font-bold text-sm text-slate-900">Müşteri Detay Çizelgesi</h3>
-                        <p class="text-[11px] font-medium text-slate-600">Cirolu müşteri işlemlerinin şube bazlı listesi.</p>
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-900">Müşteri Detay Çizelgesi</h3>
+                            <p class="text-[11px] font-medium text-slate-500">Cirolu müşteri işlemlerinin şube bazlı detaylı listesi.</p>
+                        </div>
+                        <span id="customerCountBadge" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">0 Müşteri</span>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
                         <table class="portal-table">
@@ -337,14 +429,15 @@
                                 <tr>
                                     <th class="w-14 text-center">No</th>
                                     <th>Müşteri No</th>
-                                    <th>Telefon (E Sütunu)</th>
+                                    <th>Telefon</th>
+                                    <th>Kategori</th>
                                     <th class="text-right">Tutar (TRY)</th>
                                 </tr>
                             </thead>
                             <tbody id="customer-body-specified"></tbody>
                             <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
                                 <tr>
-                                    <td colspan="3" class="text-right py-4 px-5 text-slate-600 text-xs uppercase">Liste Toplamı</td>
+                                    <td colspan="4" class="text-right py-4 px-5 text-slate-600 text-xs uppercase">Liste Toplamı</td>
                                     <td id="customer-total-val" class="text-right py-4 px-5 text-indigo-700 text-base font-extrabold">₺0</td>
                                 </tr>
                             </tfoot>
@@ -361,9 +454,12 @@
                 </div>
 
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100">
-                        <h3 class="font-bold text-sm text-slate-900">Aksiyon & Takip Listesi</h3>
-                        <p class="text-[11px] font-medium text-slate-600">Tekrar aranacaklar veya mağazaya gelecek müşteriler.</p>
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-900">Aksiyon & Takip Listesi</h3>
+                            <p class="text-[11px] font-medium text-slate-500">Tekrar aranacaklar veya mağazaya gelecek müşteriler.</p>
+                        </div>
+                        <span id="followupCountBadge" class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">0 Kayıt</span>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
                         <table class="portal-table">
@@ -371,7 +467,8 @@
                                 <tr>
                                     <th class="w-14 text-center">#</th>
                                     <th>Müşteri Ad Soyad</th>
-                                    <th>Telefon (E Sütunu)</th>
+                                    <th>Telefon</th>
+                                    <th>Giriş Tarihi</th>
                                     <th>Aksiyon Durumu</th>
                                 </tr>
                             </thead>
@@ -384,9 +481,12 @@
             <!-- 4. UNSPECIFIED VIEW -->
             <div id="tab-unspecified" class="hidden space-y-6 max-w-[1500px] mx-auto">
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100">
-                        <h3 class="font-bold text-sm text-slate-900">Belirtilmeyen Kayıtlar</h3>
-                        <p class="text-[11px] font-medium text-slate-600">Müşteri numarası girilmemiş veya sıfır cirolu satış kayıtları.</p>
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-900">Belirtilmeyen / Uyumsuz Kayıtlar</h3>
+                            <p class="text-[11px] font-medium text-slate-500">Müşteri numarası eksik olan veya sıfır cirolu satış kayıtları.</p>
+                        </div>
+                        <span id="unspecifiedCountBadge" class="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200">0 Hatalı Kayıt</span>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
                         <table class="portal-table">
@@ -394,14 +494,15 @@
                                 <tr>
                                     <th class="w-14 text-center">#</th>
                                     <th>Müşteri Tanımı</th>
-                                    <th>Sorun Durumu</th>
+                                    <th>Telefon / Detay</th>
+                                    <th>Sorun Tipi</th>
                                     <th class="text-right">Tutar (TRY)</th>
                                 </tr>
                             </thead>
                             <tbody id="unspecified-body"></tbody>
                             <tfoot class="bg-rose-50/50 font-bold border-t border-rose-200">
                                 <tr>
-                                    <td colspan="3" class="text-right py-4 px-5 text-rose-700 text-xs uppercase">Hatalı Ciro Toplamı</td>
+                                    <td colspan="4" class="text-right py-4 px-5 text-rose-700 text-xs uppercase">Hatalı Ciro Toplamı</td>
                                     <td id="unspecified-total-val" class="text-right py-4 px-5 text-rose-800 text-base font-extrabold">₺0</td>
                                 </tr>
                             </tfoot>
@@ -418,25 +519,25 @@
                     <div class="kpi-card border-t-4 border-t-amber-500">
                         <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Mükerrer Müşteri</p>
                         <h3 id="dup-kpi-count" class="text-2xl font-extrabold text-slate-900">0</h3>
-                        <p class="text-[10px] font-bold text-amber-600 mt-2">Birden Fazla Giriş</p>
+                        <p class="text-[10px] font-bold text-amber-600 mt-2"><i class="fas fa-users-viewfinder mr-1"></i> Birden Fazla Giriş</p>
                     </div>
 
                     <div class="kpi-card border-t-4 border-t-purple-500">
                         <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Fazladan Kayıt</p>
                         <h3 id="dup-kpi-entries" class="text-2xl font-extrabold text-slate-900">0</h3>
-                        <p class="text-[10px] font-bold text-purple-600 mt-2">Silinebilir Satır</p>
+                        <p class="text-[10px] font-bold text-purple-600 mt-2"><i class="fas fa-trash-can mr-1"></i> Silinebilir Satır</p>
                     </div>
 
                     <div class="kpi-card border-t-4 border-t-rose-500">
                         <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Mükerrer Ciro Riski</p>
                         <h3 id="dup-kpi-revenue" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
-                        <p class="text-[10px] font-bold text-rose-600 mt-2">Çift Sayılan Ciro</p>
+                        <p class="text-[10px] font-bold text-rose-600 mt-2"><i class="fas fa-triangle-exclamation mr-1"></i> Çift Sayılan Ciro</p>
                     </div>
 
                     <div class="kpi-card border-t-4 border-t-blue-500">
                         <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Etkilenen Şubeler</p>
                         <h3 id="dup-kpi-branches" class="text-2xl font-extrabold text-slate-900">0</h3>
-                        <p class="text-[10px] font-bold text-blue-600 mt-2">Şube Tablosu</p>
+                        <p class="text-[10px] font-bold text-blue-600 mt-2"><i class="fas fa-store mr-1"></i> Şube Tablosu</p>
                     </div>
                 </div>
 
@@ -444,7 +545,7 @@
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-card flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
                         <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none">
-                            <input type="checkbox" id="selectAllDuplicatesCheck" onchange="toggleSelectAllDuplicates(this)" class="w-4 h-4 text-brand-600 rounded-md border-slate-300 focus:ring-brand-500">
+                            <input type="checkbox" id="selectAllDuplicatesCheck" onchange="toggleSelectAllDuplicates(this)" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
                             <span>Tümünü Seç</span>
                         </label>
                         <span id="selectedDuplicateCountBadge" class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">0 satır seçildi</span>
@@ -457,7 +558,7 @@
                         </button>
                         <button onclick="cleanAllDuplicateSales()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
                             <i class="fas fa-broom text-xs"></i>
-                            <span>Mükerrer Satışları Temizle</span>
+                            <span>Tüm Mükerrer Satışları Temizle</span>
                         </button>
                     </div>
                 </div>
@@ -492,6 +593,21 @@
                     </div>
                 </div>
 
+                <!-- Periodical Revenue Line Chart -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                                <i class="fas fa-chart-line text-brand-600"></i> Dönemsel Ciro Gelişim Trendi
+                            </h3>
+                            <p class="text-[11px] font-medium text-slate-500">Seçilen dönemler arasındaki toplam ciro değişimi</p>
+                        </div>
+                    </div>
+                    <div class="relative w-full h-[280px]">
+                        <canvas id="chartAdvTrend"></canvas>
+                    </div>
+                </div>
+
                 <!-- Monthly Revenue Cards -->
                 <div id="adv-month-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"></div>
 
@@ -499,7 +615,7 @@
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100">
                         <h3 class="font-bold text-sm text-slate-900">Dönemsel Şube Ciro Karşılaştırma Matrisi</h3>
-                        <p id="adv-comparison-subtitle" class="text-[11px] font-medium text-slate-600">Seçilen dönem aralığına ait ciro değişimleri.</p>
+                        <p id="adv-comparison-subtitle" class="text-[11px] font-medium text-slate-500">Seçilen dönem aralığına ait şube ciro değişimleri.</p>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
                         <table class="portal-table">
@@ -508,16 +624,17 @@
                         </table>
                     </div>
                 </div>
-
-                <div id="adv-insights-container" class="bg-brand-50/70 border border-brand-200 rounded-2xl p-5 hidden"></div>
             </div>
         </div>
 
-        <!-- Global Loader Modal -->
+        <!-- Global Loader Modal with Shimmer -->
         <div id="loadingIndicator" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
-            <div class="bg-white p-5 rounded-2xl shadow-xl flex flex-col items-center gap-3 border border-slate-200 min-w-[200px]">
-                <div class="w-8 h-8 border-3 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
-                <p id="loader-text" class="text-xs font-bold text-slate-700">Veriler Senkronize Ediliyor...</p>
+            <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-3.5 border border-slate-200 min-w-[240px]">
+                <div class="w-10 h-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
+                <div class="text-center">
+                    <p id="loader-text" class="text-xs font-bold text-slate-800">Veriler Senkronize Ediliyor...</p>
+                    <p class="text-[10px] text-slate-400 font-semibold mt-1">Google Sheets sunucusundan veri alınıyor</p>
+                </div>
             </div>
         </div>
 
@@ -567,6 +684,13 @@
         let isSidebarCollapsed = false;
         let pendingCleanAction = null;
         let selectedDuplicateRows = new Set();
+        let searchQuery = "";
+        let branchSortOrder = { field: 'revenue', dir: 'desc' };
+
+        // Chart instances
+        let branchRevenueChart = null;
+        let categoryDoughnutChart = null;
+        let advTrendChart = null;
 
         const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "GEBZE", "DÜZCE", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
         
@@ -577,11 +701,53 @@
             "KASIM": 10, "ARALIK": 11 
         };
 
+        // --- Toast Notifications System ---
+        function showToast(message, type = 'info', duration = 3500) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            const icons = {
+                success: 'fa-circle-check text-emerald-500',
+                error: 'fa-circle-xmark text-rose-500',
+                warning: 'fa-triangle-exclamation text-amber-500',
+                info: 'fa-circle-info text-brand-500'
+            };
+
+            const borderColors = {
+                success: 'border-emerald-200 bg-white',
+                error: 'border-rose-200 bg-white',
+                warning: 'border-amber-200 bg-white',
+                info: 'border-brand-200 bg-white'
+            };
+
+            toast.className = `toast-enter p-3.5 rounded-xl border shadow-lg flex items-center justify-between gap-3 text-xs font-bold text-slate-800 pointer-events-auto ${borderColors[type] || borderColors.info}`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-2.5">
+                    <i class="fas ${icons[type] || icons.info} text-sm"></i>
+                    <span>${message}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 text-xs ml-2">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('toast-show'), 10);
+
+            setTimeout(() => {
+                toast.classList.remove('toast-show');
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 250);
+            }, duration);
+        }
+
+        // --- Helper Functions ---
         function periodToVal(p) {
             if(!p) return 0;
             const parts = p.trim().split(' ');
             const m = MONTH_MAP[parts[0].toUpperCase()] || 0;
-            const y = parseInt(parts[1]) || 0;
+            const y = parseInt(parts[1], 10) || 0;
             return y * 12 + m;
         }
 
@@ -652,6 +818,26 @@
             if (window.innerWidth < 1024) toggleSidebarMobile();
         }
 
+        // --- Global Search Controller ---
+        function onGlobalSearch(query) {
+            searchQuery = String(query || "").trim().toLowerCase();
+            
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) clearBtn.classList.toggle('hidden', searchQuery.length === 0);
+
+            const inputDesk = document.getElementById('globalSearchInput');
+            const inputMob = document.getElementById('globalSearchInputMobile');
+            if (inputDesk && inputDesk.value !== query) inputDesk.value = query;
+            if (inputMob && inputMob.value !== query) inputMob.value = query;
+
+            if (currentData) render(currentData);
+        }
+
+        function clearGlobalSearch() {
+            onGlobalSearch("");
+        }
+
+        // --- Modals Controller ---
         function showErrorModal(title, msg) {
             const titleEl = document.getElementById('errorModalTitle');
             if (titleEl) titleEl.innerText = title;
@@ -683,6 +869,7 @@
             pendingCleanAction = null;
         }
 
+        // --- Page Lifecycle Initialization ---
         document.addEventListener('DOMContentLoaded', async () => {
             const sel = document.getElementById('periodSelector');
             const startSel = document.getElementById('advStartPeriod');
@@ -747,6 +934,7 @@
                 populateBranchFilter(currentData);
                 render(currentData);
                 safeSetText('lastUpdateTime', new Date().toLocaleTimeString('tr-TR'));
+                showToast(`${period} dönemi verileri senkronize edildi.`, 'success');
             } catch (e) { 
                 console.error(e); 
                 showErrorModal("Veri Hatası", "Dönem verileri alınamadı.");
@@ -838,6 +1026,7 @@
             }));
         }
 
+        // --- Duplicates Selection & Action Handlers ---
         function toggleSelectAllDuplicates(masterCheckbox) {
             const isChecked = masterCheckbox.checked;
             document.querySelectorAll('.dup-row-checkbox').forEach(cb => {
@@ -964,6 +1153,7 @@
                     render(currentData);
                     if (loader) loader.classList.add('hidden');
                     
+                    showToast(resData.message || "Kayıtlar başarıyla silindi.", 'success');
                     fetchDataSilent();
                 } else {
                     if (loader) loader.classList.add('hidden');
@@ -976,6 +1166,103 @@
             } finally {
                 if (loaderText) loaderText.innerText = "Veriler Senkronize Ediliyor...";
             }
+        }
+
+        // --- Render Interactive Charts ---
+        function renderDashboardCharts(branchSummary, categoryCounts) {
+            // 1. Branch Revenue Bar Chart
+            const ctxBranch = document.getElementById('chartBranchRevenue')?.getContext('2d');
+            if (ctxBranch) {
+                if (branchRevenueChart) branchRevenueChart.destroy();
+                
+                const labels = branchSummary.map(b => b.name.replace(' Şubesi', ''));
+                const revenueData = branchSummary.map(b => b.revenue || 0);
+
+                branchRevenueChart = new Chart(ctxBranch, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Ciro (₺)',
+                            data: revenueData,
+                            backgroundColor: 'rgba(99, 102, 241, 0.85)',
+                            borderColor: '#4f46e5',
+                            borderWidth: 1,
+                            borderRadius: 8,
+                            hoverBackgroundColor: '#4338ca'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Ciro: ' + new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(context.raw);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } } },
+                            y: {
+                                ticks: {
+                                    font: { family: 'Plus Jakarta Sans', size: 10 },
+                                    callback: function(value) { return '₺' + (value >= 1000 ? (value/1000).toFixed(0) + 'k' : value); }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. Category Doughnut Chart
+            const ctxCat = document.getElementById('chartCategoryDoughnut')?.getContext('2d');
+            if (ctxCat) {
+                if (categoryDoughnutChart) categoryDoughnutChart.destroy();
+
+                const catEntries = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+                const labels = catEntries.map(e => e[0]);
+                const data = catEntries.map(e => e[1]);
+                
+                const colors = ['#6366f1', '#a855f7', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'];
+
+                categoryDoughnutChart = new Chart(ctxCat, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels.length > 0 ? labels : ['Kategori Yok'],
+                        datasets: [{
+                            data: data.length > 0 ? data : [1],
+                            backgroundColor: labels.length > 0 ? colors : ['#cbd5e1'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' }, boxWidth: 12 }
+                            }
+                        },
+                        cutout: '65%'
+                    }
+                });
+            }
+        }
+
+        function sortBranchTable(field) {
+            if (branchSortOrder.field === field) {
+                branchSortOrder.dir = branchSortOrder.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                branchSortOrder.field = field;
+                branchSortOrder.dir = 'desc';
+            }
+            if (currentData) render(currentData);
         }
 
         function renderDuplicates(list) {
@@ -1045,7 +1332,7 @@
                             <i class="fas fa-circle-check"></i>
                         </div>
                         <h4 class="font-bold text-slate-800 text-sm">Mükerrer Kayıt Bulunmuyor</h4>
-                        <p class="text-slate-600 text-xs mt-1">Seçilen dönem ve filtreye uygun çakışan kayıt tespit edilmedi.</p>
+                        <p class="text-slate-500 text-xs mt-1">Seçilen dönem ve filtreye uygun çakışan kayıt tespit edilmedi.</p>
                     </div>
                 `;
                 return;
@@ -1056,20 +1343,25 @@
                 const custName = group.items.find(i => i.customerName)?.customerName || firstItem.customerNo || "İsimsiz Müşteri";
                 const phoneDisplay = firstItem.phone || group.key;
 
+                const multiBranchBadge = group.isMultiBranch
+                    ? `<span class="bg-purple-500/20 text-purple-300 border border-purple-400/30 text-[9px] font-bold px-2 py-0.5 rounded"><i class="fas fa-network-wired mr-1"></i>Çoklu Şube Mükerreri (${group.distinctBranchesCount} Şube)</span>`
+                    : `<span class="bg-slate-700 text-slate-300 text-[9px] font-bold px-2 py-0.5 rounded"><i class="fas fa-store mr-1"></i>Tek Şube İçi</span>`;
+
                 return `
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
                         <div class="bg-slate-900 text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
-                                <input type="checkbox" onchange="toggleCustomerGroupDuplicates(this, '${group.key}')" class="group-master-checkbox w-4 h-4 rounded-md text-brand-600 border-slate-700 bg-slate-800">
+                                <input type="checkbox" onchange="toggleCustomerGroupDuplicates(this, '${group.key}')" class="group-master-checkbox w-4 h-4 rounded text-brand-600 border-slate-700 bg-slate-800 focus:ring-brand-500">
                                 <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-xs shrink-0">
                                     <i class="fas fa-user-tag"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-bold text-xs text-white flex items-center gap-2">
+                                    <h4 class="font-bold text-xs text-white flex items-center gap-2 flex-wrap">
                                         ${custName}
                                         <span class="text-[11px] text-slate-400 font-normal">(${phoneDisplay})</span>
+                                        ${multiBranchBadge}
                                     </h4>
-                                    <p class="text-[10px] text-slate-400 mt-0.5">${group.items.length} Kayıt • ${group.distinctBranchesCount} Şube</p>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">${group.items.length} Kayıt • ${group.distinctBranchesCount} Şube Tablosu</p>
                                 </div>
                             </div>
 
@@ -1115,7 +1407,7 @@
                                                     <input type="checkbox" data-row-key="${rowKey}" ${isChecked ? 'checked' : ''} onchange="onDuplicateRowCheckChange(this)" class="dup-row-checkbox dup-row-${group.key} w-3.5 h-3.5 text-brand-600 rounded border-slate-300">
                                                 </td>
                                                 <td class="text-center font-bold text-slate-400 text-xs">${idx + 1}</td>
-                                                <td class="font-bold text-slate-700 text-xs"><i class="fas fa-calendar text-slate-400 mr-1.5"></i>${item.date || '---'}</td>
+                                                <td class="font-bold text-slate-700 text-xs"><i class="fas fa-calendar-days text-slate-400 mr-1.5"></i>${item.date || '---'}</td>
                                                 <td class="font-bold text-slate-900 text-xs">${item.branch}</td>
                                                 <td>${tagBadge}</td>
                                                 <td>
@@ -1141,6 +1433,7 @@
             window.lastDuplicateGroups = duplicateGroups;
         }
 
+        // --- Main Render Pipeline ---
         function render(data) {
             if (!data) return;
             const branchSelector = document.getElementById('branchSelector');
@@ -1154,6 +1447,26 @@
             let list = data.customerList || [];
             if (selectedBranch !== "Tümü") {
                 list = list.filter(i => i.branch === selectedBranch);
+            }
+
+            // Apply Global Search Filter
+            if (searchQuery) {
+                list = list.filter(i => {
+                    const nameStr = String(i.customerName || "").toLowerCase();
+                    const phoneStr = String(i.phone || "").toLowerCase();
+                    const noStr = String(i.customerNo || "").toLowerCase();
+                    const branchStr = String(i.branch || "").toLowerCase();
+                    const catStr = String(i.category || "").toLowerCase();
+                    return nameStr.includes(searchQuery) || phoneStr.includes(searchQuery) || noStr.includes(searchQuery) || branchStr.includes(searchQuery) || catStr.includes(searchQuery);
+                });
+
+                const banner = document.getElementById('searchNoticeBanner');
+                if (banner) banner.classList.remove('hidden');
+                safeSetText('searchNoticeQuery', searchQuery);
+                safeSetText('searchNoticeCount', num(list.length));
+            } else {
+                const banner = document.getElementById('searchNoticeBanner');
+                if (banner) banner.classList.add('hidden');
             }
 
             const totalReferrals = list.length;
@@ -1201,17 +1514,24 @@
             safeSetText('kpi-basket', fmt(avgBasket));
 
             if (activeTab === 'dashboard') {
-                let branchSummary = [...(data.charts.branch || [])];
+                let branchSummary = [...(data.charts?.branch || [])];
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
-                branchSummary.sort((a, b) => b.revenue - a.revenue);
                 
                 branchSummary.forEach(b => {
-                    b.referrals = data.customerList.filter(i => i.branch === b.name).length;
-                    b.sales = data.customerList.filter(i => {
+                    b.referrals = list.filter(i => i.branch === b.name).length;
+                    b.sales = list.filter(i => {
                         const ciro = Number(i.revenue || 0);
                         const stat = String(i.status || "").trim().toLowerCase();
                         return i.branch === b.name && (ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu');
                     }).length;
+                });
+
+                // Apply Table Sorting
+                const sortField = branchSortOrder.field;
+                const sortMult = branchSortOrder.dir === 'asc' ? 1 : -1;
+                branchSummary.sort((a, b) => {
+                    if (sortField === 'name') return a.name.localeCompare(b.name, 'tr') * sortMult;
+                    return ((a[sortField] || 0) - (b[sortField] || 0)) * sortMult;
                 });
 
                 const branchBody = document.getElementById('branch-body');
@@ -1230,6 +1550,9 @@
                 safeSetText('total-sales-val', num(totalSales));
                 safeSetText('total-referrals-val', num(totalReferrals));
                 safeSetText('total-revenue-val', fmt(totalRevenue));
+                safeSetText('branchTableCountBadge', `${branchSummary.length} Şube`);
+
+                renderDashboardCharts(branchSummary, categoryCounts);
 
             } else if (activeTab === 'customers') {
                 const specList = list.filter(i => {
@@ -1242,11 +1565,18 @@
                 const customerBody = document.getElementById('customer-body-specified');
                 if (customerBody) {
                     customerBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-indigo-50/40"><td colspan="4" class="px-5 py-2 font-bold text-indigo-800 text-[11px] uppercase tracking-wider border-y border-indigo-100"><i class="fas fa-store mr-1.5"></i> ${group.branch}</td></tr>
-                        ${group.items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-bold text-xs">${idx+1}</td><td class="font-bold text-slate-800 text-xs">${item.customerNo}</td><td class="text-xs text-slate-600">${item.phone || '---'}</td><td class="text-right font-bold text-indigo-700 text-xs">${fmt(item.revenue)}</td></tr>`).join('')}
+                        <tr class="bg-indigo-50/40"><td colspan="5" class="px-5 py-2 font-bold text-indigo-800 text-[11px] uppercase tracking-wider border-y border-indigo-100"><i class="fas fa-store mr-1.5"></i> ${group.branch} (${group.items.length})</td></tr>
+                        ${group.items.map((item, idx) => `<tr>
+                            <td class="text-center text-slate-400 font-bold text-xs">${idx+1}</td>
+                            <td class="font-bold text-slate-800 text-xs">${item.customerNo}</td>
+                            <td class="text-xs text-slate-600">${item.phone || '---'}</td>
+                            <td class="text-xs font-semibold text-slate-700">${item.category || '---'}</td>
+                            <td class="text-right font-bold text-indigo-700 text-xs">${fmt(item.revenue)}</td>
+                        </tr>`).join('')}
                     `).join('');
                 }
                 safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
+                safeSetText('customerCountBadge', `${specList.length} Müşteri`);
 
             } else if (activeTab === 'followup') {
                 renderFollowupKPIs(list);
@@ -1273,7 +1603,7 @@
 
                 if (followupBody) {
                     followupBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-slate-100/60"><td colspan="4" class="px-5 py-2 font-bold text-slate-700 text-[11px] uppercase tracking-wider border-y border-slate-200"><i class="fas fa-building mr-1.5"></i> ${group.branch} (${group.items.length})</td></tr>
+                        <tr class="bg-slate-100/60"><td colspan="5" class="px-5 py-2 font-bold text-slate-700 text-[11px] uppercase tracking-wider border-y border-slate-200"><i class="fas fa-building mr-1.5"></i> ${group.branch} (${group.items.length})</td></tr>
                         ${group.items.map((item, idx) => {
                             const callStatus = String(item.callStatus || "").trim().toLowerCase();
                             const status = String(item.status || "").trim().toLowerCase();
@@ -1288,7 +1618,7 @@
                                 label = 'Tekrar Aranacak'; 
                             }
                             
-                            let lateWarning = item.isLate ? `<span class="text-[10px] font-bold text-rose-600 ml-2 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200"><i class="fas fa-clock mr-1"></i>${item.date} Gecikmiş</span>` : '';
+                            let lateWarning = item.isLate ? `<span class="text-[10px] font-bold text-rose-600 ml-2 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200"><i class="fas fa-clock mr-1"></i>Gecikmiş</span>` : '';
                             
                             return `<tr>
                                 <td class="text-center text-slate-400 font-bold text-xs">${idx+1}</td>
@@ -1297,11 +1627,13 @@
                                     ${lateWarning}
                                 </td>
                                 <td class="text-xs text-slate-600">${item.phone || '---'}</td>
+                                <td class="text-xs text-slate-600 font-medium">${item.date || '---'}</td>
                                 <td><span class="${badgeClass}">${label}</span></td>
                             </tr>`;
                         }).join('')}
                     `).join('');
                 }
+                safeSetText('followupCountBadge', `${fList.length} Takip Kaydı`);
 
             } else if (activeTab === 'unspecified') {
                 const unspecList = list.filter(i => {
@@ -1315,7 +1647,7 @@
                 const unspecifiedBody = document.getElementById('unspecified-body');
                 if (unspecifiedBody) {
                     unspecifiedBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-rose-50/40"><td colspan="4" class="px-5 py-2 font-bold text-rose-800 text-[11px] uppercase tracking-wider border-y border-rose-100"><i class="fas fa-triangle-exclamation mr-1.5"></i> ${group.branch} (${group.items.length})</td></tr>
+                        <tr class="bg-rose-50/40"><td colspan="5" class="px-5 py-2 font-bold text-rose-800 text-[11px] uppercase tracking-wider border-y border-rose-100"><i class="fas fa-triangle-exclamation mr-1.5"></i> ${group.branch} (${group.items.length})</td></tr>
                         ${group.items.map((item, idx) => {
                             const status = String(item.status || "").trim().toLowerCase();
                             const rev = Number(item.revenue || 0);
@@ -1323,6 +1655,7 @@
                             return `<tr>
                                 <td class="text-center text-slate-400 font-bold text-xs">${idx+1}</td>
                                 <td class="font-bold text-slate-800 text-xs">${item.customerName || "---"}</td>
+                                <td class="text-xs text-slate-600">${item.phone || '---'}</td>
                                 <td><span class="badge-pill ${isZeroRevenue ? 'badge-amber' : 'badge-rose'}">${isZeroRevenue ? 'Sıfır Cirolu Satış' : 'Numara Eksik'}</span></td>
                                 <td class="text-right font-bold text-rose-700 text-xs">${fmt(rev)}</td>
                             </tr>`;
@@ -1330,10 +1663,34 @@
                     `).join('');
                 }
                 safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
+                safeSetText('unspecifiedCountBadge', `${unspecList.length} Uyumsuz Kayıt`);
 
             } else if (activeTab === 'duplicates') {
                 renderDuplicates(list);
             }
+        }
+
+        function renderFollowupKPIs(list) {
+            const container = document.getElementById('followup-kpi-container');
+            if (!container) return;
+
+            const branchCounts = {};
+            list.forEach(i => {
+                const s = String(i.status || "").trim().toLowerCase();
+                const cs = String(i.callStatus || "").trim().toLowerCase();
+                if (s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı' || cs === 'aranmadi') {
+                    branchCounts[i.branch] = (branchCounts[i.branch] || 0) + 1;
+                }
+            });
+
+            const sortedBranches = Object.keys(branchCounts).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
+            
+            container.innerHTML = sortedBranches.map(b => `
+                <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-card">
+                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider truncate">${b}</p>
+                    <p class="text-lg font-extrabold text-slate-900 mt-0.5">${branchCounts[b]}</p>
+                </div>
+            `).join('');
         }
 
         async function runAdvancedAnalysis() {
@@ -1374,6 +1731,7 @@
                 }));
 
                 buildAdvancedReport(targetPeriods, prevPeriods);
+                showToast("Gelişmiş dönem analizi tamamlandı.", "info");
             } catch (err) {
                 console.error(err);
                 showErrorModal("Analiz Hatası", "Gelişmiş dönem raporu oluşturulamadı.");
@@ -1454,9 +1812,59 @@
             bodyHtml += `</tr>`;
 
             if (tableBody) tableBody.innerHTML = bodyHtml;
+
+            // Render Advanced Periodical Line Chart
+            const ctxAdv = document.getElementById('chartAdvTrend')?.getContext('2d');
+            if (ctxAdv) {
+                if (advTrendChart) advTrendChart.destroy();
+                const trendData = periods.map(p => monthlyStats[p]?.totalRevenue || 0);
+
+                advTrendChart = new Chart(ctxAdv, {
+                    type: 'line',
+                    data: {
+                        labels: periods,
+                        datasets: [{
+                            label: 'Toplam Ciro (₺)',
+                            data: trendData,
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(99, 102, 241, 0.12)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#4338ca',
+                            pointRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Ciro: ' + new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(context.raw);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '700' } } },
+                            y: {
+                                ticks: {
+                                    font: { family: 'Plus Jakarta Sans', size: 10 },
+                                    callback: function(value) { return '₺' + (value >= 1000 ? (value/1000).toFixed(0) + 'k' : value); }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
             window.lastAdvancedStats = { periods, prevPeriods, sortedBranches, monthlyStats };
         }
 
+        // --- Export & Print Handlers ---
         function exportToExcel() {
             if (activeTab === 'advanced') {
                 exportAdvancedToExcel();
@@ -1501,6 +1909,7 @@
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, "Rapor");
             XLSX.writeFile(wb, `Hedef_AVM_${activeTab.toUpperCase()}_${period.replace(/ /g, '_')}.xlsx`);
+            showToast("Excel raporu indirildi.", "success");
         }
 
         function exportAdvancedToExcel() {
@@ -1532,6 +1941,7 @@
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, "Gelişmiş Rapor");
             XLSX.writeFile(wb, `Hedef_AVM_Gelismis_Rapor_${periods[0].replace(/ /g, '_')}_${periods[periods.length - 1].replace(/ /g, '_')}.xlsx`);
+            showToast("Gelişmiş Excel raporu indirildi.", "success");
         }
 
         function printReport() { window.print(); }
