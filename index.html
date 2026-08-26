@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hedef AVM CRM | Yönetim Paneli</title>
-    <!-- Tailwind CSS -->
+    <title>Hedef AVM CRM | Yönetim Portalı</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (Excel Çıktısı) -->
+    <!-- SheetJS (Excel) -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <!-- Font Awesome -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,59 +17,59 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
                         brand: {
                             50: '#eef2ff',
                             100: '#e0e7ff',
                             200: '#c7d2fe',
                             500: '#6366f1',
-                            600: '#4f46e5', 
+                            600: '#4f46e5',
                             700: '#4338ca',
                             900: '#312e81',
-                        },
+                            950: '#1e1b4b'
+                        }
                     },
                     boxShadow: {
-                        'card': '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02)',
-                        'glow': '0 0 20px rgba(79, 70, 229, 0.25)',
+                        'card': '0 2px 8px -1px rgba(15, 23, 42, 0.06), 0 1px 4px -1px rgba(15, 23, 42, 0.04)',
+                        'card-hover': '0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03)',
+                        'glow': '0 0 20px rgba(79, 70, 229, 0.25)'
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #f1f5f9; color: #0f172a; }
+        body { background-color: #f8fafc; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif; }
         
-        #sidebar { transition: width 0.25s ease, transform 0.25s ease; }
-        .nav-link { @apply flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-400 font-semibold text-xs transition-all duration-200 border border-transparent; }
-        .nav-link:hover { @apply text-white bg-slate-800/80; }
-        .nav-link.active { @apply bg-brand-600 text-white shadow-glow border-brand-500 font-bold; }
-        .nav-link i { @apply text-base w-5 text-center transition-transform duration-200; }
-        .nav-link.active i { @apply scale-110 text-white; }
+        #sidebar { transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-btn { @apply flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-400 font-semibold text-xs tracking-wide transition-all duration-150; }
+        .nav-btn:hover { @apply text-white bg-slate-800/70; }
+        .nav-btn.active { @apply bg-brand-600 text-white font-bold shadow-md; }
+        .nav-btn i { @apply text-base w-5 text-center; }
 
-        .sidebar-collapsed .logo-text,
-        .sidebar-collapsed .nav-text,
-        .sidebar-collapsed .user-text { display: none !important; }
-        .sidebar-collapsed .nav-link { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar-collapsed .logo-details,
+        .sidebar-collapsed .nav-label,
+        .sidebar-collapsed .user-meta { display: none !important; }
+        .sidebar-collapsed .nav-btn { justify-content: center; padding-left: 0; padding-right: 0; }
 
-        .stat-card { @apply bg-white p-5 rounded-2xl border border-slate-200/80 shadow-card transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between min-h-[135px]; }
+        .kpi-card { @apply bg-white p-5 rounded-2xl border border-slate-200 shadow-card transition-all duration-200 hover:shadow-card-hover flex flex-col justify-between relative overflow-hidden; }
         
-        .table-wrapper { @apply bg-white rounded-2xl border border-slate-200/80 shadow-card overflow-hidden; }
-        .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .modern-table th { @apply bg-slate-50 text-slate-600 font-bold py-3.5 px-5 text-left text-[11px] uppercase tracking-wider border-b border-slate-200 whitespace-nowrap; }
-        .modern-table td { @apply py-3.5 px-5 border-b border-slate-100 text-xs text-slate-800 font-semibold transition-colors; }
-        .modern-table tr:hover td { @apply bg-slate-50/70; }
-        .modern-table tr:last-child td { border-b: 0; }
+        .portal-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .portal-table th { @apply bg-slate-50 text-slate-500 font-bold py-3.5 px-5 text-left text-[11px] uppercase tracking-wider border-b border-slate-200; }
+        .portal-table td { @apply py-3.5 px-5 border-b border-slate-100 text-xs text-slate-800 font-medium; }
+        .portal-table tr:hover td { @apply bg-slate-50/80; }
+        .portal-table tr:last-child td { border-b: 0; }
 
-        .badge { @apply px-2.5 py-1 rounded-md text-[11px] font-extrabold tracking-wide uppercase border inline-flex items-center gap-1 text-center shrink-0 whitespace-nowrap; }
+        .badge-pill { @apply px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 border; }
         .badge-rose { @apply bg-rose-50 text-rose-700 border-rose-200; }
         .badge-amber { @apply bg-amber-50 text-amber-700 border-amber-200; }
         .badge-emerald { @apply bg-emerald-50 text-emerald-700 border-emerald-200; }
-        .badge-brand { @apply bg-brand-50 text-brand-700 border-brand-200; }
+        .badge-brand { @apply bg-indigo-50 text-indigo-700 border-indigo-200; }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         @media (max-width: 1024px) { 
@@ -79,101 +79,107 @@
 
         #printArea { display: none; }
         @media print {
-            html, body { height: auto !important; width: auto !important; overflow: visible !important; background-color: white !important; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             body > * { display: none !important; }
-            body > #printArea { display: block !important; width: 100%; color: black; font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; }
-            .print-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; }
-            .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px 12px; text-align: left; }
-            .print-table th { background-color: #f1f5f9 !important; font-weight: 800; color: #1e293b; }
+            body > #printArea { display: block !important; width: 100%; color: black; padding: 15px; }
+            .print-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left; }
+            .print-table th { background-color: #f1f5f9 !important; font-weight: bold; }
         }
     </style>
 </head>
-<body class="flex h-screen w-full overflow-hidden font-sans antialiased bg-[#f1f5f9]">
+<body class="flex h-screen w-full overflow-hidden bg-slate-100">
 
-    <div id="sidebarOverlay" onclick="toggleSidebarMobile()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-30 hidden transition-opacity"></div>
+    <!-- Mobile Overlay -->
+    <div id="sidebarOverlay" onclick="toggleSidebarMobile()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 hidden transition-opacity"></div>
 
-    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-[250px] bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 z-40 shadow-xl lg:shadow-none">
-        <div class="h-16 flex items-center justify-between px-5 shrink-0 border-b border-slate-800">
+    <!-- Collapsible Sidebar -->
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-[240px] bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 z-40 shadow-xl lg:shadow-none border-r border-slate-800">
+        <!-- Logo Area -->
+        <div class="h-16 flex items-center justify-between px-5 shrink-0 border-b border-slate-800/80">
             <div class="flex items-center gap-3 overflow-hidden">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-glow text-white shrink-0">
-                    <i class="fas fa-chart-pie text-sm"></i>
+                <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+                    <i class="fas fa-layer-group text-sm"></i>
                 </div>
-                <div class="logo-text">
-                    <h1 class="text-white font-extrabold text-base tracking-tight leading-none">Hedef <span class="font-light text-slate-400">AVM</span></h1>
-                    <p class="text-brand-400 text-[9px] font-bold uppercase tracking-widest mt-1">CRM Portal v12</p>
+                <div class="logo-details">
+                    <h1 class="text-white font-extrabold text-sm tracking-tight leading-none">Hedef <span class="text-brand-500">AVM</span></h1>
+                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">Yönetim Portalı</p>
                 </div>
             </div>
-            <button onclick="toggleSidebarDesktop()" class="hidden lg:flex w-7 h-7 items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Menüyü Daralt/Genişlet">
+            <button onclick="toggleSidebarDesktop()" class="hidden lg:flex w-7 h-7 items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
                 <i id="sidebarToggleIcon" class="fas fa-chevron-left text-xs"></i>
             </button>
         </div>
 
-        <nav class="flex-1 px-3 py-5 overflow-y-auto custom-scrollbar flex flex-col gap-1">
-            <div class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider logo-text">Ana Yönetim</div>
+        <!-- Navigation Links -->
+        <nav class="flex-1 px-3 py-4 overflow-y-auto custom-scrollbar flex flex-col gap-1">
+            <div class="px-3 mb-1.5 text-[9px] font-extrabold text-slate-400 uppercase tracking-wider logo-details">Genel Analiz</div>
             
-            <button onclick="setTab('dashboard'); maybeCloseSidebar()" id="sidebar-btn-dashboard" class="nav-link active">
-                <i class="fas fa-grid-2"></i> <span class="nav-text">Genel Bakış</span>
+            <button onclick="setTab('dashboard'); maybeCloseSidebar()" id="sidebar-btn-dashboard" class="nav-btn active">
+                <i class="fas fa-chart-pie"></i> <span class="nav-label">Performans Analizi</span>
             </button>
-            <button onclick="setTab('customers'); maybeCloseSidebar()" id="sidebar-btn-customers" class="nav-link">
-                <i class="fas fa-users-gear"></i> <span class="nav-text">Müşteri Detayları</span>
+            <button onclick="setTab('customers'); maybeCloseSidebar()" id="sidebar-btn-customers" class="nav-btn">
+                <i class="fas fa-users"></i> <span class="nav-label">Müşteri Detayları</span>
             </button>
-            <button onclick="setTab('advanced'); maybeCloseSidebar()" id="sidebar-btn-advanced" class="nav-link">
-                <i class="fas fa-chart-line-up"></i> <span class="nav-text">Gelişmiş Rapor</span>
+            <button onclick="setTab('advanced'); maybeCloseSidebar()" id="sidebar-btn-advanced" class="nav-btn">
+                <i class="fas fa-chart-column"></i> <span class="nav-label">Gelişmiş Rapor</span>
             </button>
             
-            <div class="px-3 mt-5 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider logo-text">Aksiyonlar & Denetim</div>
+            <div class="px-3 mt-4 mb-1.5 text-[9px] font-extrabold text-slate-400 uppercase tracking-wider logo-details">Aksiyon & Denetim</div>
             
-            <button onclick="setTab('followup'); maybeCloseSidebar()" id="sidebar-btn-followup" class="nav-link">
-                <i class="fas fa-headset"></i> <span class="nav-text">Takip Listesi</span>
+            <button onclick="setTab('followup'); maybeCloseSidebar()" id="sidebar-btn-followup" class="nav-btn">
+                <i class="fas fa-phone-volume"></i> <span class="nav-label">Takip Listesi</span>
             </button>
-            <button onclick="setTab('unspecified'); maybeCloseSidebar()" id="sidebar-btn-unspecified" class="nav-link">
-                <i class="fas fa-triangle-exclamation"></i> <span class="nav-text">No Belirtilmeyenler</span>
+            <button onclick="setTab('unspecified'); maybeCloseSidebar()" id="sidebar-btn-unspecified" class="nav-btn">
+                <i class="fas fa-triangle-exclamation"></i> <span class="nav-label">Belirtilmeyenler</span>
             </button>
-            <button onclick="setTab('duplicates'); maybeCloseSidebar()" id="sidebar-btn-duplicates" class="nav-link">
-                <i class="fas fa-users-between-lines"></i> <span class="nav-text">Mükerrer Satış Kontrolü</span>
+            <button onclick="setTab('duplicates'); maybeCloseSidebar()" id="sidebar-btn-duplicates" class="nav-btn">
+                <i class="fas fa-clone"></i> <span class="nav-label">Mükerrer Satış Kontrolü</span>
             </button>
         </nav>
 
-        <div class="p-4 border-t border-slate-800 bg-slate-950/40 shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 border border-slate-700 shrink-0">
-                    <i class="fas fa-shield-halved text-xs"></i>
-                </div>
-                <div class="overflow-hidden user-text">
-                    <p class="text-white text-xs font-bold truncate">Yönetici Paneli</p>
-                    <p class="text-slate-500 text-[10px] font-medium">Canlı Senkronizasyon</p>
-                </div>
+        <!-- Footer User Info -->
+        <div class="p-4 border-t border-slate-800/80 bg-slate-950/40 shrink-0 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 border border-slate-700 shrink-0 text-xs">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+            <div class="overflow-hidden user-meta">
+                <p class="text-white text-xs font-bold truncate">Yönetici Paneli</p>
+                <p class="text-emerald-400 text-[9px] font-semibold flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Çevrimiçi
+                </p>
             </div>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-w-0 relative h-full">
-        <header class="h-16 bg-white border-b border-slate-200/80 px-5 lg:px-7 flex items-center justify-between z-20 shrink-0 sticky top-0 shadow-xs gap-3">
-            <div class="flex items-center gap-3 shrink-0">
-                <button onclick="toggleSidebarMobile()" class="lg:hidden w-9 h-9 flex items-center justify-center text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition shadow-xs">
+    <!-- Main Content Stage -->
+    <main class="flex-1 flex flex-col min-w-0 relative h-full overflow-hidden">
+        
+        <!-- Header Bar -->
+        <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-20 shrink-0 shadow-xs">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebarMobile()" class="lg:hidden w-8 h-8 flex items-center justify-center text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
                     <i class="fas fa-bars text-xs"></i>
                 </button>
                 <div>
-                    <h2 id="tabTitle" class="text-base lg:text-lg font-extrabold text-slate-900 tracking-tight">Performans Analizi</h2>
-                    <div class="flex items-center gap-1.5 mt-0.5">
-                        <span id="syncPulse" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <p id="syncText" class="text-slate-500 text-[10px] font-semibold">Canlı Senkronizasyon Etkin</p>
-                    </div>
+                    <h2 id="tabTitle" class="text-base font-extrabold text-slate-900 tracking-tight leading-none">Performans Analizi</h2>
+                    <p id="syncStatusSubtitle" class="text-slate-600 text-[10px] font-semibold mt-0.5">Otomatik Senkronizasyon Etkin</p>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-2 flex-wrap justify-end">
-                <div class="text-right hidden sm:block mr-2">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">Son Güncelleme</p>
-                    <p id="lastUpdateTime" class="text-slate-800 text-xs font-bold mt-0.5">--:--:--</p>
+
+            <!-- Global Action Bar Filters -->
+            <div class="flex items-center gap-2">
+                <div class="text-right hidden sm:block mr-1">
+                    <p class="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">Son Güncelleme</p>
+                    <p id="lastUpdateTime" class="text-slate-700 text-[11px] font-extrabold">--:--:--</p>
                 </div>
 
-                <button onclick="fetchData()" class="w-9 h-9 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200 transition active:scale-95 shadow-xs group no-print-selector shrink-0" title="Verileri Şimdi Güncelle">
-                    <i class="fas fa-rotate-right text-brand-600 text-xs group-active:rotate-180 transition duration-500"></i>
+                <button onclick="fetchData()" class="w-9 h-9 flex items-center justify-center bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-200 transition shadow-xs group" title="Verileri Güncelle">
+                    <i class="fas fa-rotate-right text-brand-600 group-active:rotate-180 transition duration-300 text-xs"></i>
                 </button>
 
-                <div id="followupFilterContainer" class="relative group hidden shrink-0">
-                    <select id="followupFilter" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-800 text-xs font-bold rounded-xl pl-3 pr-7 h-9 outline-none cursor-pointer shadow-xs">
+                <!-- Follow-up Filter -->
+                <div id="followupFilterContainer" class="relative group hidden">
+                    <select id="followupFilter" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl pl-3 pr-7 h-9 outline-none cursor-pointer shadow-xs">
                         <option value="Tümü">Tüm Aksiyonlar</option>
                         <option value="aranmadı">Aranmadı</option>
                         <option value="müşteri mağazaya gelecek">Mağazaya Gelecek</option>
@@ -182,144 +188,133 @@
                     <i class="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
                 </div>
 
-                <div id="branchFilterContainer" class="relative group shrink-0">
-                    <select id="branchSelector" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-800 text-xs font-bold rounded-xl pl-3 pr-7 h-9 outline-none cursor-pointer shadow-xs">
+                <!-- Duplicate Status Filter -->
+                <div id="duplicateFilterContainer" class="relative group hidden">
+                    <select id="duplicateFilter" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl pl-3 pr-7 h-9 outline-none cursor-pointer shadow-xs">
+                        <option value="tumu">Tüm Mükerrer Kayıtlar</option>
+                        <option value="satislar" selected>Sadece Satışa Dönen Mükerrerler (Ciro > 0)</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
+                </div>
+
+                <!-- Branch Filter -->
+                <div id="branchFilterContainer" class="relative group">
+                    <select id="branchSelector" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl pl-3 pr-7 h-9 outline-none cursor-pointer shadow-xs">
                         <option value="Tümü">Tüm Şubeler</option>
                     </select>
                     <i class="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
                 </div>
 
-                <div class="relative group no-print-selector shrink-0">
+                <!-- Active Period Selector -->
+                <div class="relative group no-print-selector">
                     <select id="periodSelector" onchange="fetchData()" class="appearance-none bg-slate-900 border border-slate-900 text-white text-xs font-bold rounded-xl pl-3 pr-7 h-9 outline-none cursor-pointer shadow-xs">
                         <option value="">Yükleniyor...</option>
                     </select>
-                    <i class="fas fa-calendar-days absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
+                    <i class="fas fa-calendar absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
                 </div>
                 
-                <div class="h-5 w-px bg-slate-200 mx-0.5 hidden md:block no-print-selector shrink-0"></div>
+                <div class="h-5 w-px bg-slate-200 mx-0.5 hidden md:block no-print-selector"></div>
 
-                <button id="btn-printSummary" onclick="printSummaryReport()" class="bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs shrink-0" title="Aksiyon Özeti">
-                    <i class="fas fa-list-check text-xs"></i>
-                    <span class="hidden xl:inline">Özet PDF</span>
-                </button>
-
-                <button id="btn-exportExcel" onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs shrink-0" title="Excel İndir">
+                <!-- Export Actions -->
+                <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs" title="Excel İndir">
                     <i class="fas fa-file-excel text-xs"></i>
-                    <span class="hidden xl:inline">Excel</span>
+                    <span class="hidden md:inline">Excel</span>
                 </button>
 
-                <button id="btn-printReport" onclick="printReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs shrink-0" title="PDF İndir">
+                <button onclick="printReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 h-9 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs" title="PDF Yazdır">
                     <i class="fas fa-file-pdf text-xs"></i>
-                    <span class="hidden xl:inline">PDF</span>
+                    <span class="hidden md:inline">PDF</span>
                 </button>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-5 lg:p-7 custom-scrollbar">
+        <!-- Dynamic Scrollable Viewport -->
+        <div class="flex-1 overflow-y-auto p-5 lg:p-6 custom-scrollbar">
             
-            <!-- DASHBOARD TAB -->
+            <!-- 1. DASHBOARD VIEW -->
             <div id="tab-dashboard" class="space-y-6 max-w-[1500px] mx-auto">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
-                    <div class="stat-card border-t-4 border-t-indigo-500">
-                        <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Toplam Yönlendirme</p>
-                                <h3 id="kpi-referrals" class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
-                            </div>
-                            <div class="w-8 h-8 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-bold shrink-0">
-                                <i class="fas fa-share-nodes text-xs"></i>
-                            </div>
+                
+                <!-- 6 KPI Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                    <!-- Toplam Yönlendirme -->
+                    <div class="kpi-card border-t-4 border-t-indigo-500">
+                        <div>
+                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Yönlendirme</p>
+                            <h3 id="kpi-referrals" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</h3>
                         </div>
-                        <div class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">bu dönem</div>
+                        <p class="text-[10px] font-bold text-indigo-600 mt-3 flex items-center gap-1"><i class="fas fa-share-nodes"></i> İşlenen Kayıt</p>
                     </div>
 
-                    <div class="stat-card border-t-4 border-t-purple-500">
-                        <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Toplam Aranan</p>
-                                <h3 id="kpi-aranan" class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
-                            </div>
-                            <div class="w-8 h-8 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 font-bold shrink-0">
-                                <i class="fas fa-phone-volume text-xs"></i>
-                            </div>
+                    <!-- Toplam Aranan -->
+                    <div class="kpi-card border-t-4 border-t-purple-500">
+                        <div>
+                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Aranan</p>
+                            <h3 id="kpi-aranan" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</h3>
                         </div>
-                        <div class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">müşteri ulaşıldı</div>
+                        <p class="text-[10px] font-bold text-purple-600 mt-3 flex items-center gap-1"><i class="fas fa-headset"></i> İletişim Kuruldu</p>
                     </div>
 
-                    <div class="stat-card border-t-4 border-t-emerald-500">
-                        <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Satış Adedi</p>
-                                <h3 id="kpi-sales" class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
-                            </div>
-                            <div class="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 font-bold shrink-0">
-                                <i class="fas fa-circle-check text-xs"></i>
-                            </div>
+                    <!-- Satış Adedi -->
+                    <div class="kpi-card border-t-4 border-t-emerald-500">
+                        <div>
+                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Satış Adedi</p>
+                            <h3 id="kpi-sales" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</h3>
                         </div>
-                        <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">başarılı işlem</div>
+                        <p class="text-[10px] font-bold text-emerald-600 mt-3 flex items-center gap-1"><i class="fas fa-circle-check"></i> Başarılı Satış</p>
                     </div>
 
-                    <div class="stat-card border-t-4 border-t-rose-500">
-                        <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Aylık Toplam Ciro</p>
-                                <h3 id="kpi-revenue" class="text-lg font-extrabold text-slate-900 tracking-tight leading-none">₺0</h3>
-                            </div>
-                            <div class="w-8 h-8 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 font-bold shrink-0">
-                                <i class="fas fa-wallet text-xs"></i>
-                            </div>
+                    <!-- Toplam Ciro -->
+                    <div class="kpi-card border-t-4 border-t-rose-500">
+                        <div>
+                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Ciro</p>
+                            <h3 id="kpi-revenue" class="text-xl font-extrabold text-slate-900 tracking-tight truncate">₺0</h3>
                         </div>
-                        <div class="text-[10px] font-bold text-rose-600 uppercase tracking-wider">brüt kazanç</div>
+                        <p class="text-[10px] font-bold text-rose-600 mt-3 flex items-center gap-1"><i class="fas fa-wallet"></i> Brüt Kazanç</p>
                     </div>
 
-                    <div class="stat-card border-t-4 border-t-amber-500">
-                        <div class="flex justify-between items-start w-full">
-                            <div class="min-w-0 flex-1 pr-1">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">En Çok Satan Kategori</p>
-                                <h3 id="kpi-top-category" class="text-xs font-extrabold text-slate-900 tracking-tight leading-snug truncate" title="En çok satan kategori">---</h3>
-                            </div>
-                            <div class="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 font-bold shrink-0">
-                                <i class="fas fa-trophy text-xs"></i>
-                            </div>
+                    <!-- En Çok Satan Kategori -->
+                    <div class="kpi-card border-t-4 border-t-amber-500">
+                        <div>
+                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Lider Kategori</p>
+                            <h3 id="kpi-top-category" class="text-sm font-extrabold text-slate-900 tracking-tight truncate" title="Lider Kategori">---</h3>
                         </div>
-                        <div id="kpi-top-category-sub" class="text-[10px] font-bold text-amber-600 uppercase tracking-wider">0 satış</div>
+                        <p id="kpi-top-category-sub" class="text-[10px] font-bold text-amber-600 mt-3 flex items-center gap-1"><i class="fas fa-trophy"></i> 0 satış</p>
                     </div>
 
-                    <div class="stat-card border-t-4 border-t-cyan-500">
-                        <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ortalama Sepet</p>
-                                <h3 id="kpi-basket" class="text-lg font-extrabold text-slate-900 tracking-tight leading-none">₺0</h3>
-                            </div>
-                            <div class="w-8 h-8 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-600 font-bold shrink-0">
-                                <i class="fas fa-cart-shopping text-xs"></i>
-                            </div>
+                    <!-- Ortalama Sepet -->
+                    <div class="kpi-card border-t-4 border-t-cyan-500">
+                        <div>
+                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Ortalama Sepet</p>
+                            <h3 id="kpi-basket" class="text-xl font-extrabold text-slate-900 tracking-tight truncate">₺0</h3>
                         </div>
-                        <div class="text-[10px] font-bold text-cyan-600 uppercase tracking-wider">satış başına</div>
+                        <p class="text-[10px] font-bold text-cyan-600 mt-3 flex items-center gap-1"><i class="fas fa-cart-shopping"></i> Satış Başına</p>
                     </div>
                 </div>
 
-                <div class="table-wrapper">
-                    <div class="px-5 py-4 border-b border-slate-200 bg-white">
-                        <h3 class="font-extrabold text-sm text-slate-900">Şube Performans Çizelgesi</h3>
-                        <p class="text-xs font-medium text-slate-500 mt-0.5">Ciro performansına göre yüksekten düşüğe doğru sıralanmıştır.</p>
+                <!-- Branch Performance Table Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-900">Şube Performans Çizelgesi</h3>
+                            <p class="text-[11px] font-medium text-slate-600">Ciro büyüklüğüne göre sıralanmıştır.</p>
+                        </div>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="modern-table">
+                        <table class="portal-table">
                             <thead>
                                 <tr>
-                                    <th class="w-12 text-center">#</th>
-                                    <th>Şube Tanımı</th>
-                                    <th class="text-right">Yönlendirme (Adet)</th>
-                                    <th class="text-right">Satış (Adet)</th>
-                                    <th class="text-right">Toplam Tutar</th>
+                                    <th class="w-14 text-center">#</th>
+                                    <th>Şube Adı</th>
+                                    <th class="text-right">Yönlendirme</th>
+                                    <th class="text-right">Satış Adedi</th>
+                                    <th class="text-right">Toplam Ciro</th>
                                 </tr>
                             </thead>
                             <tbody id="branch-body"></tbody>
-                            <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
+                            <tfoot class="bg-slate-50/80 font-bold border-t border-slate-200">
                                 <tr>
                                     <td colspan="2" class="py-4 px-5 text-right text-slate-600 text-xs uppercase tracking-wider">Genel Toplam</td>
-                                    <td id="total-referrals-val" class="text-right py-4 px-5 text-brand-700 text-sm font-extrabold">0</td>
+                                    <td id="total-referrals-val" class="text-right py-4 px-5 text-indigo-700 text-sm font-extrabold">0</td>
                                     <td id="total-sales-val" class="text-right py-4 px-5 text-emerald-700 text-sm font-extrabold">0</td>
                                     <td id="total-revenue-val" class="text-right py-4 px-5 text-slate-900 text-base font-extrabold">₺0</td>
                                 </tr>
@@ -329,28 +324,28 @@
                 </div>
             </div>
 
-            <!-- CUSTOMERS TAB -->
+            <!-- 2. CUSTOMERS VIEW -->
             <div id="tab-customers" class="hidden space-y-6 max-w-[1500px] mx-auto">
-                <div class="table-wrapper">
-                    <div class="px-5 py-4 border-b border-slate-200 bg-white">
-                        <h3 class="font-extrabold text-sm text-slate-900">Müşteri Detay Çizelgesi</h3>
-                        <p class="text-xs font-medium text-slate-500 mt-0.5">Gerçekleşen cirolu müşteri işlemlerinin dökümü.</p>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100">
+                        <h3 class="font-bold text-sm text-slate-900">Müşteri Detay Çizelgesi</h3>
+                        <p class="text-[11px] font-medium text-slate-600">Cirolu müşteri işlemlerinin şube bazlı listesi.</p>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="modern-table">
+                        <table class="portal-table">
                             <thead>
                                 <tr>
-                                    <th class="w-16 text-center">No</th>
+                                    <th class="w-14 text-center">No</th>
                                     <th>Müşteri No</th>
                                     <th>Telefon (E Sütunu)</th>
                                     <th class="text-right">Tutar (TRY)</th>
                                 </tr>
                             </thead>
                             <tbody id="customer-body-specified"></tbody>
-                            <tfoot class="bg-slate-50 border-t border-slate-200 font-bold">
+                            <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
                                 <tr>
                                     <td colspan="3" class="text-right py-4 px-5 text-slate-600 text-xs uppercase">Liste Toplamı</td>
-                                    <td id="customer-total-val" class="text-right py-4 px-5 font-extrabold text-brand-700 text-base">₺0</td>
+                                    <td id="customer-total-val" class="text-right py-4 px-5 text-indigo-700 text-base font-extrabold">₺0</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -358,20 +353,20 @@
                 </div>
             </div>
 
-            <!-- FOLLOW-UP TAB -->
+            <!-- 3. FOLLOW-UP VIEW -->
             <div id="tab-followup" class="hidden space-y-6 max-w-[1500px] mx-auto">
                 <div>
-                    <h3 class="font-bold text-xs text-slate-500 uppercase tracking-wider mb-2.5">Şube Bazlı Aksiyon Dağılımı</h3>
+                    <h3 class="font-bold text-xs text-slate-600 uppercase tracking-wider mb-2.5">Şube Bazlı Aksiyon Dağılımı</h3>
                     <div id="followup-kpi-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
                 </div>
 
-                <div class="table-wrapper">
-                    <div class="px-5 py-4 border-b border-slate-200 bg-white">
-                        <h3 class="font-extrabold text-sm text-slate-900">Aksiyon & Takip Listesi</h3>
-                        <p class="text-xs font-medium text-slate-500 mt-0.5">Yeniden aranacak veya mağazaya gelmeyi planlayan yönlendirmeler.</p>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100">
+                        <h3 class="font-bold text-sm text-slate-900">Aksiyon & Takip Listesi</h3>
+                        <p class="text-[11px] font-medium text-slate-600">Tekrar aranacaklar veya mağazaya gelecek müşteriler.</p>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="modern-table">
+                        <table class="portal-table">
                             <thead>
                                 <tr>
                                     <th class="w-14 text-center">#</th>
@@ -386,28 +381,28 @@
                 </div>
             </div>
 
-            <!-- UNSPECIFIED TAB -->
+            <!-- 4. UNSPECIFIED VIEW -->
             <div id="tab-unspecified" class="hidden space-y-6 max-w-[1500px] mx-auto">
-                <div class="table-wrapper">
-                    <div class="px-5 py-4 border-b border-slate-200 bg-white">
-                        <h3 class="font-extrabold text-sm text-slate-900">Belirtilmeyen Kayıtlar Listesi</h3>
-                        <p class="text-xs font-medium text-slate-500 mt-0.5">Numarası eksik veya ciro atanmamış hatalı kayıtlar.</p>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100">
+                        <h3 class="font-bold text-sm text-slate-900">Belirtilmeyen Kayıtlar</h3>
+                        <p class="text-[11px] font-medium text-slate-600">Müşteri numarası girilmemiş veya sıfır cirolu satış kayıtları.</p>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="modern-table">
+                        <table class="portal-table">
                             <thead>
                                 <tr>
                                     <th class="w-14 text-center">#</th>
                                     <th>Müşteri Tanımı</th>
-                                    <th>Durum</th>
+                                    <th>Sorun Durumu</th>
                                     <th class="text-right">Tutar (TRY)</th>
                                 </tr>
                             </thead>
                             <tbody id="unspecified-body"></tbody>
-                            <tfoot class="bg-rose-50/60 border-t border-rose-200 font-bold">
+                            <tfoot class="bg-rose-50/50 font-bold border-t border-rose-200">
                                 <tr>
-                                    <td colspan="3" class="text-right py-4 px-5 text-rose-800 text-xs uppercase">Kayıtsız / Hatalı Ciro Toplamı</td>
-                                    <td id="unspecified-total-val" class="text-right py-4 px-5 font-extrabold text-rose-700 text-base">₺0</td>
+                                    <td colspan="3" class="text-right py-4 px-5 text-rose-700 text-xs uppercase">Hatalı Ciro Toplamı</td>
+                                    <td id="unspecified-total-val" class="text-right py-4 px-5 text-rose-800 text-base font-extrabold">₺0</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -415,200 +410,147 @@
                 </div>
             </div>
 
-            <div id="tab-duplicates" class="hidden space-y-5 max-w-[1500px] mx-auto">
+            <!-- 5. DUPLICATES VIEW (MÜKERRER SATIŞ KONTROLÜ) -->
+            <div id="tab-duplicates" class="hidden space-y-6 max-w-[1500px] mx-auto">
                 
-                <!-- Dedicated Action Sub-Bar for Duplicate Operations -->
-                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-card flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5">
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <div class="relative shrink-0">
-                            <select id="duplicateFilter" onchange="render(currentData)" class="appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl pl-3 pr-8 h-9 outline-none cursor-pointer">
-                                <option value="tumu">Tüm Mükerrer Kayıtlar</option>
-                                <option value="satislar">Sadece Satışa Dönen Mükerrerler</option>
-                            </select>
-                            <i class="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
-                        </div>
+                <!-- Duplicate KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="kpi-card border-t-4 border-t-amber-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Mükerrer Müşteri</p>
+                        <h3 id="dup-kpi-count" class="text-2xl font-extrabold text-slate-900">0</h3>
+                        <p class="text-[10px] font-bold text-amber-600 mt-2">Birden Fazla Giriş</p>
+                    </div>
 
-                        <button onclick="toggleSelectAllDuplicates()" id="btn-selectAllDup" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 h-9 px-3.5 rounded-xl text-xs font-bold flex items-center gap-2 transition active:scale-95 shrink-0">
-                            <i class="fas fa-square-check text-xs"></i>
+                    <div class="kpi-card border-t-4 border-t-purple-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Fazladan Kayıt</p>
+                        <h3 id="dup-kpi-entries" class="text-2xl font-extrabold text-slate-900">0</h3>
+                        <p class="text-[10px] font-bold text-purple-600 mt-2">Silinebilir Satır</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-rose-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Mükerrer Ciro Riski</p>
+                        <h3 id="dup-kpi-revenue" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
+                        <p class="text-[10px] font-bold text-rose-600 mt-2">Çift Sayılan Ciro</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-blue-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Etkilenen Şubeler</p>
+                        <h3 id="dup-kpi-branches" class="text-2xl font-extrabold text-slate-900">0</h3>
+                        <p class="text-[10px] font-bold text-blue-600 mt-2">Şube Tablosu</p>
+                    </div>
+                </div>
+
+                <!-- Modern Duplicate Action Bar -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-card flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none">
+                            <input type="checkbox" id="selectAllDuplicatesCheck" onchange="toggleSelectAllDuplicates(this)" class="w-4 h-4 text-brand-600 rounded-md border-slate-300 focus:ring-brand-500">
                             <span>Tümünü Seç</span>
-                        </button>
+                        </label>
+                        <span id="selectedDuplicateCountBadge" class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">0 satır seçildi</span>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <button onclick="cleanSelectedDuplicates()" id="btn-cleanSelectedDup" class="bg-rose-600 hover:bg-rose-700 text-white h-9 px-3.5 rounded-xl text-xs font-bold flex items-center gap-2 transition active:scale-95 shadow-xs shrink-0">
+                    <div class="flex items-center gap-2">
+                        <button id="btnDeleteSelectedDuplicates" onclick="deleteSelectedRows()" disabled class="opacity-50 cursor-not-allowed bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
                             <i class="fas fa-trash-can text-xs"></i>
-                            <span>Seçilen Kayıtları Sil <b id="selectedDupCount">(0)</b></span>
+                            <span>Seçilenleri Sil</span>
                         </button>
-
-                        <button onclick="confirmCleanAllDuplicates()" class="bg-amber-500 hover:bg-amber-600 text-white h-9 px-3.5 rounded-xl text-xs font-bold flex items-center gap-2 transition active:scale-95 shadow-xs shrink-0">
+                        <button onclick="cleanAllDuplicateSales()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
                             <i class="fas fa-broom text-xs"></i>
-                            <span>Tüm Mükerrer Satışları Temizle</span>
+                            <span>Mükerrer Satışları Temizle</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Duplicate Audit KPI Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                    <div class="stat-card border-t-4 border-t-amber-500">
-                        <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Mükerrer Müşteri</p>
-                                <h3 id="dup-kpi-count" class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
-                            </div>
-                            <div class="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 font-bold shrink-0">
-                                <i class="fas fa-users-viewfinder text-xs"></i>
-                            </div>
-                        </div>
-                        <div class="text-[10px] font-bold text-amber-600 uppercase tracking-wider">birden fazla şubede</div>
-                    </div>
-
-                    <div class="stat-card border-t-4 border-t-purple-500">
-                        <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Mükerrer Kayıt Adedi</p>
-                                <h3 id="dup-kpi-entries" class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
-                            </div>
-                            <div class="w-8 h-8 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 font-bold shrink-0">
-                                <i class="fas fa-copy text-xs"></i>
-                            </div>
-                        </div>
-                        <div class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">fazladan açılan kayıt</div>
-                    </div>
-
-                    <div class="stat-card border-t-4 border-t-rose-500">
-                        <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Mükerrer Ciro Riski</p>
-                                <h3 id="dup-kpi-revenue" class="text-lg font-extrabold text-slate-900 tracking-tight leading-none">₺0</h3>
-                            </div>
-                            <div class="w-8 h-8 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 font-bold shrink-0">
-                                <i class="fas fa-hand-holding-dollar text-xs"></i>
-                            </div>
-                        </div>
-                        <div class="text-[10px] font-bold text-rose-600 uppercase tracking-wider">şişirilmiş ciro tutarı</div>
-                    </div>
-
-                    <div class="stat-card border-t-4 border-t-indigo-500">
-                        <div class="flex justify-between items-start w-full">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Etkilenen Şubeler</p>
-                                <h3 id="dup-kpi-branches" class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">0</h3>
-                            </div>
-                            <div class="w-8 h-8 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-bold shrink-0">
-                                <i class="fas fa-store text-xs"></i>
-                            </div>
-                        </div>
-                        <div class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">çift kayıt giren şube</div>
-                    </div>
-                </div>
-
-                <!-- Info Notice Box -->
-                <div class="bg-amber-50/80 border border-amber-200/80 p-4 rounded-xl flex items-start gap-3 text-xs text-amber-900 font-medium">
-                    <i class="fas fa-circle-info text-amber-600 text-base mt-0.5 shrink-0"></i>
-                    <div class="leading-relaxed">
-                        <strong class="font-bold">Mükerrer Satış Denetim Mimarisi:</strong> Bu sayfa, seçili aya ait tüm şubelerdeki telefon numaralarını tarayarak aynı müşterinin birden fazla şubenin Excel tablosuna işlendiği durumları tespit eder. Kayıtlar tarih sırasına konulur; ilk işlenen şube <strong>İLK İŞLEM / ORİJİNAL KAYIT</strong> olarak kabul edilirken sonraki girişler <strong>MÜKERRER KAYIT</strong> olarak işaretlenir.
-                    </div>
-                </div>
-
-                <!-- Duplicate Details List/Cards -->
-                <div id="duplicates-container" class="space-y-5"></div>
+                <!-- Duplicate Cards Container -->
+                <div id="duplicates-container" class="space-y-4"></div>
             </div>
 
-            <!-- ADVANCED REPORT TAB -->
+            <!-- 6. ADVANCED VIEW -->
             <div id="tab-advanced" class="hidden space-y-6 max-w-[1500px] mx-auto">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-card flex flex-wrap items-end justify-between gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card flex flex-wrap items-end justify-between gap-4">
                     <div class="flex flex-wrap items-center gap-3">
-                        <div class="flex flex-col gap-1">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Başlangıç Dönemi</label>
-                            <div class="relative">
-                                <select id="advStartPeriod" class="appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl pl-3.5 pr-8 py-2.5 outline-none cursor-pointer min-w-[160px]">
-                                    <option value="">Yükleniyor...</option>
-                                </select>
-                                <i class="fas fa-calendar-days absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
-                            </div>
+                        <div>
+                            <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Başlangıç Dönemi</label>
+                            <select id="advStartPeriod" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-3 py-2 outline-none cursor-pointer min-w-[150px] shadow-xs"></select>
                         </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bitiş Dönemi</label>
-                            <div class="relative">
-                                <select id="advEndPeriod" class="appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl pl-3.5 pr-8 py-2.5 outline-none cursor-pointer min-w-[160px]">
-                                    <option value="">Yükleniyor...</option>
-                                </select>
-                                <i class="fas fa-calendar-days absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
-                            </div>
+                        <div>
+                            <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Bitiş Dönemi</label>
+                            <select id="advEndPeriod" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-3 py-2 outline-none cursor-pointer min-w-[150px] shadow-xs"></select>
                         </div>
-                        <button onclick="runAdvancedAnalysis()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-glow flex items-center gap-2 h-9 self-end"><i class="fas fa-wand-magic-sparkles"></i> Analiz Et</button>
+                        <button onclick="runAdvancedAnalysis()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs flex items-center gap-1.5 self-end">
+                            <i class="fas fa-chart-line text-xs"></i> Analiz Et
+                        </button>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="exportAdvancedToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 h-9 px-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95"><i class="fas fa-file-excel"></i> Excel Çıktısı</button>
-                        <button onclick="printAdvancedReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 h-9 px-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95"><i class="fas fa-file-pdf"></i> PDF Raporu</button>
+                        <button onclick="exportAdvancedToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
+                            <i class="fas fa-file-excel text-xs"></i> Excel
+                        </button>
+                        <button onclick="printAdvancedReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
+                            <i class="fas fa-file-pdf text-xs"></i> PDF
+                        </button>
                     </div>
                 </div>
 
-                <div id="adv-month-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+                <!-- Monthly Revenue Cards -->
+                <div id="adv-month-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"></div>
 
-                <div class="table-wrapper">
-                    <div class="px-5 py-4 border-b border-slate-200 bg-white">
-                        <h3 class="font-extrabold text-sm text-slate-900">Dönemsel Şube Karşılaştırma Matrisi</h3>
-                        <p id="adv-comparison-subtitle" class="text-xs font-medium text-slate-500 mt-0.5">Seçilen dönem aralığına ait ciro değişimleri.</p>
+                <!-- Comparison Table -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100">
+                        <h3 class="font-bold text-sm text-slate-900">Dönemsel Şube Ciro Karşılaştırma Matrisi</h3>
+                        <p id="adv-comparison-subtitle" class="text-[11px] font-medium text-slate-600">Seçilen dönem aralığına ait ciro değişimleri.</p>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="modern-table">
+                        <table class="portal-table">
                             <thead id="adv-table-head"></thead>
                             <tbody id="adv-table-body"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <div id="adv-insights-container" class="bg-brand-50/80 border border-brand-200 rounded-2xl p-6 space-y-3 hidden"></div>
+                <div id="adv-insights-container" class="bg-brand-50/70 border border-brand-200 rounded-2xl p-5 hidden"></div>
             </div>
         </div>
 
-        <!-- Global Modals -->
-        <div id="loadingIndicator" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
-            <div class="bg-white p-5 rounded-2xl shadow-xl flex flex-col items-center gap-3 border border-slate-200">
+        <!-- Global Loader Modal -->
+        <div id="loadingIndicator" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+            <div class="bg-white p-5 rounded-2xl shadow-xl flex flex-col items-center gap-3 border border-slate-200 min-w-[200px]">
                 <div class="w-8 h-8 border-3 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
-                <p id="loader-text" class="text-xs font-bold text-slate-800">Veriler Senkronize Ediliyor...</p>
+                <p id="loader-text" class="text-xs font-bold text-slate-700">Veriler Senkronize Ediliyor...</p>
             </div>
         </div>
 
-        <div id="cleanConfirmModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[160] flex items-center justify-center hidden p-4">
-            <div class="bg-white p-6 rounded-2xl max-w-md w-full border border-rose-200 shadow-2xl relative">
-                <div class="flex items-center gap-3.5 text-rose-600 mb-3">
+        <!-- Global Error Modal -->
+        <div id="errorModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[150] flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-2xl max-w-md w-full mx-4 border border-rose-200 shadow-2xl">
+                <div class="flex items-center gap-3 text-rose-600 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
-                        <i class="fas fa-trash-can text-lg"></i>
+                        <i class="fas fa-circle-exclamation text-lg"></i>
                     </div>
-                    <div>
-                        <h3 id="cleanModalTitle" class="text-base font-extrabold text-slate-900">Mükerrer Kayıtları Sil</h3>
-                        <p class="text-[11px] text-slate-500 font-medium">Google Sheets Tablolarından Silinecektir</p>
-                    </div>
+                    <h3 id="errorModalTitle" class="text-base font-extrabold">Hata Oluştu</h3>
                 </div>
-                <div id="cleanModalBody" class="text-xs font-medium text-slate-700 leading-relaxed mb-5">
-                    Bu işlem seçilen kayıtları Google Sheets dosyalarınızdan siler.
-                </div>
-                <div class="flex justify-end gap-2.5">
-                    <button onclick="closeCleanConfirmModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Vazgeç</button>
-                    <button onclick="executeCleanAction()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1.5">
-                        <i class="fas fa-check text-xs"></i>
-                        <span>Evet, Sil</span>
-                    </button>
+                <div id="errorModalMessage" class="text-xs font-medium text-slate-600 leading-relaxed mb-5"></div>
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeErrorModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Kapat</button>
+                    <button onclick="fetchData()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-xl transition shadow-xs">Yeniden Dene</button>
                 </div>
             </div>
         </div>
 
-        <div id="errorModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[150] flex items-center justify-center hidden p-4">
-            <div class="bg-white p-6 rounded-2xl max-w-md w-full border border-rose-200 shadow-2xl relative">
-                <div class="flex items-center gap-3.5 text-rose-600 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
+        <!-- Confirm Action Modal -->
+        <div id="cleanConfirmModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[160] flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-2xl max-w-md w-full mx-4 border border-slate-200 shadow-2xl">
+                <div class="flex items-center gap-3 text-amber-600 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
                         <i class="fas fa-triangle-exclamation text-lg"></i>
                     </div>
-                    <h3 id="errorModalTitle" class="text-base font-extrabold text-slate-900">Bağlantı Hatası</h3>
+                    <h3 id="cleanModalTitle" class="text-base font-extrabold text-slate-900">İşlemi Onaylayın</h3>
                 </div>
-                <div id="errorModalMessage" class="text-xs font-medium text-slate-700 leading-relaxed mb-5">
-                    Hata detayı yükleniyor...
-                </div>
-                <div class="flex justify-end gap-2.5">
-                    <button onclick="closeErrorModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Kapat</button>
-                    <button onclick="fetchData()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-xl transition shadow-glow">Yeniden Bağlan</button>
+                <p id="cleanModalDesc" class="text-xs font-medium text-slate-600 leading-relaxed mb-5"></p>
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeCleanConfirmModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">İptal</button>
+                    <button id="btnConfirmCleanAction" onclick="executeCleanAction()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition shadow-xs">Evet, Sil</button>
                 </div>
             </div>
         </div>
@@ -616,13 +558,15 @@
 
     <div id="printArea"></div>
 
+    <!-- JavaScript Controller Logic -->
     <script>
-        const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwX2K6gBaSalxAuME90FUJVr086B9D4PKitB4MvqaD5_KNc-rSHI3UWDZIjyftU6quG/exec";
+        const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi7IvGRE7ABKi0TanTRo-axaeXclY8hmpb8pTDXOLsHU43gxtDvjEhIJ1tEmcF72uw/exec";
+        
         let currentData = null; 
         let activeTab = 'dashboard';
         let isSidebarCollapsed = false;
         let pendingCleanAction = null;
-        let selectedDuplicateRows = new Set(); 
+        let selectedDuplicateRows = new Set();
 
         const PREFERRED_BRANCH_ORDER = ["PAŞABAHÇE", "KAVACIK", "ÇEKMEKÖY", "YENİDOĞAN", "SULTANBEYLİ", "ÇAYIROVA", "GEBZE", "DÜZCE", "KÖRFEZ", "DERİNCE", "İZMİT", "GÖLCÜK", "İNEGÖL"];
         
@@ -644,10 +588,7 @@
         function getCurrentPeriod(periods) {
             if (!periods || periods.length === 0) return '';
             const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth(); 
-            const targetVal = currentYear * 12 + currentMonth;
-
+            const targetVal = now.getFullYear() * 12 + now.getMonth();
             const matched = periods.find(p => periodToVal(p) === targetVal);
             return matched || periods[0];
         }
@@ -664,30 +605,22 @@
         function cleanPhoneNumber(phone) {
             if (!phone) return "";
             const digits = String(phone).replace(/\D/g, "");
-            if (digits.length >= 10) return digits.slice(-10);
-            return digits;
+            return digits.length >= 10 ? digits.slice(-10) : digits;
         }
 
         function parseTurkishDate(dateStr) {
             if (!dateStr || dateStr === "---") return new Date(0);
             const parts = String(dateStr).split('.');
             if (parts.length === 3) {
-                const day = parseInt(parts[0], 10);
-                const month = parseInt(parts[1], 10) - 1;
-                const year = parseInt(parts[2], 10);
-                return new Date(year, month, day);
+                return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
             }
             const d = new Date(dateStr);
             return isNaN(d.getTime()) ? new Date(0) : d;
         }
 
         const safeStorage = {
-            getItem(key) {
-                try { return window.localStorage.getItem(key); } catch (e) { return null; }
-            },
-            setItem(key, value) {
-                try { window.localStorage.setItem(key, value); } catch (e) {}
-            }
+            getItem(key) { try { return window.localStorage.getItem(key); } catch (e) { return null; } },
+            setItem(key, value) { try { window.localStorage.setItem(key, value); } catch (e) {} }
         };
 
         const safeSetText = (id, text) => { 
@@ -699,13 +632,8 @@
             const sb = document.getElementById('sidebar');
             const ob = document.getElementById('sidebarOverlay');
             if (sb && ob) {
-                if (sb.classList.contains('open')) {
-                    sb.classList.remove('open');
-                    ob.classList.add('hidden');
-                } else {
-                    sb.classList.add('open');
-                    ob.classList.remove('hidden');
-                }
+                sb.classList.toggle('open');
+                ob.classList.toggle('hidden');
             }
         }
 
@@ -715,24 +643,13 @@
             if (!sb) return;
 
             isSidebarCollapsed = !isSidebarCollapsed;
-            if (isSidebarCollapsed) {
-                sb.classList.add('sidebar-collapsed');
-                sb.style.width = '70px';
-                if (icon) icon.className = 'fas fa-chevron-right text-xs';
-            } else {
-                sb.classList.remove('sidebar-collapsed');
-                sb.style.width = '250px';
-                if (icon) icon.className = 'fas fa-chevron-left text-xs';
-            }
+            sb.classList.toggle('sidebar-collapsed', isSidebarCollapsed);
+            sb.style.width = isSidebarCollapsed ? '70px' : '240px';
+            if (icon) icon.className = isSidebarCollapsed ? 'fas fa-chevron-right text-xs' : 'fas fa-chevron-left text-xs';
         }
         
         function maybeCloseSidebar() { 
-            const sb = document.getElementById('sidebar');
-            const ob = document.getElementById('sidebarOverlay');
-            if (window.innerWidth < 1024) {
-                if (sb) sb.classList.remove('open');
-                if (ob) ob.classList.add('hidden');
-            }
+            if (window.innerWidth < 1024) toggleSidebarMobile();
         }
 
         function showErrorModal(title, msg) {
@@ -740,271 +657,30 @@
             if (titleEl) titleEl.innerText = title;
             const msgEl = document.getElementById('errorModalMessage');
             if (msgEl) msgEl.innerHTML = msg;
-            const errorModal = document.getElementById('errorModal');
-            if (errorModal) errorModal.classList.remove('hidden');
+            const modal = document.getElementById('errorModal');
+            if (modal) modal.classList.remove('hidden');
             const loader = document.getElementById('loadingIndicator');
             if (loader) loader.classList.add('hidden');
         }
 
         function closeErrorModal() {
-            const errorModal = document.getElementById('errorModal');
-            if (errorModal) errorModal.classList.add('hidden');
+            const modal = document.getElementById('errorModal');
+            if (modal) modal.classList.add('hidden');
         }
 
-        function openCleanConfirmModal(title, bodyText, actionPayload) {
+        function openCleanConfirmModal(title, desc, actionPayload) {
             pendingCleanAction = actionPayload;
             safeSetText('cleanModalTitle', title);
-            const bodyEl = document.getElementById('cleanModalBody');
-            if (bodyEl) bodyEl.innerHTML = bodyText;
+            const descEl = document.getElementById('cleanModalDesc');
+            if (descEl) descEl.innerHTML = desc;
             const modal = document.getElementById('cleanConfirmModal');
             if (modal) modal.classList.remove('hidden');
         }
 
         function closeCleanConfirmModal() {
-            pendingCleanAction = null;
             const modal = document.getElementById('cleanConfirmModal');
             if (modal) modal.classList.add('hidden');
-        }
-
-        async function executeCleanAction() {
-            if (!pendingCleanAction) return;
-            const payload = pendingCleanAction;
-            closeCleanConfirmModal();
-
-            const loader = document.getElementById('loadingIndicator');
-            const loaderText = document.getElementById('loader-text');
-            if (loader) loader.classList.remove('hidden');
-            if (loaderText) loaderText.innerText = "Kayıtlar Siliniyor...";
-
-            try {
-                let url = "";
-                if (payload.type === 'ALL' || payload.type === 'CUSTOMER') {
-                    url = `${APPSCRIPT_URL}?action=cleanDuplicateSales&sheetName=${encodeURIComponent(payload.sheetName)}&targetKey=${encodeURIComponent(payload.targetKey || 'ALL')}&t=${Date.now()}`;
-                } else if (payload.type === 'SINGLE') {
-                    url = `${APPSCRIPT_URL}?action=deleteSingleDuplicate&sheetId=${encodeURIComponent(payload.sheetId)}&sheetName=${encodeURIComponent(payload.sheetName)}&rowNum=${payload.rowNum}&t=${Date.now()}`;
-                } else if (payload.type === 'SELECTED') {
-                    url = `${APPSCRIPT_URL}?action=deleteSelectedDuplicates&sheetName=${encodeURIComponent(payload.sheetName)}&items=${encodeURIComponent(JSON.stringify(payload.items))}&t=${Date.now()}`;
-                }
-
-                const res = await fetch(url, { cache: 'no-store' });
-                const resData = await res.json();
-
-                if (loader) loader.classList.add('hidden');
-
-                if (resData && resData.success) {
-                    if (currentData && currentData.customerList) {
-                        if (payload.type === 'SINGLE') {
-                            currentData.customerList = currentData.customerList.filter(
-                                i => !(i.sheetId === payload.sheetId && String(i.rowNum) === String(payload.rowNum))
-                            );
-                        } else if (payload.type === 'SELECTED' && Array.isArray(payload.items)) {
-                            const deleteSet = new Set(payload.items.map(item => `${item.sheetId}_${item.rowNum}`));
-                            currentData.customerList = currentData.customerList.filter(
-                                i => !deleteSet.has(`${i.sheetId}_${i.rowNum}`)
-                            );
-                        }
-                        selectedDuplicateRows.clear();
-                        updateSelectedCountUI();
-                        render(currentData);
-                    }
-                    fetchDataSilent();
-                } else {
-                    showErrorModal("Silme İşlemi Başarısız", resData ? resData.message : "İşlem sırasında bir hata oluştu.");
-                }
-            } catch (err) {
-                console.error(err);
-                if (loader) loader.classList.add('hidden');
-                showErrorModal("Bağlantı Hatası", "Kayıtlar silinirken sunucuyla iletişim kesildi.");
-            } finally {
-                if (loaderText) loaderText.innerText = "Veriler Senkronize Ediliyor...";
-            }
-        }
-
-        function confirmCleanAllDuplicates() {
-            const sel = document.getElementById('periodSelector');
-            const activePeriod = sel ? sel.value : '';
-            if (!activePeriod) return;
-
-            openCleanConfirmModal(
-                "Tüm Mükerrer Satışları Temizle",
-                `<strong>${activePeriod}</strong> dönemindeki tüm şubelere ait mükerrer kayıtlardan <strong>İLK ORİJİNAL KAYITLAR DIŞINDAKİ</strong> tüm mükerrer satış kayıtları Google Sheets tablolarından silinecektir.<br><br>Bu işlemi onaylıyor musunuz?`,
-                { type: 'ALL', sheetName: activePeriod }
-            );
-        }
-
-        function confirmCleanCustomerDuplicates(customerName, targetKey) {
-            const sel = document.getElementById('periodSelector');
-            const activePeriod = sel ? sel.value : '';
-            if (!activePeriod) return;
-
-            openCleanConfirmModal(
-                "Müşterinin Mükerrerlerini Temizle",
-                `<strong>${customerName}</strong> isimli müşterinin ilk orijinal işlemi haricindeki diğer mükerrer kayıtları Google Sheets'ten silinecektir.<br><br>Devam etmek istiyor musunuz?`,
-                { type: 'CUSTOMER', sheetName: activePeriod, targetKey: targetKey }
-            );
-        }
-
-        function confirmDeleteSingleRow(sheetId, rowNum, branchName, customerName) {
-            const sel = document.getElementById('periodSelector');
-            const activePeriod = sel ? sel.value : '';
-            if (!activePeriod) return;
-
-            openCleanConfirmModal(
-                "Kayıt Silme Onayı",
-                `<strong>${branchName}</strong> şubesindeki <strong>${customerName}</strong> isimli müşteriye ait Satır #${rowNum} Google Sheets dosyasından kalıcı olarak silinecektir.<br><br>Bu işlemi onaylıyor musunuz?`,
-                { type: 'SINGLE', sheetId: sheetId, sheetName: activePeriod, rowNum: rowNum }
-            );
-        }
-
-        function toggleSelectDuplicateRow(sheetId, rowNum) {
-            const key = `${sheetId}_${rowNum}`;
-            if (selectedDuplicateRows.has(key)) {
-                selectedDuplicateRows.delete(key);
-            } else {
-                selectedDuplicateRows.add(key);
-            }
-            updateSelectedCountUI();
-        }
-
-        function toggleSelectGroupDuplicates(groupKey) {
-            const groups = window.lastDuplicateGroups || [];
-            const group = groups.find(g => g.key === groupKey);
-            if (!group) return;
-
-            const allSelected = group.items.every(i => selectedDuplicateRows.has(`${i.sheetId}_${i.rowNum}`));
-
-            group.items.forEach(i => {
-                const key = `${i.sheetId}_${i.rowNum}`;
-                if (allSelected) {
-                    selectedDuplicateRows.delete(key);
-                } else {
-                    selectedDuplicateRows.add(key);
-                }
-            });
-
-            updateSelectedCountUI();
-            if (currentData) renderDuplicates(currentData.customerList || []);
-        }
-
-        function toggleSelectAllDuplicates() {
-            const groups = window.lastDuplicateGroups || [];
-            const allItems = [];
-            groups.forEach(g => g.items.forEach(i => allItems.push(i)));
-
-            const isAllSelected = allItems.length > 0 && allItems.every(i => selectedDuplicateRows.has(`${i.sheetId}_${i.rowNum}`));
-
-            if (isAllSelected) {
-                selectedDuplicateRows.clear();
-            } else {
-                allItems.forEach(i => selectedDuplicateRows.add(`${i.sheetId}_${i.rowNum}`));
-            }
-
-            updateSelectedCountUI();
-            if (currentData) renderDuplicates(currentData.customerList || []);
-        }
-
-        function updateSelectedCountUI() {
-            const countEl = document.getElementById('selectedDupCount');
-            if (countEl) countEl.innerText = `(${selectedDuplicateRows.size})`;
-        }
-
-        function cleanSelectedDuplicates() {
-            if (selectedDuplicateRows.size === 0) {
-                showErrorModal("Kayıt Seçilmedi", "Lütfen önce silmek istediğiniz mükerrer kayıtların solundaki seçim kutucuklarını işaretleyin.");
-                return;
-            }
-
-            const sel = document.getElementById('periodSelector');
-            const activePeriod = sel ? sel.value : '';
-            if (!activePeriod) return;
-
-            const items = Array.from(selectedDuplicateRows).map(key => {
-                const parts = key.split('_');
-                return { sheetId: parts[0], rowNum: parts[1] };
-            });
-
-            openCleanConfirmModal(
-                "Seçilen Kayıtları Sil",
-                `Toplam <strong>${items.length} adet</strong> seçilmiş kayıt Google Sheets tablolarınızdan kalıcı olarak silinecektir.<br><br>Bu işlemi onaylıyor musunuz?`,
-                { type: 'SELECTED', sheetName: activePeriod, items: items }
-            );
-        }
-
-        let autoRefreshInterval = null;
-
-        function startContinuousSync() {
-            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-            autoRefreshInterval = setInterval(async () => {
-                const errorModal = document.getElementById('errorModal');
-                const isErrorHidden = errorModal ? errorModal.classList.contains('hidden') : true;
-                
-                if (document.visibilityState === 'visible' && isErrorHidden) {
-                    if (activeTab === 'advanced') {
-                        const startSel = document.getElementById('advStartPeriod');
-                        const endSel = document.getElementById('advEndPeriod');
-                        const startVal = startSel ? startSel.value : '';
-                        const endVal = endSel ? endSel.value : '';
-                        
-                        if (startVal && endVal) {
-                            const periodSelector = document.getElementById('periodSelector');
-                            const allPeriods = periodSelector ? Array.from(periodSelector.options).map(o => o.value) : [];
-                            const sortedPeriods = [...allPeriods].sort((a, b) => periodToVal(a) - periodToVal(b));
-                            
-                            const startIdx = sortedPeriods.indexOf(startVal);
-                            const endIdx = sortedPeriods.indexOf(endVal);
-                            
-                            if (startIdx <= endIdx) {
-                                const targetPeriods = sortedPeriods.slice(startIdx, endIdx + 1);
-                                const N = targetPeriods.length;
-                                const prevPeriods = [];
-                                for (let i = 1; i <= N; i++) {
-                                    const prevIdx = startIdx - i;
-                                    if (prevIdx >= 0) prevPeriods.unshift(sortedPeriods[prevIdx]);
-                                }
-                                
-                                await Promise.all([...prevPeriods, ...targetPeriods].map(async (p) => {
-                                    try {
-                                        const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(p)}&t=${Date.now()}`, { cache: 'no-store' });
-                                        if (res.ok) {
-                                            const contentType = res.headers.get("content-type");
-                                            if (contentType && contentType.includes("application/json")) {
-                                                const d = await res.json();
-                                                if (d && d.customerList) safeStorage.setItem(`cache_${p}`, JSON.stringify(d));
-                                            }
-                                        }
-                                    } catch(e){}
-                                }));
-                                buildAdvancedReport(targetPeriods, prevPeriods);
-                            }
-                        }
-                    } else {
-                        await fetchDataSilent();
-                    }
-                }
-            }, 30000);
-        }
-
-        async function fetchDataSilent() {
-            const sel = document.getElementById('periodSelector');
-            const activePeriod = sel ? sel.value : '';
-            if (!activePeriod) return;
-            try {
-                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(activePeriod)}&t=${Date.now()}`, { cache: 'no-store' });
-                if (res.ok) {
-                    const contentType = res.headers.get("content-type");
-                    if (contentType && contentType.includes("application/json")) {
-                        currentData = await res.json();
-                        if (currentData && currentData.customerList) {
-                            safeStorage.setItem(`cache_${activePeriod}`, JSON.stringify(currentData));
-                        }
-                        render(currentData);
-                        const now = new Date(); 
-                        safeSetText('lastUpdateTime', now.toLocaleTimeString('tr-TR'));
-                    }
-                }
-            } catch (e) {
-                console.warn("Sessiz arka plan senkronizasyonu:", e);
-            }
+            pendingCleanAction = null;
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1016,17 +692,8 @@
 
             try {
                 const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`, { cache: 'no-store' });
-                const contentType = res.headers.get("content-type");
-                
-                if (contentType && !contentType.includes("application/json")) {
-                    showErrorModal("Web App Yapılandırma Hatası", 
-                        "Google Apps Script Web Uygulaması geçerli bir JSON yanıtı yerine bir HTML hata sayfası döndürdü.<br><br>" +
-                        "<b>Çözüm:</b> Google Apps Script editöründe <b>Deploy > Manage deployments</b> adımlarını izleyip <b>Who has access</b> yetkisini <b>'Anyone' (Herkes)</b> yapın."
-                    );
-                    return;
-                }
-                
                 const periods = await res.json();
+                
                 if (periods && periods.length > 0) {
                     const defaultPeriod = getCurrentPeriod(periods);
 
@@ -1048,11 +715,11 @@
                     await fetchDataWithPeriod(defaultPeriod);
                     startContinuousSync();
                 } else {
-                    showErrorModal("Veri Yok", "E-Tablonuzda uygun çalışma dönemi sayfası bulunamadı.");
+                    showErrorModal("Veri Bulunamadı", "Google Sheets dosyalarınızda uygun dönem sayfası tespit edilemedi.");
                 }
             } catch (e) { 
                 console.error(e); 
-                showErrorModal("Sistem Başlatılamadı", "Web App ile bağlantı kurulamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.");
+                showErrorModal("Bağlantı Hatası", "Backend Web App servisinden veri okunamadı.");
             } finally {
                 if (loader) loader.classList.add('hidden');
             }
@@ -1072,13 +739,6 @@
 
             try {
                 const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`, { cache: 'no-store' });
-                const contentType = res.headers.get("content-type");
-                
-                if (contentType && !contentType.includes("application/json")) {
-                    showErrorModal("Veri Okuma Hatası", "Web uygulamasından JSON beklenirken HTML formatında yanıt alındı.");
-                    return;
-                }
-                
                 currentData = await res.json();
                 if (currentData && currentData.customerList) {
                     safeStorage.setItem(`cache_${period}`, JSON.stringify(currentData));
@@ -1086,69 +746,84 @@
 
                 populateBranchFilter(currentData);
                 render(currentData);
-                const now = new Date(); 
-                safeSetText('lastUpdateTime', now.toLocaleTimeString('tr-TR'));
+                safeSetText('lastUpdateTime', new Date().toLocaleTimeString('tr-TR'));
             } catch (e) { 
                 console.error(e); 
-                showErrorModal("Bağlantı Kesildi", "Veriler sunucudan alınamadı.");
+                showErrorModal("Veri Hatası", "Dönem verileri alınamadı.");
             } finally { 
                 if (loader) loader.classList.add('hidden'); 
             }
         }
 
+        async function fetchDataSilent() {
+            const sel = document.getElementById('periodSelector');
+            const activePeriod = sel ? sel.value : '';
+            if (!activePeriod) return;
+            try {
+                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(activePeriod)}&t=${Date.now()}`, { cache: 'no-store' });
+                if (res.ok) {
+                    const d = await res.json();
+                    if (d && d.customerList) {
+                        currentData = d;
+                        safeStorage.setItem(`cache_${activePeriod}`, JSON.stringify(currentData));
+                        render(currentData);
+                        safeSetText('lastUpdateTime', new Date().toLocaleTimeString('tr-TR'));
+                    }
+                }
+            } catch (e) {}
+        }
+
+        let autoRefreshInterval = null;
+        function startContinuousSync() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(() => {
+                const modal = document.getElementById('errorModal');
+                if (document.visibilityState === 'visible' && (!modal || modal.classList.contains('hidden'))) {
+                    if (activeTab !== 'advanced') fetchDataSilent();
+                }
+            }, 30000);
+        }
+
         function populateBranchFilter(data) {
             const branchSelector = document.getElementById('branchSelector');
-            if (!branchSelector) return;
+            if (!branchSelector || !data.customerList) return;
             const currentSelection = branchSelector.value;
             const branches = [...new Set(data.customerList.map(i => i.branch))].sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
             branchSelector.innerHTML = '<option value="Tümü">Tüm Şubeler</option>' + branches.map(b => `<option value="${b}">${b}</option>`).join('');
-            
-            if (branches.includes(currentSelection)) {
-                branchSelector.value = currentSelection;
-            }
+            if (branches.includes(currentSelection)) branchSelector.value = currentSelection;
         }
 
         function setTab(tab) {
             activeTab = tab;
-            
-            document.querySelectorAll('[id^="tab-"]').forEach(el => {
-                if (el) el.classList.add('hidden');
-            });
-            const targetTab = document.getElementById(`tab-${tab}`);
-            if (targetTab) targetTab.classList.remove('hidden');
-            
-            document.querySelectorAll('#sidebar .nav-link').forEach(el => {
-                if (el) el.classList.remove('active');
-            });
+            document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`tab-${tab}`);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('#sidebar .nav-btn').forEach(el => el.classList.remove('active'));
             const activeBtn = document.getElementById(`sidebar-btn-${tab}`);
             if (activeBtn) activeBtn.classList.add('active');
-            
+
             const followupFilterContainer = document.getElementById('followupFilterContainer');
             if (followupFilterContainer) followupFilterContainer.classList.toggle('hidden', tab !== 'followup');
+            
+            const duplicateFilterContainer = document.getElementById('duplicateFilterContainer');
+            if (duplicateFilterContainer) duplicateFilterContainer.classList.toggle('hidden', tab !== 'duplicates');
 
             const branchFilterContainer = document.getElementById('branchFilterContainer');
             if (branchFilterContainer) branchFilterContainer.classList.toggle('hidden', tab === 'advanced');
-            
-            document.querySelectorAll('.no-print-selector').forEach(el => {
-                if (el) el.classList.toggle('hidden', tab === 'advanced');
-            });
 
             const titles = { 
                 dashboard: 'Performans Analizi', 
                 customers: 'Müşteri Detayları', 
                 followup: 'Takip Listesi', 
-                unspecified: 'No Belirtilmeyenler',
+                unspecified: 'Belirtilmeyenler',
                 duplicates: 'Mükerrer Satış Kontrolü',
-                advanced: 'Gelişmiş Dönem Raporu' 
+                advanced: 'Gelişmiş Rapor' 
             };
-            const tabTitle = document.getElementById('tabTitle');
-            if (tabTitle) tabTitle.innerText = titles[tab];
-            
-            if (tab === 'advanced') {
-                runAdvancedAnalysis();
-            } else if (currentData) {
-                render(currentData);
-            }
+            safeSetText('tabTitle', titles[tab] || 'Yönetim Portalı');
+
+            if (tab === 'advanced') runAdvancedAnalysis();
+            else if (currentData) render(currentData);
         }
 
         function groupDataByBranch(list) {
@@ -1163,255 +838,161 @@
             }));
         }
 
-        async function runAdvancedAnalysis() {
-            const startSel = document.getElementById('advStartPeriod');
-            const endSel = document.getElementById('advEndPeriod');
-            const startVal = startSel ? startSel.value : '';
-            const endVal = endSel ? endSel.value : '';
-            if (!startVal || !endVal) return;
+        function toggleSelectAllDuplicates(masterCheckbox) {
+            const isChecked = masterCheckbox.checked;
+            document.querySelectorAll('.dup-row-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+                const key = cb.dataset.rowKey;
+                if (isChecked) selectedDuplicateRows.add(key);
+                else selectedDuplicateRows.delete(key);
+            });
+            document.querySelectorAll('.group-master-checkbox').forEach(cb => cb.checked = isChecked);
+            updateSelectedDuplicateCount();
+        }
 
-            const periodSelector = document.getElementById('periodSelector');
-            const allPeriods = periodSelector ? Array.from(periodSelector.options).map(o => o.value) : [];
-            const sortedPeriods = [...allPeriods].sort((a, b) => periodToVal(a) - periodToVal(b));
-            
-            const startIdx = sortedPeriods.indexOf(startVal);
-            const endIdx = sortedPeriods.indexOf(endVal);
+        function toggleCustomerGroupDuplicates(groupCheckbox, groupKey) {
+            const isChecked = groupCheckbox.checked;
+            document.querySelectorAll(`.dup-row-${groupKey}`).forEach(cb => {
+                cb.checked = isChecked;
+                const key = cb.dataset.rowKey;
+                if (isChecked) selectedDuplicateRows.add(key);
+                else selectedDuplicateRows.delete(key);
+            });
+            updateSelectedDuplicateCount();
+        }
 
-            if (startIdx > endIdx) {
-                showErrorModal("Tarih Aralığı Hatası", "Başlangıç dönemi bitiş döneminden daha ileri bir tarih olamaz.");
-                return;
+        function onDuplicateRowCheckChange(checkbox) {
+            const key = checkbox.dataset.rowKey;
+            if (checkbox.checked) selectedDuplicateRows.add(key);
+            else selectedDuplicateRows.delete(key);
+            updateSelectedDuplicateCount();
+        }
+
+        function updateSelectedDuplicateCount() {
+            const count = selectedDuplicateRows.size;
+            safeSetText('selectedDuplicateCountBadge', `${count} satır seçildi`);
+            const delBtn = document.getElementById('btnDeleteSelectedDuplicates');
+            if (delBtn) {
+                delBtn.disabled = count === 0;
+                delBtn.classList.toggle('opacity-50', count === 0);
+                delBtn.classList.toggle('cursor-not-allowed', count === 0);
             }
+        }
 
-            const targetPeriods = sortedPeriods.slice(startIdx, endIdx + 1);
-            const N = targetPeriods.length;
-            const prevPeriods = [];
-            for (let i = 1; i <= N; i++) {
-                const prevIdx = startIdx - i;
-                if (prevIdx >= 0) prevPeriods.unshift(sortedPeriods[prevIdx]);
-            }
+        function deleteSingleRow(sheetId, sheetName, rowNum, customerName, isOriginal) {
+            const alertText = isOriginal 
+                ? `<strong>${customerName}</strong> müşterisine ait <strong>ORİJİNAL (İLK İŞLEM)</strong> kaydını Google Sheets'ten kalıcı olarak silmek üzeresiniz. Emin misiniz?`
+                : `<strong>${customerName}</strong> müşterisine ait mükerrer kaydı Google Sheets tablosundan silmek istiyor musunuz?`;
 
-            const allNeededPeriods = [...prevPeriods, ...targetPeriods];
+            openCleanConfirmModal("Kaydı Sil", alertText, {
+                type: 'SINGLE',
+                sheetId,
+                sheetName,
+                rowNum
+            });
+        }
+
+        function cleanDuplicateSalesForCustomer(customerKey, customerName) {
+            const period = document.getElementById('periodSelector').value;
+            openCleanConfirmModal(
+                "Müşteri Mükerrerlerini Temizle",
+                `<strong>${customerName}</strong> müşterisinin ilk orijinal işlemi korunarak, diğer mükerrer satış kayıtları Google Sheets tablolarından silinecektir.`,
+                { type: 'CUSTOMER', sheetName: period, targetKey: customerKey }
+            );
+        }
+
+        function cleanAllDuplicateSales() {
+            const period = document.getElementById('periodSelector').value;
+            openCleanConfirmModal(
+                "Tüm Mükerrer Satışları Temizle",
+                `Seçili <strong>${period}</strong> dönemindeki tüm şubeler taranacak, ilk orijinal satışlar korunup diğer tüm mükerrer satış kayıtları otomatik silinecektir.`,
+                { type: 'ALL', sheetName: period }
+            );
+        }
+
+        function deleteSelectedRows() {
+            if (selectedDuplicateRows.size === 0) return;
+            const period = document.getElementById('periodSelector').value;
+            const items = [];
+            selectedDuplicateRows.forEach(key => {
+                const [sheetId, rowNum] = key.split('_');
+                items.push({ sheetId, rowNum: parseInt(rowNum, 10) });
+            });
+
+            openCleanConfirmModal(
+                "Seçilen Kayıtları Sil",
+                `İşaretlediğiniz <strong>${items.length} adet kayıt</strong> ilgili şubelerin Google Sheets tablolarından kalıcı olarak silinecektir.`,
+                { type: 'SELECTED', sheetName: period, items }
+            );
+        }
+
+        async function executeCleanAction() {
+            if (!pendingCleanAction) return;
+            const payload = pendingCleanAction;
+            closeCleanConfirmModal();
+
             const loader = document.getElementById('loadingIndicator');
             const loaderText = document.getElementById('loader-text');
             if (loader) loader.classList.remove('hidden');
+            if (loaderText) loaderText.innerText = "Kayıtlar Google Sheets'ten Siliniyor...";
 
             try {
-                await Promise.all(allNeededPeriods.map(async (p) => {
-                    const cached = safeStorage.getItem(`cache_${p}`);
-                    if (!cached) {
-                        try {
-                            const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(p)}&t=${Date.now()}`, { cache: 'no-store' });
-                            if (res.ok) {
-                                const data = await res.json();
-                                if (data && data.customerList) {
-                                    safeStorage.setItem(`cache_${p}`, JSON.stringify(data));
-                                }
-                            }
-                        } catch(e) {}
-                    }
-                }));
+                let url = "";
+                if (payload.type === 'ALL' || payload.type === 'CUSTOMER') {
+                    url = `${APPSCRIPT_URL}?action=cleanDuplicateSales&sheetName=${encodeURIComponent(payload.sheetName)}&targetKey=${encodeURIComponent(payload.targetKey || 'ALL')}&t=${Date.now()}`;
+                } else if (payload.type === 'SINGLE') {
+                    url = `${APPSCRIPT_URL}?action=deleteSingleDuplicate&sheetId=${encodeURIComponent(payload.sheetId)}&sheetName=${encodeURIComponent(payload.sheetName)}&rowNum=${payload.rowNum}&t=${Date.now()}`;
+                } else if (payload.type === 'SELECTED') {
+                    url = `${APPSCRIPT_URL}?action=deleteSelectedDuplicates&sheetName=${encodeURIComponent(payload.sheetName)}&items=${encodeURIComponent(JSON.stringify(payload.items))}&t=${Date.now()}`;
+                }
 
-                buildAdvancedReport(targetPeriods, prevPeriods);
+                const res = await fetch(url, { cache: 'no-store' });
+                const resData = await res.json();
+
+                if (resData && resData.success) {
+                    if (currentData && currentData.customerList) {
+                        if (payload.type === 'SINGLE') {
+                            currentData.customerList = currentData.customerList.filter(i => !(i.sheetId === payload.sheetId && i.rowNum === payload.rowNum));
+                        } else if (payload.type === 'SELECTED' && Array.isArray(payload.items)) {
+                            const deleteSet = new Set(payload.items.map(item => `${item.sheetId}_${item.rowNum}`));
+                            currentData.customerList = currentData.customerList.filter(i => !deleteSet.has(`${i.sheetId}_${i.rowNum}`));
+                        }
+                    }
+
+                    selectedDuplicateRows.clear();
+                    updateSelectedDuplicateCount();
+                    render(currentData);
+                    if (loader) loader.classList.add('hidden');
+                    
+                    fetchDataSilent();
+                } else {
+                    if (loader) loader.classList.add('hidden');
+                    showErrorModal("Silme Hatası", resData.message || "İşlem sırasında hata oluştu.");
+                }
             } catch (err) {
-                console.error("Gelişmiş Analiz Hatası: ", err);
-                showErrorModal("Analiz Hatası", "Gelişmiş dönem raporu hesaplanırken bir sorun oluştu.");
-            } finally {
+                console.error(err);
                 if (loader) loader.classList.add('hidden');
+                showErrorModal("Bağlantı Hatası", "Kayıtlar silinirken sunucuyla iletişim kesildi.");
+            } finally {
                 if (loaderText) loaderText.innerText = "Veriler Senkronize Ediliyor...";
             }
-        }
-
-        function buildAdvancedReport(periods, prevPeriods = []) {
-            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
-            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
-            
-            const cardsGrid = document.getElementById('adv-month-cards');
-            const tableHead = document.getElementById('adv-table-head');
-            const tableBody = document.getElementById('adv-table-body');
-            const insightsContainer = document.getElementById('adv-insights-container');
-
-            if (cardsGrid) cardsGrid.innerHTML = "";
-            let headHtml = `<tr><th class="w-12 text-center">#</th><th>Şube Adı</th>`;
-            periods.forEach(p => headHtml += `<th class="text-right">${p} (Ciro)</th>`);
-            headHtml += `</tr>`;
-            if (tableHead) tableHead.innerHTML = headHtml;
-
-            const allBranches = new Set();
-            const monthlyStats = {}; 
-
-            [...prevPeriods, ...periods].forEach(p => {
-                monthlyStats[p] = { totalRevenue: 0, totalYönlendirme: 0, branches: {}, branchReferrals: {} };
-                const cacheStr = safeStorage.getItem(`cache_${p}`);
-                if (!cacheStr) return;
-                try {
-                    const d = JSON.parse(cacheStr);
-                    monthlyStats[p].totalRevenue = d.kpis ? (d.kpis.totalRevenue || 0) : 0;
-                    monthlyStats[p].totalYönlendirme = (d.customerList || []).filter(i => i.customerName || i.customerNo || i.revenue > 0).length;
-
-                    if (d.charts && d.charts.branch) {
-                        d.charts.branch.forEach(b => {
-                            allBranches.add(b.name);
-                            monthlyStats[p].branches[b.name] = b.revenue || 0;
-                            const refCount = (d.customerList || []).filter(i => i.branch === b.name && (i.customerName || i.customerNo)).length;
-                            monthlyStats[p].branchReferrals[b.name] = refCount;
-                        });
-                    }
-                } catch(e){}
-            });
-
-            periods.forEach(p => {
-                const s = monthlyStats[p];
-                if (cardsGrid && s) {
-                    cardsGrid.innerHTML += `
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-card">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">${p}</p>
-                            <h4 class="text-lg font-extrabold text-slate-900">${fmt(s.totalRevenue || 0)}</h4>
-                            <div class="flex items-center gap-1.5 mt-2 text-xs font-bold text-brand-600">
-                                <i class="fas fa-bullhorn text-xs"></i>
-                                <span>${num(s.totalYönlendirme || 0)} Yönlendirme</span>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-
-            const sortedBranches = Array.from(allBranches).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
-            let bodyHtml = "";
-            const branchGrowth = []; 
-
-            sortedBranches.forEach((bName, idx) => {
-                bodyHtml += `<tr><td class="text-center font-bold text-slate-400">${idx + 1}</td><td class="font-bold text-slate-800">${bName}</td>`;
-                
-                periods.forEach(p => {
-                    const rev = (monthlyStats[p] && monthlyStats[p].branches) ? (monthlyStats[p].branches[bName] || 0) : 0;
-                    bodyHtml += `<td class="text-right font-semibold text-slate-700">${fmt(rev)}</td>`;
-                });
-
-                const currSumRev = periods.reduce((sum, p) => sum + (monthlyStats[p] && monthlyStats[p].branches ? (monthlyStats[p].branches[bName] || 0) : 0), 0);
-                const prevSumRev = prevPeriods.reduce((sum, p) => sum + (monthlyStats[p] && monthlyStats[p].branches ? (monthlyStats[p].branches[bName] || 0) : 0), 0);
-                
-                const diffVal = currSumRev - prevSumRev;
-                const percentVal = prevSumRev > 0 ? (diffVal / prevSumRev) * 100 : 0;
-                branchGrowth.push({ name: bName, diffVal, percentVal });
-
-                bodyHtml += `</tr>`;
-            });
-
-            const totalCurrSumRev = periods.reduce((sum, p) => sum + Number((monthlyStats[p] && monthlyStats[p].totalRevenue) || 0), 0);
-
-            bodyHtml += `
-                <tr class="bg-brand-50/60 font-bold border-t-2 border-brand-500">
-                    <td colspan="2" class="text-right font-extrabold text-brand-900 uppercase text-xs py-4 px-5">GENEL TOPLAM</td>
-            `;
-            periods.forEach(p => {
-                const termRev = monthlyStats[p] ? (monthlyStats[p].totalRevenue || 0) : 0;
-                bodyHtml += `<td class="text-right font-extrabold text-slate-900">${fmt(termRev)}</td>`;
-            });
-            bodyHtml += `</tr>`;
-
-            if (tableBody) tableBody.innerHTML = bodyHtml;
-
-            const subtitleEl = document.getElementById('adv-comparison-subtitle');
-            if (subtitleEl) {
-                subtitleEl.innerHTML = prevPeriods.length > 0 
-                    ? `Kıyaslama Dönemi: <strong>[${prevPeriods.join(', ')}]</strong> vs Seçilen Dönem: <strong>[${periods.join(', ')}]</strong>`
-                    : `Seçilen dönem aralığına ait ciro değişimleri.`;
-            }
-
-            if (insightsContainer) {
-                insightsContainer.classList.remove('hidden');
-                const totalPrevSumRev = prevPeriods.reduce((sum, p) => sum + Number((monthlyStats[p] && monthlyStats[p].totalRevenue) || 0), 0);
-                const totalDiff = totalCurrSumRev - totalPrevSumRev;
-                const totalPercent = totalPrevSumRev > 0 ? (totalDiff / totalPrevSumRev) * 100 : 0;
-                const currTotalReferrals = periods.reduce((sum, p) => sum + Number((monthlyStats[p] && monthlyStats[p].totalYönlendirme) || 0), 0);
-                const prevTotalReferrals = prevPeriods.reduce((sum, p) => sum + Number((monthlyStats[p] && monthlyStats[p].totalYönlendirme) || 0), 0);
-
-                let periodComparisonText = prevPeriods.length > 0 
-                    ? `• Genel ciro performansı, önceki eşit döneme (<strong>${prevPeriods.join(', ')}</strong>) kıyasla <strong>${fmt(Math.abs(totalDiff))}</strong> (${totalDiff >= 0 ? 'Artış' : 'Azalış'}) göstererek <strong class="${totalDiff >= 0 ? 'text-emerald-700' : 'text-rose-700'}">${totalDiff >= 0 ? '+' : ''}${totalPercent.toFixed(1)}%</strong> oranında değişmiştir.`
-                    : `• Seçilen dönemde (<strong>${periods.join(', ')}</strong>) toplam brüt ciro <strong>${fmt(totalCurrSumRev)}</strong> olarak gerçekleşmiştir.`;
-
-                let referralsComparisonText = prevPeriods.length > 0
-                    ? `• Önceki dönemin toplam yönlendirme adedi <strong>${num(prevTotalReferrals)}</strong> iken, seçtiğiniz dönemde bu sayı <strong>${num(currTotalReferrals)}</strong> adede ulaşmıştır.`
-                    : `• Seçilen dönem boyunca alınan toplam yönlendirme adedi: <strong>${num(currTotalReferrals)}</strong>`;
-
-                insightsContainer.innerHTML = `
-                    <div class="flex items-center gap-2.5 text-brand-900">
-                        <div class="w-8 h-8 rounded-xl bg-brand-100 flex items-center justify-center text-brand-700 font-bold shrink-0">
-                            <i class="fas fa-chart-line text-sm"></i>
-                        </div>
-                        <h3 class="font-extrabold text-sm">Yönetim Analiz Raporu & Trend Özeti</h3>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                        <div class="space-y-1.5 text-xs font-semibold text-slate-700">
-                            <p>${periodComparisonText}</p>
-                        </div>
-                        <div class="space-y-1.5 text-xs font-semibold text-slate-700">
-                            <p>${referralsComparisonText}</p>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            window.lastAdvancedStats = { periods, prevPeriods, sortedBranches, monthlyStats, branchGrowth };
-        }
-
-        function renderFollowupKPIs(list) {
-            const container = document.getElementById('followup-kpi-container');
-            if (!container) return;
-            
-            const stats = {};
-            PREFERRED_BRANCH_ORDER.forEach(b => {
-                stats[b] = { aranmadi: 0, tekrar: 0, gelecek: 0 };
-            });
-
-            list.forEach(i => {
-                const s = String(i.status || "").trim().toLowerCase();
-                const cs = String(i.callStatus || "").trim().toLowerCase();
-                
-                if (s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı' || cs === 'aranmadi') {
-                    let branchKey = PREFERRED_BRANCH_ORDER.find(b => i.branch.toLocaleUpperCase('tr-TR').includes(b)) || i.branch;
-                    if (!stats[branchKey]) stats[branchKey] = { aranmadi: 0, tekrar: 0, gelecek: 0 };
-                    
-                    if (cs === 'aranmadı' || cs === 'aranmadi') stats[branchKey].aranmadi++;
-                    else if (s === 'tekrar aranacak') stats[branchKey].tekrar++;
-                    else if (s === 'müşteri mağazaya gelecek') stats[branchKey].gelecek++;
-                }
-            });
-
-            const cardsHtml = Object.entries(stats).map(([bName, s]) => {
-                if (s.aranmadi === 0 && s.tekrar === 0 && s.gelecek === 0) return '';
-                return `
-                    <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-extrabold text-xs text-slate-800 truncate mr-1">${bName}</span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${s.aranmadi > 0 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-500'} shrink-0">${s.aranmadi} ARANMADI</span>
-                        </div>
-                        <div class="flex items-center justify-between text-[10px] text-slate-600 font-semibold border-t border-slate-100 pt-1 mt-1">
-                            <span>Tekrar: <strong class="text-amber-600">${s.tekrar}</strong></span>
-                            <span>Gelecek: <strong class="text-indigo-600">${s.gelecek}</strong></span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = cardsHtml || `<div class="col-span-full text-center py-4 text-xs font-bold text-slate-400">Takip edilecek aksiyon kaydı bulunmuyor.</div>`;
         }
 
         function renderDuplicates(list) {
             const container = document.getElementById('duplicates-container');
             const dupFilter = document.getElementById('duplicateFilter');
-            const filterVal = dupFilter ? dupFilter.value : 'tumu';
+            const filterVal = dupFilter ? dupFilter.value : 'satislar';
             if (!container) return;
 
             const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
             const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
+            const activePeriod = document.getElementById('periodSelector')?.value || '';
 
             const phoneGroups = {};
             list.forEach(item => {
                 const cleanPhone = cleanPhoneNumber(item.phone);
                 const cNo = String(item.customerNo || "").trim().toLowerCase();
-                const key = cleanPhone.length >= 7 ? cleanPhone : (cNo !== "" && cNo !== "belirtilmemiş" ? `no_${cNo}` : null);
-                
+                const key = cleanPhone.length >= 7 ? cleanPhone : (cNo && cNo !== "belirtilmemiş" ? `no_${cNo}` : null);
                 if (key) {
                     if (!phoneGroups[key]) phoneGroups[key] = [];
                     phoneGroups[key].push(item);
@@ -1427,18 +1008,15 @@
             Object.entries(phoneGroups).forEach(([key, items]) => {
                 if (items.length > 1) {
                     items.sort((a, b) => parseTurkishDate(a.date) - parseTurkishDate(b.date));
-
+                    
                     const distinctBranches = new Set(items.map(i => i.branch));
                     const isMultiBranch = distinctBranches.size > 1;
-
-                    let filteredItems = items;
-                    if (filterVal === 'satislar') {
-                        filteredItems = items.filter(i => Number(i.revenue || 0) > 0);
-                        if (filteredItems.length < 2) return;
-                    }
-
-                    const duplicateEntries = filteredItems.slice(1);
+                    
+                    const duplicateEntries = items.slice(1);
                     const duplicateRevenue = duplicateEntries.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
+                    
+                    const hasValidSales = items.some(i => Number(i.revenue || 0) > 0);
+                    if (filterVal === 'satislar' && !hasValidSales) return;
 
                     totalDupCustomers++;
                     totalDupEntries += duplicateEntries.length;
@@ -1447,7 +1025,7 @@
 
                     duplicateGroups.push({
                         key,
-                        items: filteredItems,
+                        items,
                         isMultiBranch,
                         distinctBranchesCount: distinctBranches.size,
                         duplicateRevenue
@@ -1462,100 +1040,94 @@
 
             if (duplicateGroups.length === 0) {
                 container.innerHTML = `
-                    <div class="bg-white p-12 rounded-2xl border border-slate-200/80 text-center shadow-card">
-                        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl">
+                    <div class="bg-white p-12 rounded-2xl border border-slate-200 text-center shadow-card">
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
                             <i class="fas fa-circle-check"></i>
                         </div>
-                        <h4 class="font-extrabold text-slate-800 text-base">Mükerrer Kayıt Bulunamadı</h4>
-                        <p class="text-slate-500 text-xs mt-1 font-medium">Seçilen dönemdeki şube verilerinde mükerrer müşteri kaydı veya çakışan satış bulunmamaktadır.</p>
+                        <h4 class="font-bold text-slate-800 text-sm">Mükerrer Kayıt Bulunmuyor</h4>
+                        <p class="text-slate-600 text-xs mt-1">Seçilen dönem ve filtreye uygun çakışan kayıt tespit edilmedi.</p>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = duplicateGroups.map((group) => {
+            container.innerHTML = duplicateGroups.map((group, gIdx) => {
                 const firstItem = group.items[0];
                 const custName = group.items.find(i => i.customerName)?.customerName || firstItem.customerNo || "İsimsiz Müşteri";
                 const phoneDisplay = firstItem.phone || group.key;
 
-                const isGroupAllSelected = group.items.every(i => selectedDuplicateRows.has(`${i.sheetId}_${i.rowNum}`));
-
                 return `
-                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-card overflow-hidden">
-                        <!-- Redesigned Spacious Non-overlapping Card Header -->
-                        <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <input type="checkbox" onchange="toggleSelectGroupDuplicates('${group.key}')" ${isGroupAllSelected ? 'checked' : ''} class="w-4 h-4 rounded border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer shrink-0">
-                                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-base shrink-0">
-                                    <i class="fas fa-user-gear"></i>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+                        <div class="bg-slate-900 text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" onchange="toggleCustomerGroupDuplicates(this, '${group.key}')" class="group-master-checkbox w-4 h-4 rounded-md text-brand-600 border-slate-700 bg-slate-800">
+                                <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-xs shrink-0">
+                                    <i class="fas fa-user-tag"></i>
                                 </div>
-                                <div class="min-w-0">
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <h4 class="font-extrabold text-sm sm:text-base text-white truncate">${custName}</h4>
-                                        <span class="text-xs font-semibold text-slate-300 bg-slate-800/90 px-2.5 py-0.5 rounded-full border border-slate-700/80">${phoneDisplay}</span>
-                                    </div>
-                                    <p class="text-[11px] text-slate-400 font-medium mt-0.5">${group.items.length} Farklı Kayıt • ${group.distinctBranchesCount} Şube Etkilenmiş</p>
+                                <div>
+                                    <h4 class="font-bold text-xs text-white flex items-center gap-2">
+                                        ${custName}
+                                        <span class="text-[11px] text-slate-400 font-normal">(${phoneDisplay})</span>
+                                    </h4>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">${group.items.length} Kayıt • ${group.distinctBranchesCount} Şube</p>
                                 </div>
                             </div>
 
-                            <div class="flex flex-wrap items-center gap-3 border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-700/60 shrink-0">
-                                ${group.isMultiBranch ? '<span class="px-2.5 py-1 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[10px] font-bold rounded-lg uppercase shrink-0"><i class="fas fa-triangle-exclamation mr-1"></i> Şubeler Arası Mükerrer</span>' : '<span class="px-2.5 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold rounded-lg uppercase shrink-0">Şube İçi Çift Kayıt</span>'}
-                                
-                                <div class="bg-slate-800/90 border border-slate-700/90 px-3 py-1 rounded-xl text-right shrink-0">
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Mükerrer Ciro Riski</span>
-                                    <span class="text-xs font-extrabold text-rose-400 leading-tight">${fmt(group.duplicateRevenue)}</span>
+                            <div class="flex items-center gap-3">
+                                <div class="text-right">
+                                    <p class="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">Mükerrer Risk</p>
+                                    <p class="text-xs font-bold text-rose-400">${fmt(group.duplicateRevenue)}</p>
                                 </div>
-
-                                <button onclick="confirmCleanCustomerDuplicates('${custName}', '${group.key}')" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shrink-0">
-                                    <i class="fas fa-broom text-xs"></i>
-                                    <span>Mükerrerleri Temizle</span>
+                                <button onclick="cleanDuplicateSalesForCustomer('${group.key}', '${custName.replace(/'/g, "\\'")}')" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+                                    <i class="fas fa-broom text-[10px]"></i> Mükerrerleri Temizle
                                 </button>
                             </div>
                         </div>
 
                         <div class="overflow-x-auto custom-scrollbar">
-                            <table class="modern-table">
+                            <table class="portal-table">
                                 <thead>
                                     <tr>
-                                        <th class="w-12 text-center">Seç</th>
-                                        <th class="w-14 text-center">Sıra</th>
+                                        <th class="w-10 text-center">Seç</th>
+                                        <th class="w-12 text-center">Sıra</th>
                                         <th>Giriş Tarihi</th>
                                         <th>Kayıt Edilen Şube</th>
-                                        <th>Tespit Durumu / Etiket</th>
+                                        <th>Durum / Etiket</th>
                                         <th>İşlem / Aksiyon</th>
                                         <th class="text-right">Ciro Tutarı</th>
-                                        <th class="text-center w-28">Eylem</th>
+                                        <th class="w-24 text-right">Eylem</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     ${group.items.map((item, idx) => {
                                         const isFirst = idx === 0;
-                                        const statusStr = String(item.status || "").trim();
                                         const rev = Number(item.revenue || 0);
                                         const rowKey = `${item.sheetId}_${item.rowNum}`;
-                                        const isRowChecked = selectedDuplicateRows.has(rowKey);
-                                        
-                                        let tagBadge = isFirst 
-                                            ? '<span class="badge badge-emerald"><i class="fas fa-star mr-1"></i> İLK İŞLEM (ORİJİNAL)</span>' 
-                                            : '<span class="badge badge-rose"><i class="fas fa-copy mr-1"></i> MÜKERRER KAYIT</span>';
+                                        const isChecked = selectedDuplicateRows.has(rowKey);
 
-                                        let actionBtn = `<button onclick="confirmDeleteSingleRow('${item.sheetId}', '${item.rowNum}', '${item.branch}', '${item.customerName || custName}')" class="px-2.5 py-1 text-xs font-bold rounded-lg border transition ${isFirst ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'}" title="Kaydı Google Sheets'ten Sil"><i class="fas fa-trash-can mr-1"></i> Kaydı Sil</button>`;
+                                        let tagBadge = isFirst 
+                                            ? '<span class="badge-pill badge-emerald"><i class="fas fa-star text-[9px]"></i> İLK İŞLEM (ORİJİNAL)</span>' 
+                                            : '<span class="badge-pill badge-rose"><i class="fas fa-clone text-[9px]"></i> MÜKERRER KAYIT</span>';
 
                                         return `
-                                            <tr class="${isFirst ? 'bg-emerald-50/20' : 'bg-rose-50/10'}">
+                                            <tr class="${isFirst ? 'bg-emerald-50/20' : 'bg-rose-50/15'}">
                                                 <td class="text-center">
-                                                    <input type="checkbox" onchange="toggleSelectDuplicateRow('${item.sheetId}', '${item.rowNum}')" ${isRowChecked ? 'checked' : ''} class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer">
+                                                    <input type="checkbox" data-row-key="${rowKey}" ${isChecked ? 'checked' : ''} onchange="onDuplicateRowCheckChange(this)" class="dup-row-checkbox dup-row-${group.key} w-3.5 h-3.5 text-brand-600 rounded border-slate-300">
                                                 </td>
-                                                <td class="text-center font-bold text-slate-400">${idx + 1}</td>
-                                                <td class="font-extrabold text-slate-800"><i class="fas fa-calendar-day text-slate-400 mr-1.5"></i>${item.date || '---'}</td>
-                                                <td class="font-extrabold text-slate-900">${item.branch}</td>
+                                                <td class="text-center font-bold text-slate-400 text-xs">${idx + 1}</td>
+                                                <td class="font-bold text-slate-700 text-xs"><i class="fas fa-calendar text-slate-400 mr-1.5"></i>${item.date || '---'}</td>
+                                                <td class="font-bold text-slate-900 text-xs">${item.branch}</td>
                                                 <td>${tagBadge}</td>
                                                 <td>
-                                                    <span class="font-bold text-slate-700 text-xs">${statusStr || item.callStatus || '---'}</span>
-                                                    ${item.category ? `<span class="ml-2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block">${item.category}</span>` : ''}
+                                                    <span class="text-xs font-semibold text-slate-700">${item.status || item.callStatus || '---'}</span>
+                                                    ${item.category ? `<span class="ml-1 text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">${item.category}</span>` : ''}
                                                 </td>
-                                                <td class="text-right font-extrabold ${rev > 0 ? (isFirst ? 'text-emerald-700' : 'text-rose-600') : 'text-slate-400'}">${fmt(rev)}</td>
-                                                <td class="text-center">${actionBtn}</td>
+                                                <td class="text-right font-bold text-xs ${rev > 0 ? (isFirst ? 'text-emerald-700' : 'text-rose-600') : 'text-slate-400'}">${fmt(rev)}</td>
+                                                <td class="text-right">
+                                                    <button onclick="deleteSingleRow('${item.sheetId}', '${activePeriod}', ${item.rowNum}, '${custName.replace(/'/g, "\\'")}', ${isFirst})" class="${isFirst ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'} border text-[10px] font-bold px-2 py-1 rounded-md transition flex items-center gap-1 ml-auto">
+                                                        <i class="fas fa-trash-can text-[9px]"></i> Sil
+                                                    </button>
+                                                </td>
                                             </tr>
                                         `;
                                     }).join('')}
@@ -1603,11 +1175,9 @@
             list.forEach(i => {
                 const ciro = Number(i.revenue || 0);
                 const stat = String(i.status || "").trim().toLowerCase();
-                const isSale = ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu';
-                
-                if (isSale) {
+                if (ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu') {
                     let cat = String(i.category || "").trim();
-                    if (cat && cat.toLowerCase() !== "satışa döndü" && cat.toLowerCase() !== "satisa dondu" && cat.toLowerCase() !== "belirtilmemiş") {
+                    if (cat && cat.toLowerCase() !== "satışa döndü" && cat.toLowerCase() !== "belirtilmemiş") {
                         categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
                     }
                 }
@@ -1621,22 +1191,18 @@
                     topCategory = cat;
                 }
             });
-            let topCategoryName = topCategory.toUpperCase();
-            let topCategorySub = `${maxCount} satış`;
 
             safeSetText('kpi-referrals', num(totalReferrals));
             safeSetText('kpi-aranan', num(totalAranan));
             safeSetText('kpi-sales', num(totalSales));
             safeSetText('kpi-revenue', fmt(totalRevenue));
-            safeSetText('kpi-top-category', topCategoryName);
-            safeSetText('kpi-top-category-sub', topCategorySub);
+            safeSetText('kpi-top-category', topCategory.toUpperCase());
+            safeSetText('kpi-top-category-sub', `${maxCount} satış`);
             safeSetText('kpi-basket', fmt(avgBasket));
 
             if (activeTab === 'dashboard') {
                 let branchSummary = [...(data.charts.branch || [])];
-                if (selectedBranch !== "Tümü") {
-                    branchSummary = branchSummary.filter(b => b.name === selectedBranch);
-                }
+                if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
                 branchSummary.sort((a, b) => b.revenue - a.revenue);
                 
                 branchSummary.forEach(b => {
@@ -1652,11 +1218,11 @@
                 if (branchBody) {
                     branchBody.innerHTML = branchSummary.map((b, i) => `
                         <tr>
-                            <td class="text-center font-bold text-slate-400">${i+1}</td>
-                            <td class="font-bold text-slate-800">${b.name}</td>
-                            <td class="text-right font-semibold text-slate-700">${num(b.referrals)}</td>
-                            <td class="text-right font-semibold text-slate-700">${num(b.sales)}</td>
-                            <td class="text-right font-extrabold text-brand-600">${fmt(b.revenue)}</td>
+                            <td class="text-center font-bold text-slate-400 text-xs">${i+1}</td>
+                            <td class="font-bold text-slate-800 text-xs">${b.name}</td>
+                            <td class="text-right font-medium text-slate-600 text-xs">${num(b.referrals)}</td>
+                            <td class="text-right font-medium text-slate-600 text-xs">${num(b.sales)}</td>
+                            <td class="text-right font-bold text-indigo-700 text-xs">${fmt(b.revenue)}</td>
                         </tr>
                     `).join('');
                 }
@@ -1676,8 +1242,8 @@
                 const customerBody = document.getElementById('customer-body-specified');
                 if (customerBody) {
                     customerBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-slate-100/80"><td colspan="4" class="px-5 py-2 font-extrabold text-brand-700 text-xs uppercase tracking-wider bg-brand-50 border-y border-slate-200"><i class="fas fa-store mr-2"></i> ${group.branch}</td></tr>
-                        ${group.items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-bold">${idx+1}</td><td><div class="font-extrabold text-slate-800">${item.customerNo}</div></td><td>${item.phone || '---'}</td><td class="text-right font-extrabold text-brand-600">${fmt(item.revenue)}</td></tr>`).join('')}
+                        <tr class="bg-indigo-50/40"><td colspan="4" class="px-5 py-2 font-bold text-indigo-800 text-[11px] uppercase tracking-wider border-y border-indigo-100"><i class="fas fa-store mr-1.5"></i> ${group.branch}</td></tr>
+                        ${group.items.map((item, idx) => `<tr><td class="text-center text-slate-400 font-bold text-xs">${idx+1}</td><td class="font-bold text-slate-800 text-xs">${item.customerNo}</td><td class="text-xs text-slate-600">${item.phone || '---'}</td><td class="text-right font-bold text-indigo-700 text-xs">${fmt(item.revenue)}</td></tr>`).join('')}
                     `).join('');
                 }
                 safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
@@ -1707,35 +1273,34 @@
 
                 if (followupBody) {
                     followupBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-slate-100"><td colspan="4" class="px-5 py-2 font-extrabold text-slate-800 text-xs uppercase tracking-wider bg-slate-200/60 border-y border-slate-300"><i class="fas fa-building mr-2"></i> ${group.branch} <span class="ml-2 text-slate-500 font-medium text-[11px]">(${group.items.length} Kayıt)</span></td></tr>
+                        <tr class="bg-slate-100/60"><td colspan="4" class="px-5 py-2 font-bold text-slate-700 text-[11px] uppercase tracking-wider border-y border-slate-200"><i class="fas fa-building mr-1.5"></i> ${group.branch} (${group.items.length})</td></tr>
                         ${group.items.map((item, idx) => {
                             const callStatus = String(item.callStatus || "").trim().toLowerCase();
                             const status = String(item.status || "").trim().toLowerCase();
-                            let badgeClass = 'badge badge-brand'; 
+                            let badgeClass = 'badge-pill badge-brand'; 
                             let label = 'Mağazaya Gelecek';
 
                             if (callStatus === 'aranmadı' || callStatus === 'aranmadi') { 
-                                badgeClass = 'badge badge-rose'; 
+                                badgeClass = 'badge-pill badge-rose'; 
                                 label = 'Aranmadı'; 
                             } else if (status === 'tekrar aranacak') { 
-                                badgeClass = 'badge badge-amber'; 
+                                badgeClass = 'badge-pill badge-amber'; 
                                 label = 'Tekrar Aranacak'; 
                             }
                             
-                            let lateWarning = item.isLate ? `<div class="text-[10px] text-rose-700 font-bold mt-1 flex items-center gap-1 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded w-fit animate-pulse"><i class="fas fa-triangle-exclamation text-rose-600"></i> ${item.date} TARİHİNDEN BERİ ARANMADI!</div>` : '';
+                            let lateWarning = item.isLate ? `<span class="text-[10px] font-bold text-rose-600 ml-2 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200"><i class="fas fa-clock mr-1"></i>${item.date} Gecikmiş</span>` : '';
                             
                             return `<tr>
-                                <td class="text-center text-slate-400 font-bold">${idx+1}</td>
+                                <td class="text-center text-slate-400 font-bold text-xs">${idx+1}</td>
                                 <td>
-                                    <div class="font-bold text-slate-800">${item.customerName || "---"}</div>
+                                    <span class="font-bold text-slate-800 text-xs">${item.customerName || "---"}</span>
                                     ${lateWarning}
                                 </td>
-                                <td class="font-medium text-slate-700">${item.phone || '---'}</td>
+                                <td class="text-xs text-slate-600">${item.phone || '---'}</td>
                                 <td><span class="${badgeClass}">${label}</span></td>
                             </tr>`;
                         }).join('')}
                     `).join('');
-                    if(grouped.length === 0) followupBody.innerHTML = '<tr><td colspan="4" class="text-center py-8 font-bold text-slate-400 text-xs">Kayıt bulunamadı.</td></tr>';
                 }
 
             } else if (activeTab === 'unspecified') {
@@ -1743,32 +1308,26 @@
                     const cNo = String(i.customerNo || "").trim();
                     const status = String(i.status || "").trim().toLowerCase();
                     const rev = Number(i.revenue || 0);
-                    
-                    const hasNoNumber = (cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && rev > 0;
-                    const isZeroRevenueSale = status === 'satışa döndü' && rev === 0;
-                    return hasNoNumber || isZeroRevenueSale;
+                    return ((cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && rev > 0) || (status === 'satışa döndü' && rev === 0);
                 });
                 const grouped = groupDataByBranch(unspecList);
                 
                 const unspecifiedBody = document.getElementById('unspecified-body');
                 if (unspecifiedBody) {
                     unspecifiedBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-rose-50/80"><td colspan="4" class="px-5 py-2 font-extrabold text-rose-800 text-xs uppercase tracking-wider border-y border-rose-200"><i class="fas fa-triangle-exclamation mr-2"></i> ${group.branch} <span class="ml-2 text-rose-600 font-medium text-[11px]">(${group.items.length} Hatalı Kayıt)</span></td></tr>
+                        <tr class="bg-rose-50/40"><td colspan="4" class="px-5 py-2 font-bold text-rose-800 text-[11px] uppercase tracking-wider border-y border-rose-100"><i class="fas fa-triangle-exclamation mr-1.5"></i> ${group.branch} (${group.items.length})</td></tr>
                         ${group.items.map((item, idx) => {
                             const status = String(item.status || "").trim().toLowerCase();
                             const rev = Number(item.revenue || 0);
                             const isZeroRevenue = status === 'satışa döndü' && rev === 0;
-                            const badgeLabel = isZeroRevenue ? "Sıfır Cirolu Satış" : "Numara Eksik";
-                            const badgeClass = isZeroRevenue ? "badge-amber" : "badge-rose";
                             return `<tr>
-                                <td class="text-center text-slate-400 font-bold">${idx+1}</td>
-                                <td><div class="font-bold text-slate-800">${item.customerName || "---"}</div></td>
-                                <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
-                                <td class="text-right font-extrabold text-rose-700">${fmt(rev)}</td>
+                                <td class="text-center text-slate-400 font-bold text-xs">${idx+1}</td>
+                                <td class="font-bold text-slate-800 text-xs">${item.customerName || "---"}</td>
+                                <td><span class="badge-pill ${isZeroRevenue ? 'badge-amber' : 'badge-rose'}">${isZeroRevenue ? 'Sıfır Cirolu Satış' : 'Numara Eksik'}</span></td>
+                                <td class="text-right font-bold text-rose-700 text-xs">${fmt(rev)}</td>
                             </tr>`;
                         }).join('')}
                     `).join('');
-                    if(grouped.length === 0) unspecifiedBody.innerHTML = '<tr><td colspan="4" class="text-center py-8 font-bold text-slate-400 text-xs">Sorunsuz ve eksiksiz kayıtlar.</td></tr>';
                 }
                 safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
 
@@ -1777,193 +1336,125 @@
             }
         }
 
-        function printReport() {
-            if (activeTab === 'advanced') {
-                printAdvancedReport();
+        async function runAdvancedAnalysis() {
+            const startVal = document.getElementById('advStartPeriod')?.value;
+            const endVal = document.getElementById('advEndPeriod')?.value;
+            if (!startVal || !endVal) return;
+
+            const allPeriods = Array.from(document.getElementById('periodSelector')?.options || []).map(o => o.value);
+            const sortedPeriods = [...allPeriods].sort((a, b) => periodToVal(a) - periodToVal(b));
+            
+            const startIdx = sortedPeriods.indexOf(startVal);
+            const endIdx = sortedPeriods.indexOf(endVal);
+
+            if (startIdx > endIdx) {
+                showErrorModal("Tarih Hatası", "Başlangıç dönemi bitiş döneminden sonra olamaz.");
                 return;
             }
-            if (!currentData) return;
-            const periodSelector = document.getElementById('periodSelector');
-            const period = periodSelector ? periodSelector.value : '';
-            const branchSelector = document.getElementById('branchSelector');
-            const branch = branchSelector ? branchSelector.value : 'Tümü';
-            const followupFilter = document.getElementById('followupFilter');
-            const selectedAction = followupFilter ? followupFilter.value.toLowerCase() : 'tümü';
-            
-            const fmt = v => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
-            const num = v => new Intl.NumberFormat('tr-TR').format(v);
-            
-            let list = currentData.customerList ? currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0)) : [];
-            if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
-            let tableHtml = "";
-            let reportTitle = "";
+            const targetPeriods = sortedPeriods.slice(startIdx, endIdx + 1);
+            const prevPeriods = [];
+            for (let i = 1; i <= targetPeriods.length; i++) {
+                const prevIdx = startIdx - i;
+                if (prevIdx >= 0) prevPeriods.unshift(sortedPeriods[prevIdx]);
+            }
 
-            if (activeTab === 'dashboard') {
-                reportTitle = "PERFORMANS ANALİZİ RAPORU";
-                let branchSummary = [...(currentData.charts.branch || [])];
-                if (branch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === branch);
-                branchSummary.sort((a, b) => b.revenue - a.revenue);
-                
-                branchSummary.forEach(b => {
-                    b.referrals = currentData.customerList.filter(i => i.branch === b.name).length;
-                    b.sales = currentData.customerList.filter(i => {
-                        const ciro = Number(i.revenue || 0);
-                        const stat = String(i.status || "").trim().toLowerCase();
-                        return i.branch === b.name && (ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu');
-                    }).length;
-                });
+            const loader = document.getElementById('loadingIndicator');
+            if (loader) loader.classList.remove('hidden');
 
-                const totalSales = branchSummary.reduce((sum, b) => sum + Number(b.sales || 0), 0);
-                const totalReferrals = branchSummary.reduce((sum, b) => sum + Number(b.referrals || 0), 0);
-                const totalRev = branchSummary.reduce((sum, b) => sum + Number(b.revenue || 0), 0);
-
-                tableHtml = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:15px; background:#f1f5f9; padding:12px; border-radius:8px; border:1px solid #cbd5e1;">
-                        <div><b>TOPLAM YÖNLENDİRME:</b> ${num(totalReferrals)} Adet</div>
-                        <div><b>SATIŞ ADEDİ:</b> ${num(totalSales)} Adet</div>
-                        <div><b>TOPLAM CİRO:</b> ${fmt(totalRev)}</div>
-                    </div>
-                    <table class="print-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 40px; text-align: center;">Sıra</th>
-                                <th>Şube Tanımı</th>
-                                <th style="text-align:right">Yönlendirme (Adet)</th>
-                                <th style="text-align:right">Satış (Adet)</th>
-                                <th style="text-align:right">Toplam Tutar</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${branchSummary.map((b, i) => `
-                                <tr>
-                                    <td style="text-align:center">${i+1}</td>
-                                    <td>${b.name.toUpperCase()}</td>
-                                    <td style="text-align:right">${num(b.referrals || 0)}</td>
-                                    <td style="text-align:right">${num(b.sales || 0)}</td>
-                                    <td style="text-align:right">${fmt(b.revenue || 0)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>`;
-            } else if (activeTab === 'followup') {
-                reportTitle = `TAKİP VE AKSİYON LİSTESİ (${selectedAction.toUpperCase()})`;
-                let fList = list.filter(i => {
-                    const s = String(i.status || "").trim().toLowerCase();
-                    const cs = String(i.callStatus || "").trim().toLowerCase();
-                    return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı' || cs === 'aranmadi';
-                });
-                
-                if (selectedAction !== "tümü") {
-                    if (selectedAction === "aranmadı" || selectedAction === "aranmadi") {
-                        fList = fList.filter(i => {
-                            const cs = String(i.callStatus || "").trim().toLowerCase();
-                            return cs === 'aranmadı' || cs === 'aranmadi';
-                        });
-                    } else {
-                        fList = fList.filter(i => String(i.status || "").trim().toLowerCase() === selectedAction);
+            try {
+                await Promise.all([...prevPeriods, ...targetPeriods].map(async (p) => {
+                    if (!safeStorage.getItem(`cache_${p}`)) {
+                        try {
+                            const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(p)}&t=${Date.now()}`, { cache: 'no-store' });
+                            const d = await res.json();
+                            if (d && d.customerList) safeStorage.setItem(`cache_${p}`, JSON.stringify(d));
+                        } catch(e){}
                     }
-                }
+                }));
 
-                const grouped = groupDataByBranch(fList);
-                tableHtml = `<table class="print-table"><thead><tr><th style="width:40px; text-align:center;">#</th><th>Şube</th><th>Müşteri</th><th>Telefon</th><th>Aksiyon / Uyarı</th></tr></thead><tbody>` + 
-                    grouped.map(group => group.items.map((i, idx) => {
-                        const callStatus = String(i.callStatus || "").trim().toLowerCase();
-                        const status = String(i.status || "").trim().toLowerCase();
-                        let label = 'MAĞAZAYA GELECEK';
-                        if (callStatus === 'aranmadı' || callStatus === 'aranmadi') label = 'ARANMADI';
-                        else if (status === 'tekrar aranacak') label = 'TEKRAR ARANACAK';
-                        
-                        return `<tr><td style="text-align:center;">${idx+1}</td><td>${group.branch}</td><td>${i.customerName || '---'}</td><td>${i.phone || '---'}</td><td><b>${label}</b> ${i.isLate ? '<span style="color:#e11d48; font-weight:bold;">('+i.date+' TARİHİNDEN BERİ ARANMADI)</span>' : ''}</td></tr>`;
-                    }).join('')).join('') + `</tbody></table>`;
-            } else if (activeTab === 'duplicates') {
-                reportTitle = "MÜKERRER SATIŞ VE MÜŞTERİ DENETİM RAPORU";
-                const groups = window.lastDuplicateGroups || [];
-                tableHtml = `<table class="print-table"><thead><tr><th>Sıra</th><th>Müşteri</th><th>Giriş Tarihi</th><th>Şube</th><th>Durum</th><th style="text-align:right">Ciro (TL)</th></tr></thead><tbody>` +
-                    groups.map((g, gIdx) => g.items.map((item, idx) => `
-                        <tr>
-                            <td style="text-align:center;">${gIdx + 1}.${idx + 1}</td>
-                            <td><b>${item.customerName || 'İsimsiz'}</b> (${item.phone || '---'})</td>
-                            <td>${item.date || '---'}</td>
-                            <td><b>${item.branch}</b></td>
-                            <td>${idx === 0 ? 'İLK KAYIT (ORİJİNAL)' : 'MÜKERRER KAYIT'}</td>
-                            <td style="text-align:right">${fmt(item.revenue || 0)}</td>
-                        </tr>
-                    `).join('')).join('') + `</tbody></table>`;
-            } else if (activeTab === 'unspecified') {
-                reportTitle = "BELİRTİLMEYEN KAYITLAR RAPORU";
-                let unspecList = list.filter(i => {
-                    const cNo = String(i.customerNo || "").trim();
-                    const status = String(i.status || "").trim().toLowerCase();
-                    const rev = Number(i.revenue || 0);
-                    
-                    const hasNoNumber = (cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && rev > 0;
-                    const isZeroRevenueSale = status === 'satışa döndü' && rev === 0;
-                    return hasNoNumber || isZeroRevenueSale;
-                });
-                const grouped = groupDataByBranch(unspecList);
-                tableHtml = `<table class="print-table"><thead><tr><th style="width:40px; text-align:center;">#</th><th>Şube</th><th>Müşteri Tanımı</th><th>Sorun Durumu</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
-                    grouped.map(group => group.items.map((i, idx) => {
-                        const status = String(i.status || "").trim().toLowerCase();
-                        const rev = Number(i.revenue || 0);
-                        const isZeroRevenue = status === 'satışa döndü' && rev === 0;
-                        const statusLabel = isZeroRevenue ? "SIFIR CİROLU SATIŞ" : "MÜŞTERİ NO EKSİK";
-                        return `<tr><td style="text-align:center;">${idx+1}</td><td>${group.branch}</td><td>${i.customerName || '---'}</td><td>${statusLabel}</td><td style="text-align:right">${fmt(rev)}</td></tr>`;
-                    }).join('')).join('') + `</tbody></table>`;
-            } else if (activeTab === 'customers') {
-                reportTitle = "MÜŞTERİ DETAYLARI RAPORU";
-                let specList = list.filter(i => {
-                    const rev = Number(i.revenue || 0);
-                    const cNo = String(i.customerNo || "").trim();
-                    return rev > 0 && cNo !== "" && cNo.toLowerCase() !== "belirtilmemiş";
-                });
-                const grouped = groupDataByBranch(specList);
-                tableHtml = `<table class="print-table"><thead><tr><th style="width:40px; text-align:center;">#</th><th>Şube</th><th>Müşteri No</th><th>Telefon</th><th style="text-align:right">Tutar</th></tr></thead><tbody>` + 
-                    grouped.map(group => group.items.map((i, idx) => `<tr><td style="text-align:center;">${idx+1}</td><td>${group.branch}</td><td>${i.customerNo}</td><td>${i.phone || '---'}</td><td style="text-align:right">${fmt(i.revenue)}</td></tr>`).join('')).join('') + `</tbody></table>`;
+                buildAdvancedReport(targetPeriods, prevPeriods);
+            } catch (err) {
+                console.error(err);
+                showErrorModal("Analiz Hatası", "Gelişmiş dönem raporu oluşturulamadı.");
+            } finally {
+                if (loader) loader.classList.add('hidden');
             }
-
-            const branchTitle = branch === "Tümü" ? "TÜM ŞUBELER" : branch.toUpperCase();
-            const printArea = document.getElementById('printArea');
-
-            if (printArea) {
-                printArea.innerHTML = `
-                    <div style="text-align:center; margin-bottom: 20px;">
-                        <h1 style="margin:0; font-size:20px; font-weight:800; color:#0f172a;">HEDEF AVM - ${reportTitle}</h1>
-                        <p style="margin:5px 0 0 0; font-size:12px; color:#475569;">DÖNEM: ${period.toUpperCase()} | ŞUBE: ${branchTitle} | TARİH: ${new Date().toLocaleDateString('tr-TR')}</p>
-                    </div>
-                    ${tableHtml}`;
-            }
-            window.print();
         }
 
-        function printSummaryReport() {
-            if (!currentData) return;
-            const periodSelector = document.getElementById('periodSelector');
-            const period = periodSelector ? periodSelector.value : '';
-            const branchSelector = document.getElementById('branchSelector');
-            const branch = branchSelector ? branchSelector.value : 'Tümü';
+        function buildAdvancedReport(periods, prevPeriods = []) {
+            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
             
-            let list = currentData.customerList.filter(i => (i.status === 'tekrar aranacak' || i.status === 'müşteri mağazaya gelecek' || i.callStatus === 'aranmadı' || i.callStatus === 'aranmadi'));
-            if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
+            const cardsGrid = document.getElementById('adv-month-cards');
+            const tableHead = document.getElementById('adv-table-head');
+            const tableBody = document.getElementById('adv-table-body');
 
-            const stats = {};
-            list.forEach(i => {
-                if(!stats[i.branch]) stats[i.branch] = { aranmadi: 0, tekrar: 0, gelecek: 0, total: 0 };
-                const cs = String(i.callStatus || "").trim().toLowerCase();
-                const s = String(i.status || "").trim().toLowerCase();
-                if(cs === 'aranmadı' || cs === 'aranmadi') stats[i.branch].aranmadi++;
-                else if(s === 'tekrar aranacak') stats[i.branch].tekrar++;
-                else if(s === 'müşteri mağazaya gelecek') stats[i.branch].gelecek++;
-                stats[i.branch].total++;
+            if (cardsGrid) cardsGrid.innerHTML = "";
+            let headHtml = `<tr><th class="w-12 text-center">#</th><th>Şube Adı</th>`;
+            periods.forEach(p => headHtml += `<th class="text-right">${p} (Ciro)</th>`);
+            headHtml += `</tr>`;
+            if (tableHead) tableHead.innerHTML = headHtml;
+
+            const allBranches = new Set();
+            const monthlyStats = {}; 
+
+            [...prevPeriods, ...periods].forEach(p => {
+                monthlyStats[p] = { totalRevenue: 0, totalYönlendirme: 0, branches: {}, branchReferrals: {} };
+                const cacheStr = safeStorage.getItem(`cache_${p}`);
+                if (cacheStr) {
+                    try {
+                        const d = JSON.parse(cacheStr);
+                        monthlyStats[p].totalRevenue = d.kpis?.totalRevenue || 0;
+                        monthlyStats[p].totalYönlendirme = (d.customerList || []).length;
+                        if (d.charts?.branch) {
+                            d.charts.branch.forEach(b => {
+                                allBranches.add(b.name);
+                                monthlyStats[p].branches[b.name] = b.revenue || 0;
+                                monthlyStats[p].branchReferrals[b.name] = (d.customerList || []).filter(i => i.branch === b.name).length;
+                            });
+                        }
+                    } catch(e){}
+                }
             });
-            const sorted = Object.entries(stats).sort((a,b)=>getBranchSortIndex(a[0])-getBranchSortIndex(b[0]));
-            
-            const branchTitle = branch === "Tümü" ? "TÜM ŞUBELER" : branch.toUpperCase();
-            let html = `<div style="text-align:center"><h1>HEDEF AVM AKSİYON ÖZETİ</h1><p>${period.toUpperCase()} - ${branchTitle}</p></div><table class="print-table"><thead><tr><th>ŞUBE ADI</th><th>ARANMADI</th><th>TEKRAR</th><th>GELECEK</th><th>TOPLAM</th></tr></thead><tbody>` + 
-                sorted.map(([name, s]) => `<tr><td><b>${name.toUpperCase()}</b></td><td>${s.aranmadi}</td><td>${s.tekrar}</td><td>${s.gelecek}</td><td><b>${s.total}</b></td></tr>`).join('') + `</tbody></table>`;
-            const printArea = document.getElementById('printArea');
-            if (printArea) printArea.innerHTML = html;
-            window.print();
+
+            periods.forEach(p => {
+                const s = monthlyStats[p];
+                if (cardsGrid && s) {
+                    cardsGrid.innerHTML += `
+                        <div class="kpi-card border-t-4 border-t-indigo-500">
+                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">${p}</p>
+                            <h4 class="text-lg font-extrabold text-slate-900 truncate">${fmt(s.totalRevenue || 0)}</h4>
+                            <p class="text-[10px] font-bold text-indigo-600 mt-2 flex items-center gap-1"><i class="fas fa-bullhorn text-[10px]"></i> ${num(s.totalYönlendirme || 0)} Yönlendirme</p>
+                        </div>
+                    `;
+                }
+            });
+
+            const sortedBranches = Array.from(allBranches).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
+            let bodyHtml = "";
+
+            sortedBranches.forEach((bName, idx) => {
+                bodyHtml += `<tr><td class="text-center font-bold text-slate-400 text-xs">${idx + 1}</td><td class="font-bold text-slate-800 text-xs">${bName}</td>`;
+                periods.forEach(p => {
+                    const rev = monthlyStats[p]?.branches?.[bName] || 0;
+                    bodyHtml += `<td class="text-right font-medium text-slate-700 text-xs">${fmt(rev)}</td>`;
+                });
+                bodyHtml += `</tr>`;
+            });
+
+            bodyHtml += `
+                <tr class="bg-indigo-50/70 font-bold border-t-2 border-indigo-500">
+                    <td colspan="2" class="text-right text-indigo-900 uppercase text-xs py-4 px-5">GENEL TOPLAM</td>
+            `;
+            periods.forEach(p => {
+                const termRev = monthlyStats[p]?.totalRevenue || 0;
+                bodyHtml += `<td class="text-right font-extrabold text-slate-900 text-xs">${fmt(termRev)}</td>`;
+            });
+            bodyHtml += `</tr>`;
+
+            if (tableBody) tableBody.innerHTML = bodyHtml;
+            window.lastAdvancedStats = { periods, prevPeriods, sortedBranches, monthlyStats };
         }
 
         function exportToExcel() {
@@ -1972,167 +1463,79 @@
                 return;
             }
             if (!currentData) return;
-            const periodSelector = document.getElementById('periodSelector');
-            const period = periodSelector ? periodSelector.value : '';
-            const branchSelector = document.getElementById('branchSelector');
-            const selectedBranch = branchSelector ? branchSelector.value : 'Tümü';
-            const followupFilter = document.getElementById('followupFilter');
-            const selectedAction = followupFilter ? followupFilter.value.toLowerCase() : 'tümü';
-            
+            const period = document.getElementById('periodSelector')?.value || '';
+            const branch = document.getElementById('branchSelector')?.value || 'Tümü';
             let list = currentData.customerList ? currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0)) : [];
-            if (selectedBranch !== "Tümü") list = list.filter(i => i.branch === selectedBranch);
-
-            const totalReferrals = list.length;
-            const totalSales = list.filter(i => {
-                const ciro = Number(i.revenue || 0);
-                const stat = String(i.status || "").trim().toLowerCase();
-                return ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu';
-            }).length;
-            const totalRevenue = list.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
+            if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
 
             const wb = XLSX.utils.book_new();
             let wsData = [
                 ["HEDEF AVM YÖNETİM PORTALI RAPORU"],
-                [`SAYFA: ${activeTab.toUpperCase()} | DÖNEM: ${period.toUpperCase()} | ŞUBE: ${selectedBranch.toUpperCase()}`],
-                [`OLUŞTURULMA TARİHİ: ${new Date().toLocaleString('tr-TR')}`],
+                [`SAYFA: ${activeTab.toUpperCase()} | DÖNEM: ${period.toUpperCase()} | ŞUBE: ${branch.toUpperCase()}`],
+                [`TARİH: ${new Date().toLocaleString('tr-TR')}`],
                 []
             ];
 
-            if (activeTab === 'dashboard') {
-                wsData.push(["SIRA", "ŞUBE", "YÖNLENDİRME ADEDİ", "SATIŞ ADEDİ", "TOPLAM CİRO (TL)"]);
-                let branchSummary = [...(currentData.charts.branch || [])];
-                if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
-                branchSummary.sort((a, b) => b.revenue - a.revenue);
-                
-                branchSummary.forEach((b, idx) => {
-                    const branchReferrals = currentData.customerList.filter(i => i.branch === b.name).length;
-                    const branchSales = currentData.customerList.filter(i => {
-                        const ciro = Number(i.revenue || 0);
-                        const stat = String(i.status || "").trim().toLowerCase();
-                        return i.branch === b.name && (ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu');
-                    }).length;
-
-                    wsData.push([idx + 1, b.name.toUpperCase(), branchReferrals, branchSales, b.revenue]);
-                });
-                
-                wsData.push(["", "GENEL TOPLAM", totalReferrals, totalSales, totalRevenue]);
-
-            } else if (activeTab === 'duplicates') {
-                wsData.push(["GRUP NO", "MÜŞTERİ ADI", "TELEFON", "GİRİŞ TARİHİ", "İŞLEYEN ŞUBE", "ETİKET / DURUM", "SATIŞ / AKSİYON", "CİRO (TL)"]);
+            if (activeTab === 'duplicates') {
+                wsData.push(["MÜŞTERİ", "TELEFON", "GİRİŞ TARİHİ", "ŞUBE", "DURUM", "CİRO (TL)"]);
                 const groups = window.lastDuplicateGroups || [];
-                groups.forEach((g, gIdx) => {
+                groups.forEach(g => {
                     g.items.forEach((item, idx) => {
                         wsData.push([
-                            gIdx + 1,
                             item.customerName || '---',
                             item.phone || '---',
                             item.date || '---',
                             item.branch,
-                            idx === 0 ? 'İLK KAYIT (ORİJİNAL)' : 'MÜKERRER KAYIT',
-                            item.status || item.callStatus || '---',
+                            idx === 0 ? 'İLK İŞLEM (ORİJİNAL)' : 'MÜKERRER KAYIT',
                             item.revenue || 0
                         ]);
                     });
                 });
-            } else if (activeTab === 'followup') {
-                wsData.push(["SIRA", "ŞUBE", "MÜŞTERİ ADI SOYADI", "TELEFON", "AKSİYON DURUMU", "GECİKME UYARISI"]);
-                let fList = list.filter(i => {
-                    const s = String(i.status || "").trim().toLowerCase();
-                    const cs = String(i.callStatus || "").trim().toLowerCase();
-                    return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı' || cs === 'aranmadi';
+            } else {
+                wsData.push(["SIRA", "ŞUBE", "MÜŞTERİ NO", "TELEFON", "DURUM", "CİRO (TL)"]);
+                list.forEach((i, idx) => {
+                    wsData.push([idx + 1, i.branch, i.customerNo || '---', i.phone || '---', i.status || i.callStatus || '---', i.revenue || 0]);
                 });
-                
-                if (selectedAction !== "tümü") {
-                    if (selectedAction === "aranmadı" || selectedAction === "aranmadi") {
-                        fList = fList.filter(i => {
-                            const cs = String(i.callStatus || "").trim().toLowerCase();
-                            return cs === 'aranmadı' || cs === 'aranmadi';
-                        });
-                    } else {
-                        fList = fList.filter(i => String(i.status || "").trim().toLowerCase() === selectedAction);
-                    }
-                }
-                
-                fList.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
-                fList.forEach((i, idx) => {
-                    const callStatus = String(i.callStatus || "").trim().toLowerCase();
-                    const status = String(i.status || "").trim().toLowerCase();
-                    let label = 'Mağazaya Gelecek';
-                    if (callStatus === 'aranmadı' || callStatus === 'aranmadi') label = 'Aranmadı';
-                    else if (status === 'tekrar aranacak') label = 'Tekrar Aranacak';
-
-                    wsData.push([idx + 1, i.branch, i.customerName || '---', i.phone || '---', label, i.isLate ? i.date + ' tarihinden beri aranmadı' : '']);
-                });
-            } else if (activeTab === 'unspecified') {
-                wsData.push(["SIRA", "ŞUBE", "MÜŞTERİ TANIMI", "TELEFON", "HATA / SORUN DURUMU", "TUTAR (TL)"]);
-                const unspecList = list.filter(i => {
-                    const cNo = String(i.customerNo || "").trim();
-                    const status = String(i.status || "").trim().toLowerCase();
-                    const rev = Number(i.revenue || 0);
-                    
-                    const hasNoNumber = (cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && rev > 0;
-                    const isZeroRevenueSale = status === 'satışa döndü' && rev === 0;
-                    return hasNoNumber || isZeroRevenueSale;
-                });
-                unspecList.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
-                unspecList.forEach((i, idx) => {
-                    const status = String(i.status || "").trim().toLowerCase();
-                    const rev = Number(i.revenue || 0);
-                    const isZeroRevenue = status === 'satışa döndü' && rev === 0;
-                    const statusLabel = isZeroRevenue ? "Sıfır Cirolu Satış" : "Müşteri No Eksik";
-                    wsData.push([idx + 1, i.branch, i.customerName || '---', i.phone || '---', statusLabel, rev]);
-                });
-                
-                const totalUnspecRev = unspecList.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
-                wsData.push(["", "", "", "", "GENEL TOPLAM", totalUnspecRev]);
-
-            } else if (activeTab === 'customers') {
-                wsData.push(["SIRA", "ŞUBE", "MÜŞTERİ NO", "TELEFON", "TUTAR (TL)"]);
-                const specListForExcel = list.filter(i => {
-                    const rev = Number(i.revenue || 0);
-                    const cNo = String(i.customerNo || "").trim();
-                    return rev > 0 && cNo !== "" && cNo.toLowerCase() !== "belirtilmemiş";
-                });
-                specListForExcel.sort((a,b)=>getBranchSortIndex(a.branch)-getBranchSortIndex(b.branch));
-                specListForExcel.forEach((i, idx) => {
-                    wsData.push([idx + 1, i.branch, i.customerNo, i.phone || '---', i.revenue]);
-                });
-                
-                const totalCustRev = specListForExcel.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
-                wsData.push(["", "", "", "GENEL TOPLAM", totalCustRev]);
             }
-            
+
             const ws = XLSX.utils.aoa_to_sheet(wsData);
-            applyExcelStylesAndColWidths(ws, wsData);
             XLSX.utils.book_append_sheet(wb, ws, "Rapor");
-            const cleanPeriodName = period.replace(/ /g, '_');
-            const cleanBranchName = selectedBranch.replace(/ /g, '_');
-            XLSX.writeFile(wb, `Hedef_AVM_${activeTab.toUpperCase()}_${cleanPeriodName}_${cleanBranchName}.xlsx`);
+            XLSX.writeFile(wb, `Hedef_AVM_${activeTab.toUpperCase()}_${period.replace(/ /g, '_')}.xlsx`);
         }
 
-        function applyExcelStylesAndColWidths(ws, wsData) {
-            for (let cellRef in ws) {
-                if (!cellRef.startsWith('!') && ws[cellRef] && ws[cellRef].t === 'n') {
-                    ws[cellRef].z = '#,##0';
-                }
-            }
+        function exportAdvancedToExcel() {
+            if (!window.lastAdvancedStats) return;
+            const { periods, sortedBranches, monthlyStats } = window.lastAdvancedStats;
+            const wb = XLSX.utils.book_new();
 
-            const maxCols = Math.max(...wsData.map(r => r.length));
-            const colWidths = [];
-            for (let c = 0; c < maxCols; c++) {
-                let maxLen = 12;
-                wsData.forEach((row, rIdx) => {
-                    if (row[c] !== undefined && row[c] !== null) {
-                        let valStr = typeof row[c] === 'number' ? new Intl.NumberFormat('tr-TR').format(row[c]) : String(row[c]);
-                        let len = valStr.length + 5;
-                        if (rIdx < 3) len = Math.min(len, 30);
-                        if (len > maxLen) maxLen = len;
-                    }
+            let wsData = [
+                ["HEDEF AVM - GELİŞMİŞ DÖNEMSEL KIYASLAMA RAPORU"],
+                ["Analiz Aralığı:", `${periods[0]} - ${periods[periods.length - 1]}`.toUpperCase()],
+                [],
+                ["SIRA", "ŞUBE ADI"]
+            ];
+
+            periods.forEach(p => {
+                wsData[3].push(`${p} YÖNLENDİRME`);
+                wsData[3].push(`${p} CİRO`);
+            });
+
+            sortedBranches.forEach((bName, idx) => {
+                const row = [idx + 1, bName.toUpperCase()];
+                periods.forEach(p => {
+                    row.push(monthlyStats[p]?.branchReferrals?.[bName] || 0);
+                    row.push(monthlyStats[p]?.branches?.[bName] || 0);
                 });
-                colWidths.push({ wch: maxLen });
-            }
-            ws['!cols'] = colWidths;
+                wsData.push(row);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "Gelişmiş Rapor");
+            XLSX.writeFile(wb, `Hedef_AVM_Gelismis_Rapor_${periods[0].replace(/ /g, '_')}_${periods[periods.length - 1].replace(/ /g, '_')}.xlsx`);
         }
+
+        function printReport() { window.print(); }
+        function printAdvancedReport() { window.print(); }
     </script>
 </body>
 </html>
