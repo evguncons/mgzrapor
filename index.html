@@ -1674,23 +1674,60 @@
             const container = document.getElementById('followup-kpi-container');
             if (!container) return;
 
-            const branchCounts = {};
+            const branchMap = {};
+            PREFERRED_BRANCH_ORDER.forEach(b => {
+                branchMap[b] = { name: b, aranmadi: 0, tekrar: 0, gelecek: 0 };
+            });
+
             list.forEach(i => {
                 const s = String(i.status || "").trim().toLowerCase();
                 const cs = String(i.callStatus || "").trim().toLowerCase();
-                if (s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı' || cs === 'aranmadi') {
-                    branchCounts[i.branch] = (branchCounts[i.branch] || 0) + 1;
+                const rawBranch = String(i.branch || "").toLocaleUpperCase('tr-TR');
+
+                let matchedKey = null;
+                for (let b of PREFERRED_BRANCH_ORDER) {
+                    if (rawBranch.includes(b)) {
+                        matchedKey = b;
+                        break;
+                    }
+                }
+
+                if (!matchedKey) {
+                    matchedKey = rawBranch.replace(' ŞUBESİ', '').replace(' ŞUBESI', '').trim();
+                    if (!branchMap[matchedKey]) {
+                        branchMap[matchedKey] = { name: matchedKey, aranmadi: 0, tekrar: 0, gelecek: 0 };
+                    }
+                }
+
+                const bData = branchMap[matchedKey];
+                if (cs === 'aranmadı' || cs === 'aranmadi') {
+                    bData.aranmadi++;
+                } else if (s === 'tekrar aranacak') {
+                    bData.tekrar++;
+                } else if (s.includes('mağaza') || s.includes('magaza') || s.includes('gelecek')) {
+                    bData.gelecek++;
                 }
             });
 
-            const sortedBranches = Object.keys(branchCounts).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b));
-            
-            container.innerHTML = sortedBranches.map(b => `
-                <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-card">
-                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider truncate">${b}</p>
-                    <p class="text-lg font-extrabold text-slate-900 mt-0.5">${branchCounts[b]}</p>
-                </div>
-            `).join('');
+            const branchList = Object.keys(branchMap).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)).map(k => branchMap[k]);
+
+            container.innerHTML = branchList.map(b => {
+                const displayName = b.name.replace(' ŞUBESİ', '').replace(' ŞUBESI', '');
+                return `
+                    <div class="bg-white p-3 rounded-2xl border border-slate-200/90 shadow-card flex flex-col justify-between hover:shadow-card-hover transition-all duration-200">
+                        <div class="flex items-center justify-between gap-1 mb-2">
+                            <span class="font-extrabold text-xs text-slate-900 tracking-tight truncate uppercase" title="${displayName}">${displayName}</span>
+                            <span class="bg-rose-100/70 text-rose-700 font-extrabold text-[10px] px-2 py-0.5 rounded-full shrink-0 tracking-tight">
+                                ${b.aranmadi} ARANMADI
+                            </span>
+                        </div>
+                        <div class="border-t border-slate-100/90 pt-2 flex items-center justify-between text-[11px] font-bold text-slate-700">
+                            <div>Tekrar: <span class="text-amber-600 font-extrabold">${b.tekrar}</span></div>
+                            <div>Gelecek: <span class="text-blue-600 font-extrabold">${b.gelecek}</span></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function runAdvancedAnalysis() {
