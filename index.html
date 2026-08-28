@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hedef AVM CRM | Yönetim Portalı v11.0</title>
+    <title>Hedef AVM CRM | Yönetim Portalı v12.0</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
@@ -79,17 +79,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Skeleton shimmer animation */
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        .skeleton {
-            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-
         /* Toast notifications */
         .toast-enter { transform: translateY(100%); opacity: 0; }
         .toast-show { transform: translateY(0); opacity: 1; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -128,7 +117,7 @@
                 </div>
                 <div class="logo-details">
                     <h1 class="text-white font-extrabold text-sm tracking-tight leading-none">Hedef <span class="text-brand-400">AVM</span></h1>
-                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">Yönetim Portalı v11.0</p>
+                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">Yönetim Portalı v12.0</p>
                 </div>
             </div>
             <button onclick="toggleSidebarDesktop()" class="hidden lg:flex w-7 h-7 items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Daralt / Genişlet">
@@ -160,6 +149,9 @@
             </button>
             <button onclick="setTab('duplicates'); maybeCloseSidebar()" id="sidebar-btn-duplicates" class="nav-btn">
                 <i class="fas fa-clone"></i> <span class="nav-label">Mükerrer Satış Kontrolü</span>
+            </button>
+            <button onclick="setTab('historyCheck'); maybeCloseSidebar()" id="sidebar-btn-historyCheck" class="nav-btn">
+                <i class="fas fa-clock-rotate-left"></i> <span class="nav-label">Geçmiş Satış Kontrolü</span>
             </button>
         </nav>
 
@@ -238,7 +230,7 @@
 
                 <!-- Branch Filter -->
                 <div id="branchFilterContainer" class="relative group">
-                    <select id="branchSelector" onchange="render(currentData)" class="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl pl-3 pr-7 h-9 outline-none cursor-pointer shadow-xs">
+                    <select id="branchSelector" onchange="onBranchChange()" class="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl pl-3 pr-7 h-9 outline-none cursor-pointer shadow-xs">
                         <option value="Tümü">Tüm Şubeler</option>
                     </select>
                     <i class="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] pointer-events-none"></i>
@@ -567,7 +559,96 @@
                 <div id="duplicates-container" class="space-y-4"></div>
             </div>
 
-            <!-- 6. ADVANCED VIEW -->
+            <!-- 6. HISTORY CHECK VIEW (GEÇMİŞ AY SATIŞ MÜKERRER KONTROL) -->
+            <div id="tab-historyCheck" class="hidden space-y-6 max-w-[1500px] mx-auto">
+                <!-- History KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="kpi-card border-t-4 border-t-amber-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Mükerrer Müşteri</p>
+                        <h3 id="hist-kpi-count" class="text-2xl font-extrabold text-slate-900">0</h3>
+                        <p class="text-[10px] font-bold text-amber-600 mt-2"><i class="fas fa-clock-rotate-left mr-1"></i> Son 3 Ayda Satışı Olanlar</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-purple-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Geçmiş Satış Tutarı</p>
+                        <h3 id="hist-kpi-past-rev" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
+                        <p class="text-[10px] font-bold text-purple-600 mt-2"><i class="fas fa-receipt mr-1"></i> Eski Dönemler Toplamı</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-rose-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Cari Dönem Ciro Tutarı</p>
+                        <h3 id="hist-kpi-cur-rev" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
+                        <p class="text-[10px] font-bold text-rose-600 mt-2"><i class="fas fa-triangle-exclamation mr-1"></i> Bu Aya Yazılan Tutar</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-blue-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Taranan Geçmiş Dönemler</p>
+                        <h3 id="hist-kpi-periods" class="text-xs font-extrabold text-slate-900 mt-1 leading-tight line-clamp-2">---</h3>
+                        <p class="text-[10px] font-bold text-blue-600 mt-2"><i class="fas fa-calendar-check mr-1"></i> Önceki 3 Ay Karşılaştırması</p>
+                    </div>
+                </div>
+
+                <!-- History Action Bar -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-card flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none">
+                            <input type="checkbox" id="selectAllHistoryCheck" onchange="toggleSelectAllHistoryRows(this)" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
+                            <span>Tümünü Seç</span>
+                        </label>
+                        <span id="selectedHistoryCountBadge" class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">0 satır seçildi</span>
+                        <span id="dirtyHistoryEditsBadge" class="hidden text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md animate-pulse">
+                            <i class="fas fa-pen mr-1"></i> <span id="dirtyHistoryCountText">0</span> tutar düzenlendi (Kaydedilmeyi Bekliyor)
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button id="btnSaveHistoryRevenues" onclick="saveHistoryRevenueChanges()" disabled class="opacity-50 cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+                            <i class="fas fa-floppy-disk text-xs"></i>
+                            <span>Değişiklikleri Sheets'e Kaydet</span>
+                        </button>
+                        <button id="btnDeleteSelectedHistory" onclick="deleteSelectedHistoryRows()" disabled class="opacity-50 cursor-not-allowed bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+                            <i class="fas fa-trash-can text-xs"></i>
+                            <span>Seçilenleri Sil</span>
+                        </button>
+                        <button onclick="runHistoryCheckAnalysis(true)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+                            <i class="fas fa-arrows-rotate text-xs"></i>
+                            <span>Yeniden Tara</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Comparison Table Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                                <i class="fas fa-code-compare text-brand-600"></i> Geçmiş Satış Karşılaştırma Listesi
+                            </h3>
+                            <p id="hist-table-subtitle" class="text-[11px] font-medium text-slate-500">Seçili cari döneme işlenmiş ancak son 3 ayda da satışı olan müşteriler.</p>
+                        </div>
+                        <span id="historyTableCountBadge" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-lg">0 Kayıt</span>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="portal-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-10 text-center">Seç</th>
+                                    <th class="w-12 text-center">#</th>
+                                    <th>Müşteri Bilgisi</th>
+                                    <th>Son 3 Ayda Satış Yapılan Dönem(ler) & Ciro</th>
+                                    <th>Cari Dönem Kayıt Şubesi & Tarih</th>
+                                    <th>Cari Durum</th>
+                                    <th class="w-48 text-right">Cari Ciro Tutarı (Düzenlenebilir)</th>
+                                    <th class="w-32 text-right">Eylemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-check-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. ADVANCED VIEW -->
             <div id="tab-advanced" class="hidden space-y-6 max-w-[1500px] mx-auto">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card flex flex-wrap items-end justify-between gap-4">
                     <div class="flex flex-wrap items-center gap-3">
@@ -684,6 +765,9 @@
         let isSidebarCollapsed = false;
         let pendingCleanAction = null;
         let selectedDuplicateRows = new Set();
+        let selectedHistoryRows = new Set();
+        let historyRevenueEdits = new Map(); // key: sheetId_rowNum -> { sheetId, rowNum, newRevenue, originalRevenue }
+        let lastHistoryMatchResults = [];
         let searchQuery = "";
         let branchSortOrder = { field: 'revenue', dir: 'desc' };
 
@@ -830,11 +914,17 @@
             if (inputDesk && inputDesk.value !== query) inputDesk.value = query;
             if (inputMob && inputMob.value !== query) inputMob.value = query;
 
-            if (currentData) render(currentData);
+            if (activeTab === 'historyCheck') runHistoryCheckAnalysis();
+            else if (currentData) render(currentData);
         }
 
         function clearGlobalSearch() {
             onGlobalSearch("");
+        }
+
+        function onBranchChange() {
+            if (activeTab === 'historyCheck') runHistoryCheckAnalysis();
+            else if (currentData) render(currentData);
         }
 
         // --- Modals Controller ---
@@ -932,7 +1022,11 @@
                 }
 
                 populateBranchFilter(currentData);
-                render(currentData);
+                if (activeTab === 'historyCheck') {
+                    runHistoryCheckAnalysis();
+                } else {
+                    render(currentData);
+                }
                 safeSetText('lastUpdateTime', new Date().toLocaleTimeString('tr-TR'));
                 showToast(`${period} dönemi verileri senkronize edildi.`, 'success');
             } catch (e) { 
@@ -954,7 +1048,9 @@
                     if (d && d.customerList) {
                         currentData = d;
                         safeStorage.setItem(`cache_${activePeriod}`, JSON.stringify(currentData));
-                        render(currentData);
+                        if (activeTab !== 'historyCheck') {
+                            render(currentData);
+                        }
                         safeSetText('lastUpdateTime', new Date().toLocaleTimeString('tr-TR'));
                     }
                 }
@@ -967,7 +1063,7 @@
             autoRefreshInterval = setInterval(() => {
                 const modal = document.getElementById('errorModal');
                 if (document.visibilityState === 'visible' && (!modal || modal.classList.contains('hidden'))) {
-                    if (activeTab !== 'advanced') fetchDataSilent();
+                    if (activeTab !== 'advanced' && activeTab !== 'historyCheck') fetchDataSilent();
                 }
             }, 30000);
         }
@@ -1006,11 +1102,13 @@
                 followup: 'Takip Listesi', 
                 unspecified: 'Belirtilmeyenler',
                 duplicates: 'Mükerrer Satış Kontrolü',
+                historyCheck: 'Geçmiş Satış Kontrolü (Son 3 Ay)',
                 advanced: 'Gelişmiş Rapor' 
             };
             safeSetText('tabTitle', titles[tab] || 'Yönetim Portalı');
 
             if (tab === 'advanced') runAdvancedAnalysis();
+            else if (tab === 'historyCheck') runHistoryCheckAnalysis();
             else if (currentData) render(currentData);
         }
 
@@ -1150,9 +1248,16 @@
 
                     selectedDuplicateRows.clear();
                     updateSelectedDuplicateCount();
-                    render(currentData);
+                    selectedHistoryRows.clear();
+                    updateHistoryActionButtons();
+
+                    if (activeTab === 'historyCheck') {
+                        runHistoryCheckAnalysis();
+                    } else {
+                        render(currentData);
+                    }
+
                     if (loader) loader.classList.add('hidden');
-                    
                     showToast(resData.message || "Kayıtlar başarıyla silindi.", 'success');
                     fetchDataSilent();
                 } else {
@@ -1431,6 +1536,394 @@
             }).join('');
 
             window.lastDuplicateGroups = duplicateGroups;
+        }
+
+        // --- Cross-Period History Check Analysis (Son 3 Ay Satış Kontrolü) ---
+        async function runHistoryCheckAnalysis(forceRefresh = false) {
+            const periodSel = document.getElementById('periodSelector');
+            const activePeriod = periodSel ? periodSel.value : '';
+            if (!activePeriod) return;
+
+            const allPeriods = Array.from(periodSel.options || []).map(o => o.value);
+            const sortedPeriods = [...allPeriods].sort((a, b) => periodToVal(a) - periodToVal(b));
+            const activeIdx = sortedPeriods.indexOf(activePeriod);
+
+            if (activeIdx < 0) return;
+
+            // Get the 3 preceding periods chronologically
+            const prevPeriods = sortedPeriods.slice(Math.max(0, activeIdx - 3), activeIdx);
+            
+            safeSetText('hist-kpi-periods', prevPeriods.length > 0 ? prevPeriods.join(' • ') : 'Önceki dönem bulunamadı');
+
+            const loader = document.getElementById('loadingIndicator');
+            const loaderText = document.getElementById('loader-text');
+            if (loader) loader.classList.remove('hidden');
+            if (loaderText) loaderText.innerText = "Son 3 Ayın Verileri Karşılaştırılıyor...";
+
+            try {
+                // Fetch previous periods
+                const prevDataArray = await Promise.all(prevPeriods.map(async (p) => {
+                    if (!forceRefresh) {
+                        const cached = safeStorage.getItem(`cache_${p}`);
+                        if (cached) {
+                            try { return JSON.parse(cached); } catch(e){}
+                        }
+                    }
+                    try {
+                        const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(p)}&t=${Date.now()}`, { cache: 'no-store' });
+                        const d = await res.json();
+                        if (d && d.customerList) safeStorage.setItem(`cache_${p}`, JSON.stringify(d));
+                        return d;
+                    } catch(e) {
+                        return null;
+                    }
+                }));
+
+                // Build past sales map
+                const pastSalesMap = new Map();
+
+                prevDataArray.forEach((pData, pIdx) => {
+                    if (!pData || !pData.customerList) return;
+                    const pName = prevPeriods[pIdx];
+
+                    pData.customerList.forEach(item => {
+                        const rev = Number(item.revenue || 0);
+                        const stat = String(item.status || "").trim().toLowerCase();
+                        const isSale = rev > 0 || stat === 'satışa döndü' || stat === 'satisa dondu';
+                        if (!isSale) return;
+
+                        const cleanPhone = cleanPhoneNumber(item.phone);
+                        const cNo = String(item.customerNo || "").trim().toLowerCase();
+                        const key = cleanPhone.length >= 7 ? cleanPhone : (cNo && cNo !== "belirtilmemiş" ? `no_${cNo}` : null);
+
+                        if (key) {
+                            if (!pastSalesMap.has(key)) pastSalesMap.set(key, []);
+                            pastSalesMap.get(key).push({
+                                period: pName,
+                                date: item.date,
+                                branch: item.branch,
+                                revenue: rev,
+                                status: item.status,
+                                customerName: item.customerName,
+                                phone: item.phone,
+                                customerNo: item.customerNo
+                            });
+                        }
+                    });
+                });
+
+                // Match against current active period
+                let curList = currentData?.customerList || [];
+                const branchSelector = document.getElementById('branchSelector');
+                const selectedBranch = branchSelector ? branchSelector.value : 'Tümü';
+                if (selectedBranch !== "Tümü") {
+                    curList = curList.filter(i => i.branch === selectedBranch);
+                }
+
+                if (searchQuery) {
+                    curList = curList.filter(i => {
+                        const nameStr = String(i.customerName || "").toLowerCase();
+                        const phoneStr = String(i.phone || "").toLowerCase();
+                        const noStr = String(i.customerNo || "").toLowerCase();
+                        const branchStr = String(i.branch || "").toLowerCase();
+                        return nameStr.includes(searchQuery) || phoneStr.includes(searchQuery) || noStr.includes(searchQuery) || branchStr.includes(searchQuery);
+                    });
+                }
+
+                const matchResults = [];
+                let totalPastRev = 0;
+                let totalCurRev = 0;
+
+                curList.forEach(curItem => {
+                    const cleanPhone = cleanPhoneNumber(curItem.phone);
+                    const cNo = String(curItem.customerNo || "").trim().toLowerCase();
+                    const key = cleanPhone.length >= 7 ? cleanPhone : (cNo && cNo !== "belirtilmemiş" ? `no_${cNo}` : null);
+
+                    if (key && pastSalesMap.has(key)) {
+                        const pastSales = pastSalesMap.get(key);
+                        const pastTotalRev = pastSales.reduce((acc, s) => acc + (s.revenue || 0), 0);
+                        const curRev = Number(curItem.revenue || 0);
+
+                        totalPastRev += pastTotalRev;
+                        totalCurRev += curRev;
+
+                        matchResults.push({
+                            key,
+                            curItem,
+                            pastSales,
+                            pastTotalRev,
+                            curRev
+                        });
+                    }
+                });
+
+                lastHistoryMatchResults = matchResults;
+                renderHistoryCheckTable(matchResults, prevPeriods);
+
+                safeSetText('hist-kpi-count', new Intl.NumberFormat('tr-TR').format(matchResults.length));
+                safeSetText('hist-kpi-past-rev', new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(totalPastRev));
+                safeSetText('hist-kpi-cur-rev', new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(totalCurRev));
+                safeSetText('historyTableCountBadge', `${matchResults.length} Kayıt`);
+                updateHistoryActionButtons();
+            } catch(err) {
+                console.error(err);
+                showErrorModal("Hata", "Geçmiş dönem analizi yapılırken hata oluştu: " + err.message);
+            } finally {
+                if (loader) loader.classList.add('hidden');
+                if (loaderText) loaderText.innerText = "Veriler Senkronize Ediliyor...";
+            }
+        }
+
+        function renderHistoryCheckTable(matches, prevPeriods) {
+            const tbody = document.getElementById('history-check-body');
+            if (!tbody) return;
+
+            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const activePeriod = document.getElementById('periodSelector')?.value || '';
+
+            if (matches.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-12 text-slate-500">
+                            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-sm">Geçmiş Dönem Mükerreri Bulunamadı</h4>
+                            <p class="text-xs text-slate-500 mt-1">Son 3 ay içinde satışı olup bu aya mükerrer işlenen müşteri tespit edilmedi.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = matches.map((m, idx) => {
+                const item = m.curItem;
+                const rowKey = `${item.sheetId}_${item.rowNum}`;
+                const isChecked = selectedHistoryRows.has(rowKey);
+                const custName = item.customerName || m.pastSales[0]?.customerName || item.customerNo || "İsimsiz";
+                const phoneDisplay = item.phone || m.key;
+
+                const editedData = historyRevenueEdits.get(rowKey);
+                const currentDisplayRev = editedData ? editedData.newRevenue : (item.revenue || 0);
+                const isEdited = editedData && editedData.newRevenue !== editedData.originalRevenue;
+
+                // Past sales badges list
+                const pastDetailsHtml = m.pastSales.map(ps => `
+                    <div class="bg-indigo-50/70 border border-indigo-100 rounded-lg p-2 mb-1.5 last:mb-0 text-xs">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-extrabold text-indigo-900">${ps.period}</span>
+                            <span class="font-bold text-emerald-700">${fmt(ps.revenue)}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-600 flex items-center justify-between mt-0.5">
+                            <span><i class="fas fa-store text-[9px] mr-1 text-slate-400"></i>${ps.branch}</span>
+                            <span><i class="fas fa-calendar-days text-[9px] mr-1 text-slate-400"></i>${ps.date || '---'}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <tr class="${isEdited ? 'bg-amber-50/40' : (isChecked ? 'bg-indigo-50/20' : '')}">
+                        <td class="text-center">
+                            <input type="checkbox" data-row-key="${rowKey}" ${isChecked ? 'checked' : ''} onchange="onHistoryRowCheckChange(this)" class="history-row-checkbox w-3.5 h-3.5 text-brand-600 rounded border-slate-300">
+                        </td>
+                        <td class="text-center font-bold text-slate-400 text-xs">${idx + 1}</td>
+                        <td>
+                            <span class="font-extrabold text-slate-900 text-xs block">${custName}</span>
+                            <span class="text-[11px] text-slate-500 font-medium block mt-0.5"><i class="fas fa-phone text-slate-400 text-[9px] mr-1"></i>${phoneDisplay}</span>
+                            ${item.customerNo ? `<span class="text-[10px] text-slate-400 font-semibold block">No: ${item.customerNo}</span>` : ''}
+                        </td>
+                        <td>
+                            <div class="max-w-xs">
+                                ${pastDetailsHtml}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="font-bold text-slate-800 text-xs block">${item.branch}</span>
+                            <span class="text-[11px] text-slate-500 block mt-0.5"><i class="fas fa-calendar text-slate-400 text-[9px] mr-1"></i>${item.date || '---'}</span>
+                        </td>
+                        <td>
+                            <span class="badge-pill ${Number(item.revenue) > 0 ? 'badge-rose' : 'badge-amber'}">
+                                ${item.status || item.callStatus || 'Mevcut Giriş'}
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            <div class="flex items-center justify-end gap-1.5">
+                                <span class="text-xs font-bold text-slate-400">₺</span>
+                                <input type="number" step="1" min="0" value="${currentDisplayRev}" 
+                                    onchange="onHistoryRevenueChange('${rowKey}', '${item.sheetId}', ${item.rowNum}, ${item.revenue || 0}, this.value)"
+                                    class="w-28 text-right font-extrabold text-xs px-2.5 py-1.5 rounded-lg border ${isEdited ? 'border-amber-500 bg-amber-50 text-amber-900 ring-2 ring-amber-400/20' : 'border-slate-300 bg-white text-slate-800 focus:border-brand-500'} outline-none shadow-xs">
+                            </div>
+                            ${isEdited ? `<span class="text-[9px] font-bold text-amber-600 block mt-1">Eski: ${fmt(item.revenue || 0)}</span>` : ''}
+                        </td>
+                        <td class="text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button onclick="saveSingleHistoryRevenue('${item.sheetId}', ${item.rowNum}, '${rowKey}')" title="Bu Satırı Kaydet" class="${isEdited ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} text-[10px] font-bold px-2 py-1.5 rounded-lg transition flex items-center gap-1">
+                                    <i class="fas fa-floppy-disk text-[10px]"></i>
+                                </button>
+                                <button onclick="deleteSingleRow('${item.sheetId}', '${activePeriod}', ${item.rowNum}, '${custName.replace(/'/g, "\\'")}', false)" title="Satırı Sil" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold px-2 py-1.5 rounded-lg transition flex items-center gap-1">
+                                    <i class="fas fa-trash-can text-[10px]"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function onHistoryRevenueChange(rowKey, sheetId, rowNum, originalRev, newRev) {
+            const numVal = parseFloat(newRev) || 0;
+            historyRevenueEdits.set(rowKey, {
+                sheetId,
+                rowNum: parseInt(rowNum, 10),
+                newRevenue: numVal,
+                originalRevenue: parseFloat(originalRev) || 0
+            });
+            updateHistoryActionButtons();
+            renderHistoryCheckTable(lastHistoryMatchResults, []);
+        }
+
+        function toggleSelectAllHistoryRows(masterCheckbox) {
+            const isChecked = masterCheckbox.checked;
+            document.querySelectorAll('.history-row-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+                const key = cb.dataset.rowKey;
+                if (isChecked) selectedHistoryRows.add(key);
+                else selectedHistoryRows.delete(key);
+            });
+            updateHistoryActionButtons();
+        }
+
+        function onHistoryRowCheckChange(checkbox) {
+            const key = checkbox.dataset.rowKey;
+            if (checkbox.checked) selectedHistoryRows.add(key);
+            else selectedHistoryRows.delete(key);
+            updateHistoryActionButtons();
+        }
+
+        function updateHistoryActionButtons() {
+            const count = selectedHistoryRows.size;
+            safeSetText('selectedHistoryCountBadge', `${count} satır seçildi`);
+
+            const delBtn = document.getElementById('btnDeleteSelectedHistory');
+            if (delBtn) {
+                delBtn.disabled = count === 0;
+                delBtn.classList.toggle('opacity-50', count === 0);
+                delBtn.classList.toggle('cursor-not-allowed', count === 0);
+            }
+
+            const editsCount = historyRevenueEdits.size;
+            const saveBtn = document.getElementById('btnSaveHistoryRevenues');
+            const dirtyBadge = document.getElementById('dirtyHistoryEditsBadge');
+            const dirtyCountText = document.getElementById('dirtyHistoryCountText');
+
+            if (saveBtn) {
+                saveBtn.disabled = editsCount === 0;
+                saveBtn.classList.toggle('opacity-50', editsCount === 0);
+                saveBtn.classList.toggle('cursor-not-allowed', editsCount === 0);
+            }
+
+            if (dirtyBadge) {
+                dirtyBadge.classList.toggle('hidden', editsCount === 0);
+            }
+            if (dirtyCountText) {
+                dirtyCountText.innerText = editsCount;
+            }
+        }
+
+        async function saveSingleHistoryRevenue(sheetId, rowNum, rowKey) {
+            const edit = historyRevenueEdits.get(rowKey);
+            const activePeriod = document.getElementById('periodSelector')?.value || '';
+            const newRevenue = edit ? edit.newRevenue : (document.querySelector(`input[data-row-key="${rowKey}"]`)?.value || 0);
+
+            const loader = document.getElementById('loadingIndicator');
+            const loaderText = document.getElementById('loader-text');
+            if (loader) loader.classList.remove('hidden');
+            if (loaderText) loaderText.innerText = "Ciro Google Sheets'e Yazılıyor...";
+
+            try {
+                const res = await fetch(`${APPSCRIPT_URL}?action=updateRowRevenue&sheetId=${encodeURIComponent(sheetId)}&sheetName=${encodeURIComponent(activePeriod)}&rowNum=${rowNum}&newRevenue=${encodeURIComponent(newRevenue)}&t=${Date.now()}`, { cache: 'no-store' });
+                const resData = await res.json();
+
+                if (resData && resData.success) {
+                    if (currentData && currentData.customerList) {
+                        const target = currentData.customerList.find(i => i.sheetId === sheetId && i.rowNum === rowNum);
+                        if (target) target.revenue = parseFloat(newRevenue) || 0;
+                    }
+                    historyRevenueEdits.delete(rowKey);
+                    updateHistoryActionButtons();
+                    runHistoryCheckAnalysis();
+                    showToast(resData.message || "Ciro güncellendi.", "success");
+                } else {
+                    showErrorModal("Güncelleme Hatası", resData?.message || "Ciro kaydedilemedi.");
+                }
+            } catch(e) {
+                console.error(e);
+                showErrorModal("Bağlantı Hatası", "Ciro güncellenirken sunucuyla bağlantı kesildi.");
+            } finally {
+                if (loader) loader.classList.add('hidden');
+                if (loaderText) loaderText.innerText = "Veriler Senkronize Ediliyor...";
+            }
+        }
+
+        async function saveHistoryRevenueChanges() {
+            if (historyRevenueEdits.size === 0) return;
+            const activePeriod = document.getElementById('periodSelector')?.value || '';
+
+            const items = [];
+            historyRevenueEdits.forEach((v) => {
+                items.push({
+                    sheetId: v.sheetId,
+                    rowNum: v.rowNum,
+                    newRevenue: v.newRevenue
+                });
+            });
+
+            const loader = document.getElementById('loadingIndicator');
+            const loaderText = document.getElementById('loader-text');
+            if (loader) loader.classList.remove('hidden');
+            if (loaderText) loaderText.innerText = `${items.length} adet ciro Google Sheets'e kaydediliyor...`;
+
+            try {
+                const res = await fetch(`${APPSCRIPT_URL}?action=updateBatchRevenues&sheetName=${encodeURIComponent(activePeriod)}&items=${encodeURIComponent(JSON.stringify(items))}&t=${Date.now()}`, { cache: 'no-store' });
+                const resData = await res.json();
+
+                if (resData && resData.success) {
+                    if (currentData && currentData.customerList) {
+                        items.forEach(item => {
+                            const target = currentData.customerList.find(i => i.sheetId === item.sheetId && i.rowNum === item.rowNum);
+                            if (target) target.revenue = item.newRevenue;
+                        });
+                    }
+                    historyRevenueEdits.clear();
+                    updateHistoryActionButtons();
+                    runHistoryCheckAnalysis();
+                    showToast(resData.message || "Tüm ciro tutarları Google Sheets'e kaydedildi.", "success");
+                } else {
+                    showErrorModal("Güncelleme Hatası", resData?.message || "Ciro tutarları güncellenirken hata oluştu.");
+                }
+            } catch(e) {
+                console.error(e);
+                showErrorModal("Bağlantı Hatası", "Ciro tutarları kaydedilirken bağlantı hatası oluştu.");
+            } finally {
+                if (loader) loader.classList.add('hidden');
+                if (loaderText) loaderText.innerText = "Veriler Senkronize Ediliyor...";
+            }
+        }
+
+        function deleteSelectedHistoryRows() {
+            if (selectedHistoryRows.size === 0) return;
+            const period = document.getElementById('periodSelector').value;
+            const items = [];
+            selectedHistoryRows.forEach(key => {
+                const [sheetId, rowNum] = key.split('_');
+                items.push({ sheetId, rowNum: parseInt(rowNum, 10) });
+            });
+
+            openCleanConfirmModal(
+                "Seçilen Mükerrerleri Sil",
+                `Geçmiş dönem kontrolünden seçtiğiniz <strong>${items.length} adet kayıt</strong> cari dönemin Google Sheets tablolarından silinecektir.`,
+                { type: 'SELECTED', sheetName: period, items }
+            );
         }
 
         // --- Main Render Pipeline ---
@@ -1935,6 +2428,24 @@
                             item.revenue || 0
                         ]);
                     });
+                });
+            } else if (activeTab === 'historyCheck') {
+                wsData.push(["SIRA", "MÜŞTERİ ADI", "TELEFON", "MÜŞTERİ NO", "GEÇMİŞ SATIŞLAR", "GEÇMİŞ CİRO TOPLAMI (TL)", "CARİ ŞUBE", "CARİ TARİH", "CARİ DURUM", "CARİ CİRO (TL)"]);
+                lastHistoryMatchResults.forEach((m, idx) => {
+                    const item = m.curItem;
+                    const pastDesc = m.pastSales.map(ps => `${ps.period} (${ps.branch}): ₺${ps.revenue}`).join(' | ');
+                    wsData.push([
+                        idx + 1,
+                        item.customerName || '---',
+                        item.phone || '---',
+                        item.customerNo || '---',
+                        pastDesc,
+                        m.pastTotalRev,
+                        item.branch,
+                        item.date || '---',
+                        item.status || item.callStatus || '---',
+                        item.revenue || 0
+                    ]);
                 });
             } else {
                 wsData.push(["SIRA", "ŞUBE", "MÜŞTERİ NO", "TELEFON", "DURUM", "CİRO (TL)"]);
