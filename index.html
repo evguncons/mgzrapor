@@ -569,21 +569,21 @@
                 <!-- History KPI Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="kpi-card border-t-4 border-t-amber-500">
-                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Mükerrer Müşteri</p>
+                        <p id="hist-kpi-count-title" class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Mükerrer Müşteri</p>
                         <h3 id="hist-kpi-count" class="text-2xl font-extrabold text-slate-900">0</h3>
-                        <p class="text-[10px] font-bold text-amber-600 mt-2"><i class="fas fa-clock-rotate-left mr-1"></i> Son 3 Ayda Satışı Olanlar</p>
+                        <p id="hist-kpi-count-sub" class="text-[10px] font-bold text-amber-600 mt-2"><i class="fas fa-clock-rotate-left mr-1"></i> Son 3 Ayda Satışı Olanlar</p>
                     </div>
 
                     <div class="kpi-card border-t-4 border-t-purple-500">
-                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Geçmiş Satış Tutarı</p>
+                        <p id="hist-kpi-past-title" class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Geçmiş Satış Tutarı</p>
                         <h3 id="hist-kpi-past-rev" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
-                        <p class="text-[10px] font-bold text-purple-600 mt-2"><i class="fas fa-receipt mr-1"></i> Eski Dönemler Toplamı</p>
+                        <p id="hist-kpi-past-sub" class="text-[10px] font-bold text-purple-600 mt-2"><i class="fas fa-receipt mr-1"></i> Eski Dönemler Toplamı</p>
                     </div>
 
                     <div class="kpi-card border-t-4 border-t-rose-500">
-                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Cari Dönem Ciro Tutarı</p>
+                        <p id="hist-kpi-cur-title" class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Cari Dönem Ciro Tutarı</p>
                         <h3 id="hist-kpi-cur-rev" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
-                        <p class="text-[10px] font-bold text-rose-600 mt-2"><i class="fas fa-triangle-exclamation mr-1"></i> Bu Aya Yazılan Tutar</p>
+                        <p id="hist-kpi-cur-sub" class="text-[10px] font-bold text-rose-600 mt-2"><i class="fas fa-triangle-exclamation mr-1"></i> Bu Aya Yazılan Tutar</p>
                     </div>
 
                     <div class="kpi-card border-t-4 border-t-blue-500">
@@ -1722,13 +1722,9 @@
                 });
 
                 lastHistoryMatchResults = matchResults;
-                renderHistoryCheckCards(matchResults);
-
-                safeSetText('hist-kpi-count', new Intl.NumberFormat('tr-TR').format(matchResults.length));
-                safeSetText('hist-kpi-past-rev', new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(totalPastRev));
-                safeSetText('hist-kpi-cur-rev', new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(totalCurRev));
                 updateHistoryFilterCounts(matchResults);
                 updateHistoryActionButtons();
+                renderHistoryCheckCards(matchResults);
             } catch(err) {
                 console.error(err);
                 showErrorModal("Hata", "Geçmiş dönem analizi yapılırken hata oluştu: " + err.message);
@@ -1787,6 +1783,86 @@
                     return historyRevenueEdits.has(rowKey);
                 });
             }
+
+            // Calculate Dynamic KPIs based on the filtered results
+            let filteredPastRev = 0;
+            let filteredCurRev = 0;
+
+            filteredMatches.forEach(m => {
+                const item = m.curItem;
+                const rowKey = `${item.sheetId}_${item.rowNum}`;
+                const editedData = historyRevenueEdits.get(rowKey);
+                const curVal = editedData ? editedData.newRevenue : (Number(item.revenue) || 0);
+
+                if (historyFilterMode === 'same_revenue') {
+                    const exactPastRev = m.pastSales.filter(ps => ps.isExactMatch).reduce((sum, ps) => sum + (ps.revenue || 0), 0);
+                    filteredPastRev += exactPastRev > 0 ? exactPastRev : m.pastTotalRev;
+                } else {
+                    filteredPastRev += m.pastTotalRev;
+                }
+                filteredCurRev += curVal;
+            });
+
+            // Update top KPI cards dynamically
+            safeSetText('hist-kpi-count', new Intl.NumberFormat('tr-TR').format(filteredMatches.length));
+            safeSetText('hist-kpi-past-rev', fmt(filteredPastRev));
+            safeSetText('hist-kpi-cur-rev', fmt(filteredCurRev));
+
+            // Dynamic Subtitles and Titles for KPI indicators
+            const filterMeta = {
+                all: {
+                    countTitle: 'MÜKERRER MÜŞTERİ',
+                    pastTitle: 'GEÇMİŞ SATIŞ TUTARI',
+                    curTitle: 'CARİ DÖNEM CİRO TUTARI',
+                    countSub: '<i class="fas fa-clock-rotate-left mr-1 text-amber-600"></i> Son 3 Ayda Satışı Olanlar',
+                    pastSub: '<i class="fas fa-receipt mr-1 text-purple-600"></i> Eski Dönemler Toplamı',
+                    curSub: '<i class="fas fa-triangle-exclamation mr-1 text-rose-600"></i> Bu Aya Yazılan Tutar'
+                },
+                same_revenue: {
+                    countTitle: 'AYNI CİRO MÜŞTERİSİ',
+                    pastTitle: 'EŞLEŞEN GEÇMİŞ CİRO',
+                    curTitle: 'TOPLAM AYNI CİRO TUTARI',
+                    countSub: '<i class="fas fa-bullseye mr-1 text-purple-600"></i> Birebir Tutar Eşleşenler',
+                    pastSub: '<i class="fas fa-receipt mr-1 text-purple-600"></i> Önceki Aylardaki Eş Tutar',
+                    curSub: '<i class="fas fa-equals mr-1 text-purple-600"></i> Cari Aydaki Toplam Aynı Ciro'
+                },
+                revenue: {
+                    countTitle: 'CİROSU OLAN MÜŞTERİ',
+                    pastTitle: 'GEÇMİŞ SATIŞ TUTARI',
+                    curTitle: 'CARİ CİRO TOPLAMI',
+                    countSub: '<i class="fas fa-wallet mr-1 text-emerald-600"></i> Ciro Girişi Olanlar',
+                    pastSub: '<i class="fas fa-receipt mr-1 text-purple-600"></i> Eski Dönemler Toplamı',
+                    curSub: '<i class="fas fa-circle-check mr-1 text-emerald-600"></i> Bu Ayki Toplam Ciro'
+                },
+                zero: {
+                    countTitle: 'SIFIR CİROLU MÜŞTERİ',
+                    pastTitle: 'GEÇMİŞ SATIŞ TUTARI',
+                    curTitle: 'CARİ DÖNEM CİRO TUTARI',
+                    countSub: '<i class="fas fa-circle-notch mr-1 text-amber-600"></i> Ciro Yazılmamış Kayıtlar',
+                    pastSub: '<i class="fas fa-receipt mr-1 text-purple-600"></i> Eski Dönemler Toplamı',
+                    curSub: '<i class="fas fa-minus mr-1 text-amber-600"></i> ₺0 (Ciro Yazılmamış)'
+                },
+                edited: {
+                    countTitle: 'DÜZENLENEN MÜŞTERİ',
+                    pastTitle: 'GEÇMİŞ SATIŞ TUTARI',
+                    curTitle: 'YENİ CİRO TUTARI',
+                    countSub: '<i class="fas fa-pen mr-1 text-amber-600"></i> Tutarı Değiştirilenler',
+                    pastSub: '<i class="fas fa-receipt mr-1 text-purple-600"></i> Eski Dönemler Toplamı',
+                    curSub: '<i class="fas fa-pen-to-square mr-1 text-amber-600"></i> Güncellenmiş Ciro Toplamı'
+                }
+            };
+
+            const meta = filterMeta[historyFilterMode] || filterMeta.all;
+            safeSetText('hist-kpi-count-title', meta.countTitle);
+            safeSetText('hist-kpi-past-title', meta.pastTitle);
+            safeSetText('hist-kpi-cur-title', meta.curTitle);
+
+            const countSubEl = document.getElementById('hist-kpi-count-sub');
+            if (countSubEl) countSubEl.innerHTML = meta.countSub;
+            const pastSubEl = document.getElementById('hist-kpi-past-sub');
+            if (pastSubEl) pastSubEl.innerHTML = meta.pastSub;
+            const curSubEl = document.getElementById('hist-kpi-cur-sub');
+            if (curSubEl) curSubEl.innerHTML = meta.curSub;
 
             if (filteredMatches.length === 0) {
                 container.innerHTML = `
