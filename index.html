@@ -604,8 +604,9 @@
                         <span id="selectedHistoryCountBadge" class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-xl">0 satır seçildi</span>
                         
                         <!-- Quick Filter Chips -->
-                        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-wrap">
                             <button type="button" onclick="setHistoryFilter('all')" id="hist-filter-btn-all" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white text-slate-900 shadow-xs transition">Tümü (<span id="hist-cnt-all">0</span>)</button>
+                            <button type="button" onclick="setHistoryFilter('same_revenue')" id="hist-filter-btn-same_revenue" class="text-[10px] font-bold px-2.5 py-1 rounded-lg text-purple-700 hover:text-purple-900 transition flex items-center gap-1"><i class="fas fa-bullseye text-[9px]"></i> Aynı Ciro (<span id="hist-cnt-same_revenue">0</span>)</button>
                             <button type="button" onclick="setHistoryFilter('revenue')" id="hist-filter-btn-revenue" class="text-[10px] font-bold px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">Cirosu Olanlar (<span id="hist-cnt-revenue">0</span>)</button>
                             <button type="button" onclick="setHistoryFilter('zero')" id="hist-filter-btn-zero" class="text-[10px] font-bold px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">Sıfır Cirolu (<span id="hist-cnt-zero">0</span>)</button>
                             <button type="button" onclick="setHistoryFilter('edited')" id="hist-filter-btn-edited" class="text-[10px] font-bold px-2.5 py-1 rounded-lg text-amber-700 hover:text-amber-900 transition">Düzenlenenler (<span id="hist-cnt-edited">0</span>)</button>
@@ -756,7 +757,7 @@
         let selectedHistoryRows = new Set();
         let historyRevenueEdits = new Map(); // key: sheetId_rowNum -> { sheetId, rowNum, newRevenue, originalRevenue }
         let lastHistoryMatchResults = [];
-        let historyFilterMode = 'all'; // 'all', 'revenue', 'zero', 'edited'
+        let historyFilterMode = 'all'; // 'all', 'same_revenue', 'revenue', 'zero', 'edited'
         let searchQuery = "";
         let branchSortOrder = { field: 'revenue', dir: 'desc' };
 
@@ -958,7 +959,6 @@
             const startSel = document.getElementById('advStartPeriod');
             const endSel = document.getElementById('advEndPeriod');
             
-            // 1. Önce localStorage'da kayıtlı dönemler var mı anında yükle
             const cachedPeriodsStr = safeStorage.getItem('available_periods');
             let periods = null;
             if (cachedPeriodsStr) {
@@ -974,7 +974,6 @@
                 if (loader) loader.classList.remove('hidden');
             }
 
-            // 2. Arka planda sunucudan taze dönem listesini al
             try {
                 const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`, { cache: 'no-store' });
                 const freshPeriods = await res.json();
@@ -1297,7 +1296,7 @@
                             currentData.customerList = currentData.customerList.filter(i => !(i.sheetId === payload.sheetId && i.rowNum === payload.rowNum));
                         } else if (payload.type === 'SELECTED' && Array.isArray(payload.items)) {
                             const deleteSet = new Set(payload.items.map(item => `${item.sheetId}_${item.rowNum}`));
-                            currentData.customerList = currentData.customerList.filter(i => !deleteSet.has(`${i.sheetId}_${i.rowNum}`));
+                            currentData.customerList = currentData.customerList.filter(i => !deleteSet.has(`${i.sheetId}_${item.rowNum}`));
                         }
                     }
 
@@ -1694,7 +1693,19 @@
                     if (key && pastSalesMap.has(key)) {
                         const pastSales = pastSalesMap.get(key);
                         const pastTotalRev = pastSales.reduce((acc, s) => acc + (s.revenue || 0), 0);
-                        const curRev = Number(curItem.revenue || 0);
+                        const rowKey = `${curItem.sheetId}_${curItem.rowNum}`;
+                        const editedData = historyRevenueEdits.get(rowKey);
+                        const curRev = editedData ? editedData.newRevenue : Number(curItem.revenue || 0);
+
+                        let hasExactMatch = false;
+                        const pastSalesWithMatch = pastSales.map(ps => {
+                            const isMatch = curRev > 0 && Math.abs(Number(ps.revenue || 0) - curRev) < 0.01;
+                            if (isMatch) hasExactMatch = true;
+                            return {
+                                ...ps,
+                                isExactMatch: isMatch
+                            };
+                        });
 
                         totalPastRev += pastTotalRev;
                         totalCurRev += curRev;
@@ -1702,9 +1713,10 @@
                         matchResults.push({
                             key,
                             curItem,
-                            pastSales,
+                            pastSales: pastSalesWithMatch,
                             pastTotalRev,
-                            curRev
+                            curRev,
+                            hasExactMatch
                         });
                     }
                 });
@@ -1728,7 +1740,7 @@
 
         function setHistoryFilter(mode) {
             historyFilterMode = mode;
-            ['all', 'revenue', 'zero', 'edited'].forEach(m => {
+            ['all', 'same_revenue', 'revenue', 'zero', 'edited'].forEach(m => {
                 const btn = document.getElementById(`hist-filter-btn-${m}`);
                 if (btn) {
                     if (m === mode) {
@@ -1743,11 +1755,13 @@
 
         function updateHistoryFilterCounts(matches) {
             const allCount = matches.length;
+            const sameRevCount = matches.filter(m => m.hasExactMatch).length;
             const revCount = matches.filter(m => Number(m.curItem.revenue || 0) > 0).length;
             const zeroCount = matches.filter(m => Number(m.curItem.revenue || 0) === 0).length;
             const editCount = historyRevenueEdits.size;
 
             safeSetText('hist-cnt-all', allCount);
+            safeSetText('hist-cnt-same_revenue', sameRevCount);
             safeSetText('hist-cnt-revenue', revCount);
             safeSetText('hist-cnt-zero', zeroCount);
             safeSetText('hist-cnt-edited', editCount);
@@ -1761,7 +1775,9 @@
             const activePeriod = document.getElementById('periodSelector')?.value || '';
 
             let filteredMatches = matches;
-            if (historyFilterMode === 'revenue') {
+            if (historyFilterMode === 'same_revenue') {
+                filteredMatches = matches.filter(m => m.hasExactMatch);
+            } else if (historyFilterMode === 'revenue') {
                 filteredMatches = matches.filter(m => Number(m.curItem.revenue || 0) > 0);
             } else if (historyFilterMode === 'zero') {
                 filteredMatches = matches.filter(m => Number(m.curItem.revenue || 0) === 0);
@@ -1797,20 +1813,21 @@
                 const isEdited = editedData && editedData.newRevenue !== editedData.originalRevenue;
 
                 return `
-                    <div class="bg-white rounded-2xl border ${isEdited ? 'border-amber-300 ring-2 ring-amber-400/20' : (isChecked ? 'border-indigo-300 ring-2 ring-indigo-400/20' : 'border-slate-200')} shadow-card overflow-hidden transition-all duration-200">
+                    <div class="bg-white rounded-2xl border ${isEdited ? 'border-amber-300 ring-2 ring-amber-400/20' : (m.hasExactMatch ? 'border-purple-300 ring-2 ring-purple-400/20' : (isChecked ? 'border-indigo-300 ring-2 ring-indigo-400/20' : 'border-slate-200'))} shadow-card overflow-hidden transition-all duration-200">
                         
                         <!-- Top Header Bar -->
                         <div class="bg-slate-900 text-white px-5 py-3 flex flex-wrap items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
                                 <input type="checkbox" data-row-key="${rowKey}" ${isChecked ? 'checked' : ''} onchange="onHistoryRowCheckChange(this)" class="history-row-checkbox w-4 h-4 text-brand-600 rounded border-slate-700 bg-slate-800 focus:ring-brand-500 cursor-pointer">
-                                <div class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-xs shrink-0 border border-indigo-400/30">
-                                    <i class="fas fa-user-clock"></i>
+                                <div class="w-8 h-8 rounded-xl ${m.hasExactMatch ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30' : 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/30'} flex items-center justify-center text-xs shrink-0">
+                                    <i class="${m.hasExactMatch ? 'fas fa-bullseye' : 'fas fa-user-clock'}"></i>
                                 </div>
                                 <div>
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <h4 class="font-extrabold text-sm text-white">${custName}</h4>
                                         <span class="text-xs text-slate-400 font-medium"><i class="fas fa-phone text-slate-400 text-[10px] mr-1"></i>${phoneDisplay}</span>
                                         ${item.customerNo ? `<span class="bg-slate-800 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-700">No: ${item.customerNo}</span>` : ''}
+                                        ${m.hasExactMatch ? `<span class="bg-purple-500/30 text-purple-200 border border-purple-400/40 text-[10px] font-black px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-xs"><i class="fas fa-check-double text-[9px]"></i> Birebir Aynı Ciro (₺${fmt(currentDisplayRev)})</span>` : ''}
                                     </div>
                                     <div class="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400">
                                         <span><i class="fas fa-history mr-1 text-indigo-400"></i>${m.pastSales.length} Farklı Geçmiş Satış Kaydı</span>
@@ -1829,7 +1846,7 @@
                                 <div class="h-7 w-px bg-slate-800 hidden sm:block"></div>
                                 <div class="text-right">
                                     <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Bu Ayki Tutar</p>
-                                    <p class="text-sm font-extrabold ${Number(item.revenue) > 0 ? 'text-rose-400' : 'text-slate-300'}">${fmt(currentDisplayRev)}</p>
+                                    <p class="text-sm font-extrabold ${Number(item.revenue) > 0 ? (m.hasExactMatch ? 'text-purple-300 font-black' : 'text-rose-400') : 'text-slate-300'}">${fmt(currentDisplayRev)}</p>
                                 </div>
                                 <button onclick="deleteSingleRow('${item.sheetId}', '${activePeriod}', ${item.rowNum}, '${custName.replace(/'/g, "\\'")}', false)" title="Bu Mükerrer Kaydı Cari Aydan Sil" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold p-2 rounded-xl transition flex items-center gap-1">
                                     <i class="fas fa-trash-can"></i>
@@ -1851,27 +1868,31 @@
                                     </div>
                                     
                                     <div class="space-y-2">
-                                        ${m.pastSales.map(ps => `
-                                            <div class="bg-indigo-50/50 hover:bg-indigo-50/80 border border-indigo-100/80 rounded-xl p-2.5 flex items-center justify-between gap-3 transition">
-                                                <div class="flex items-center gap-2.5">
-                                                    <span class="bg-indigo-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg tracking-wide uppercase shadow-xs">
-                                                        ${ps.period}
-                                                    </span>
-                                                    <div>
-                                                        <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                                            <i class="fas fa-store text-slate-400 text-[10px]"></i> ${ps.branch}
-                                                        </div>
-                                                        <div class="text-[10px] text-slate-500 font-medium mt-0.5">
-                                                            <i class="fas fa-calendar-day text-slate-400 mr-1"></i>${ps.date || '---'}
+                                        ${m.pastSales.map(ps => {
+                                            const isExact = ps.isExactMatch;
+                                            return `
+                                                <div class="${isExact ? 'bg-purple-50 border-2 border-purple-400 ring-2 ring-purple-400/20 shadow-xs' : 'bg-indigo-50/50 hover:bg-indigo-50/80 border border-indigo-100/80'} rounded-xl p-2.5 flex items-center justify-between gap-3 transition">
+                                                    <div class="flex items-center gap-2.5">
+                                                        <span class="${isExact ? 'bg-purple-600' : 'bg-indigo-600'} text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg tracking-wide uppercase shadow-xs">
+                                                            ${ps.period}
+                                                        </span>
+                                                        <div>
+                                                            <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                                                <i class="fas fa-store text-slate-400 text-[10px]"></i> ${ps.branch}
+                                                                ${isExact ? '<span class="bg-purple-100 text-purple-800 text-[9px] font-black px-1.5 py-0.5 rounded border border-purple-300">BİREBİR AYNI TUTAR</span>' : ''}
+                                                            </div>
+                                                            <div class="text-[10px] text-slate-500 font-medium mt-0.5">
+                                                                <i class="fas fa-calendar-day text-slate-400 mr-1"></i>${ps.date || '---'}
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    <div class="text-right">
+                                                        <span class="text-xs font-black ${isExact ? 'text-purple-700' : 'text-emerald-700'}">${fmt(ps.revenue)}</span>
+                                                        <span class="text-[9px] font-bold text-slate-400 block">${ps.status || 'Satış'}</span>
+                                                    </div>
                                                 </div>
-                                                <div class="text-right">
-                                                    <span class="text-xs font-black text-emerald-700">${fmt(ps.revenue)}</span>
-                                                    <span class="text-[9px] font-bold text-slate-400 block">${ps.status || 'Satış'}</span>
-                                                </div>
-                                            </div>
-                                        `).join('')}
+                                            `;
+                                        }).join('')}
                                     </div>
                                 </div>
                                 
@@ -1884,7 +1905,7 @@
                             <!-- Right Side: Current Month Entry & Interactive Revenue Editor -->
                             <div class="lg:col-span-5 bg-white rounded-xl p-4 border border-slate-200/90 shadow-xs flex flex-col justify-between">
                                 <div>
-                                    <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-100">
+                                    <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
                                         <span class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
                                             <i class="fas fa-calendar-check text-brand-600"></i> Bu Ayki (${activePeriod}) Girişi
                                         </span>
@@ -1892,6 +1913,13 @@
                                             ${item.status || item.callStatus || 'Mevcut Giriş'}
                                         </span>
                                     </div>
+
+                                    ${m.hasExactMatch ? `
+                                        <div class="bg-purple-50 border border-purple-200/90 rounded-xl p-2.5 mb-2.5 text-[11px] text-purple-900 font-bold flex items-center gap-2">
+                                            <i class="fas fa-circle-exclamation text-purple-600 text-xs shrink-0"></i>
+                                            <span>Bu müşterinin geçmiş satışı ile cari ciro tutarı (<strong>${fmt(currentDisplayRev)}</strong>) birebir eşleşti!</span>
+                                        </div>
+                                    ` : ''}
 
                                     <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/80 mb-3 space-y-1.5 text-xs">
                                         <div class="flex items-center justify-between">
@@ -1919,7 +1947,7 @@
                                             <span class="absolute left-3 top-1/2 -translate-y-1/2 font-black text-xs text-slate-400">₺</span>
                                             <input type="number" step="1" min="0" value="${currentDisplayRev}"
                                                 onchange="onHistoryRevenueChange('${rowKey}', '${item.sheetId}', ${item.rowNum}, ${item.revenue || 0}, this.value)"
-                                                class="w-full pl-7 pr-3 py-2 bg-white text-slate-900 font-black text-sm rounded-xl border ${isEdited ? 'border-amber-500 bg-amber-50 text-amber-900 ring-2 ring-amber-400/20' : 'border-slate-300 focus:border-brand-500'} outline-none shadow-xs">
+                                                class="w-full pl-7 pr-3 py-2 bg-white text-slate-900 font-black text-sm rounded-xl border ${isEdited ? 'border-amber-500 bg-amber-50 text-amber-900 ring-2 ring-amber-400/20' : (m.hasExactMatch ? 'border-purple-400 bg-purple-50/30' : 'border-slate-300')} focus:border-brand-500 outline-none shadow-xs">
                                         </div>
                                         <button onclick="saveSingleHistoryRevenue('${item.sheetId}', ${item.rowNum}, '${rowKey}')" title="Bu Ciro Tutarını Google Sheets'e Kaydet" class="${isEdited ? 'bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'} px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs shrink-0">
                                             <i class="fas fa-floppy-disk text-xs"></i>
@@ -2601,15 +2629,16 @@
                     });
                 });
             } else if (activeTab === 'historyCheck') {
-                wsData.push(["SIRA", "MÜŞTERİ ADI", "TELEFON", "MÜŞTERİ NO", "GEÇMİŞ SATIŞLAR", "GEÇMİŞ CİRO TOPLAMI (TL)", "CARİ ŞUBE", "CARİ TARİH", "CARİ DURUM", "CARİ CİRO (TL)"]);
+                wsData.push(["SIRA", "MÜŞTERİ ADI", "TELEFON", "MÜŞTERİ NO", "AYNI CİRO EŞLEŞTİ Mİ", "GEÇMİŞ SATIŞLAR", "GEÇMİŞ CİRO TOPLAMI (TL)", "CARİ ŞUBE", "CARİ TARİH", "CARİ DURUM", "CARİ CİRO (TL)"]);
                 lastHistoryMatchResults.forEach((m, idx) => {
                     const item = m.curItem;
-                    const pastDesc = m.pastSales.map(ps => `${ps.period} (${ps.branch}): ₺${ps.revenue}`).join(' | ');
+                    const pastDesc = m.pastSales.map(ps => `${ps.period} (${ps.branch}): ₺${ps.revenue}${ps.isExactMatch ? ' [AYNI CİRO]' : ''}`).join(' | ');
                     wsData.push([
                         idx + 1,
                         item.customerName || '---',
                         item.phone || '---',
                         item.customerNo || '---',
+                        m.hasExactMatch ? 'EVET (BİREBİR AYNI)' : 'HAYIR',
                         pastDesc,
                         m.pastTotalRev,
                         item.branch,
