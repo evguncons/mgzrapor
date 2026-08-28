@@ -153,6 +153,9 @@
             <button onclick="setTab('historyCheck'); maybeCloseSidebar()" id="sidebar-btn-historyCheck" class="nav-btn">
                 <i class="fas fa-clock-rotate-left"></i> <span class="nav-label">Geçmiş Satış Kontrolü</span>
             </button>
+            <button onclick="setTab('convertedSales'); maybeCloseSidebar()" id="sidebar-btn-convertedSales" class="nav-btn">
+                <i class="fas fa-bag-shopping"></i> <span class="nav-label">Satışa Dönenler</span>
+            </button>
         </nav>
 
         <!-- Footer User Info -->
@@ -287,7 +290,6 @@
                 
                 <!-- 6 KPI Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-                    <!-- Toplam Yönlendirme -->
                     <div class="kpi-card border-t-4 border-t-indigo-500">
                         <div>
                             <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Yönlendirme</p>
@@ -296,7 +298,6 @@
                         <p class="text-[10px] font-bold text-indigo-600 mt-3 flex items-center gap-1"><i class="fas fa-share-nodes"></i> İşlenen Kayıt</p>
                     </div>
 
-                    <!-- Toplam Aranan -->
                     <div class="kpi-card border-t-4 border-t-purple-500">
                         <div>
                             <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Aranan</p>
@@ -305,7 +306,6 @@
                         <p class="text-[10px] font-bold text-purple-600 mt-3 flex items-center gap-1"><i class="fas fa-headset"></i> İletişim Kuruldu</p>
                     </div>
 
-                    <!-- Satış Adedi -->
                     <div class="kpi-card border-t-4 border-t-emerald-500">
                         <div>
                             <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Satış Adedi</p>
@@ -314,7 +314,6 @@
                         <p class="text-[10px] font-bold text-emerald-600 mt-3 flex items-center gap-1"><i class="fas fa-circle-check"></i> Başarılı Satış</p>
                     </div>
 
-                    <!-- Toplam Ciro -->
                     <div class="kpi-card border-t-4 border-t-rose-500">
                         <div>
                             <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Ciro</p>
@@ -323,7 +322,6 @@
                         <p class="text-[10px] font-bold text-rose-600 mt-3 flex items-center gap-1"><i class="fas fa-wallet"></i> Brüt Kazanç</p>
                     </div>
 
-                    <!-- En Çok Satan Kategori -->
                     <div class="kpi-card border-t-4 border-t-amber-500">
                         <div>
                             <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Lider Kategori</p>
@@ -332,7 +330,6 @@
                         <p id="kpi-top-category-sub" class="text-[10px] font-bold text-amber-600 mt-3 flex items-center gap-1"><i class="fas fa-trophy"></i> 0 satış</p>
                     </div>
 
-                    <!-- Ortalama Sepet -->
                     <div class="kpi-card border-t-4 border-t-cyan-500">
                         <div>
                             <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Ortalama Sepet</p>
@@ -344,7 +341,6 @@
 
                 <!-- Interactive Visual Analytics Charts Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Branch Performance Bar Chart -->
                     <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-card flex flex-col justify-between">
                         <div class="flex items-center justify-between mb-4">
                             <div>
@@ -360,7 +356,6 @@
                         </div>
                     </div>
 
-                    <!-- Category Breakdown Doughnut Chart -->
                     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card flex flex-col justify-between">
                         <div class="flex items-center justify-between mb-4">
                             <div>
@@ -510,7 +505,6 @@
 
             <!-- 5. DUPLICATES VIEW (MÜKERRER SATIŞ KONTROLÜ) -->
             <div id="tab-duplicates" class="hidden space-y-6 max-w-[1500px] mx-auto">
-                
                 <!-- Duplicate KPI Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="kpi-card border-t-4 border-t-amber-500">
@@ -637,7 +631,117 @@
                 <div id="history-cards-container" class="space-y-4"></div>
             </div>
 
-            <!-- 7. ADVANCED VIEW -->
+            <!-- 7. CONVERTED SALES VIEW (SATIŞA DÖNENLER) -->
+            <div id="tab-convertedSales" class="hidden space-y-6 max-w-[1500px] mx-auto">
+                <!-- Top Sales KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="kpi-card border-t-4 border-t-emerald-500">
+                        <p id="sales-kpi-count-title" class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Satış Adedi</p>
+                        <h3 id="sales-kpi-count" class="text-2xl font-extrabold text-slate-900">0</h3>
+                        <p id="sales-kpi-count-sub" class="text-[10px] font-bold text-emerald-600 mt-2"><i class="fas fa-circle-check mr-1"></i> Başarılı Satış Kayıtları</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-indigo-500">
+                        <p id="sales-kpi-revenue-title" class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Satış Cirosu</p>
+                        <h3 id="sales-kpi-revenue" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
+                        <p id="sales-kpi-revenue-sub" class="text-[10px] font-bold text-indigo-600 mt-2"><i class="fas fa-wallet mr-1"></i> Gerçekleşen Net Tutar</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-amber-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Ortalama Satış Tutarı</p>
+                        <h3 id="sales-kpi-basket" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
+                        <p class="text-[10px] font-bold text-amber-600 mt-2"><i class="fas fa-cart-shopping mr-1"></i> Sepet Ortalaması</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-purple-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Lider Kategori</p>
+                        <h3 id="sales-kpi-top-category" class="text-sm font-extrabold text-slate-900 truncate">---</h3>
+                        <p id="sales-kpi-top-category-sub" class="text-[10px] font-bold text-purple-600 mt-2"><i class="fas fa-trophy mr-1"></i> 0 Adet Satış</p>
+                    </div>
+                </div>
+
+                <!-- Modern Sales Action Bar & Filter Chips -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-card flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition">
+                            <input type="checkbox" id="selectAllSalesCheck" onchange="toggleSelectAllSalesRows(this)" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
+                            <span>Tümünü Seç</span>
+                        </label>
+                        
+                        <span id="selectedSalesCountBadge" class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-xl">0 satır seçildi</span>
+                        
+                        <!-- Quick Filter Chips -->
+                        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-wrap">
+                            <button type="button" onclick="setSalesFilter('all')" id="sales-filter-btn-all" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white text-slate-900 shadow-xs transition">Tüm Satışlar (<span id="sales-cnt-all">0</span>)</button>
+                            <button type="button" onclick="setSalesFilter('has_revenue')" id="sales-filter-btn-has_revenue" class="text-[10px] font-bold px-2.5 py-1 rounded-lg text-emerald-700 hover:text-emerald-900 transition">Cirosu > 0 (<span id="sales-cnt-has_revenue">0</span>)</button>
+                            <button type="button" onclick="setSalesFilter('zero_revenue')" id="sales-filter-btn-zero_revenue" class="text-[10px] font-bold px-2.5 py-1 rounded-lg text-rose-700 hover:text-rose-900 transition">Sıfır Cirolu Satış (<span id="sales-cnt-zero_revenue">0</span>)</button>
+                            <button type="button" onclick="setSalesFilter('edited')" id="sales-filter-btn-edited" class="text-[10px] font-bold px-2.5 py-1 rounded-lg text-amber-700 hover:text-amber-900 transition">Düzenlenenler (<span id="sales-cnt-edited">0</span>)</button>
+                        </div>
+
+                        <span id="dirtySalesEditsBadge" class="hidden text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-xl animate-pulse">
+                            <i class="fas fa-pen mr-1"></i> <span id="dirtySalesCountText">0</span> kayıt düzenlendi (Kaydedilmeyi Bekliyor)
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button id="btnSaveSalesRevenues" onclick="saveSalesBatchChanges()" disabled class="opacity-50 cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+                            <i class="fas fa-floppy-disk text-xs"></i>
+                            <span>Tüm Değişiklikleri Sheets'e Kaydet</span>
+                        </button>
+                        <button id="btnDeleteSelectedSales" onclick="deleteSelectedSalesRows()" disabled class="opacity-50 cursor-not-allowed bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+                            <i class="fas fa-trash-can text-xs"></i>
+                            <span>Seçilenleri Sil</span>
+                        </button>
+                        <button onclick="fetchData(true)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+                            <i class="fas fa-arrows-rotate text-xs"></i>
+                            <span>Yenile</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sales Table Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                                <i class="fas fa-bag-shopping text-emerald-600"></i> Satışa Dönen Müşteri Listesi
+                            </h3>
+                            <p class="text-[11px] font-medium text-slate-500">Seçili dönem ve şubeye ait satışa dönen işlemlerin detaylı tablosu.</p>
+                        </div>
+                        <span id="salesTableBadge" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">0 Satış Kaydı</span>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="portal-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-10 text-center">Seç</th>
+                                    <th class="w-12 text-center">#</th>
+                                    <th>Müşteri Ad Soyad</th>
+                                    <th>Telefon</th>
+                                    <th>Müşteri No</th>
+                                    <th>Şube</th>
+                                    <th>Tarih</th>
+                                    <th>Kategori</th>
+                                    <th>Durum</th>
+                                    <th class="text-right">Ciro Tutarı (TRY)</th>
+                                    <th class="w-32 text-right">Eylemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-table-body"></tbody>
+                            <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
+                                <tr>
+                                    <td colspan="9" class="text-right py-4 px-5 text-slate-600 text-xs uppercase tracking-wider">Satış Listesi Genel Toplamı</td>
+                                    <td id="sales-total-revenue-footer" class="text-right py-4 px-5 text-emerald-700 text-base font-extrabold">₺0</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. ADVANCED VIEW -->
             <div id="tab-advanced" class="hidden space-y-6 max-w-[1500px] mx-auto">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card flex flex-wrap items-end justify-between gap-4">
                     <div class="flex flex-wrap items-center gap-3">
@@ -694,6 +798,81 @@
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Edit Sale Details Modal -->
+        <div id="editSaleModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[160] flex items-center justify-center hidden">
+            <div class="bg-white rounded-2xl max-w-lg w-full mx-4 border border-slate-200 shadow-2xl overflow-hidden">
+                <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
+                            <i class="fas fa-pen-to-square"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold">Satış Kaydını Düzenle</h3>
+                            <p id="editModalBranchSubtitle" class="text-[10px] text-slate-400">Şube / Satır Bilgisi</p>
+                        </div>
+                    </div>
+                    <button onclick="closeEditSaleModal()" class="text-slate-400 hover:text-white transition">
+                        <i class="fas fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <form id="editSaleForm" onsubmit="submitSaleEditModal(event)" class="p-5 space-y-4 text-xs font-semibold text-slate-700">
+                    <input type="hidden" id="editModalSheetId">
+                    <input type="hidden" id="editModalRowNum">
+                    <input type="hidden" id="editModalRowKey">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Müşteri Adı Soyadı</label>
+                            <input type="text" id="editModalCustomerName" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:border-brand-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Telefon Numarası</label>
+                            <input type="text" id="editModalPhone" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:border-brand-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Müşteri No</label>
+                            <input type="text" id="editModalCustomerNo" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:border-brand-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Ürün / Kategori</label>
+                            <input type="text" id="editModalCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:border-brand-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Satış Durumu</label>
+                            <select id="editModalStatus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:border-brand-500 outline-none cursor-pointer">
+                                <option value="Satışa Döndü">Satışa Döndü</option>
+                                <option value="Tekrar Aranacak">Tekrar Aranacak</option>
+                                <option value="Müşteri Mağazaya Gelecek">Müşteri Mağazaya Gelecek</option>
+                                <option value="Ulaşılamadı">Ulaşılamadı</option>
+                                <option value="Olumsuz">Olumsuz</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Ciro Tutarı (TRY)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 font-black text-xs text-slate-400">₺</span>
+                                <input type="number" step="1" min="0" id="editModalRevenue" required class="w-full pl-7 pr-3 py-2 bg-emerald-50/50 border border-emerald-300 rounded-xl text-xs font-black text-emerald-900 focus:bg-white focus:border-brand-500 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
+                        <button type="button" onclick="closeEditSaleModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">İptal</button>
+                        <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1.5">
+                            <i class="fas fa-floppy-disk"></i> Sheets'e Kaydet
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -755,9 +934,12 @@
         let pendingCleanAction = null;
         let selectedDuplicateRows = new Set();
         let selectedHistoryRows = new Set();
+        let selectedSalesRows = new Set();
         let historyRevenueEdits = new Map(); // key: sheetId_rowNum -> { sheetId, rowNum, newRevenue, originalRevenue }
+        let salesRevenueEdits = new Map();   // key: sheetId_rowNum -> { sheetId, rowNum, newRevenue, originalRevenue }
         let lastHistoryMatchResults = [];
         let historyFilterMode = 'all'; // 'all', 'same_revenue', 'revenue', 'zero', 'edited'
+        let salesFilterMode = 'all';   // 'all', 'has_revenue', 'zero_revenue', 'edited'
         let searchQuery = "";
         let branchSortOrder = { field: 'revenue', dir: 'desc' };
 
@@ -1157,6 +1339,7 @@
                 unspecified: 'Belirtilmeyenler',
                 duplicates: 'Mükerrer Satış Kontrolü',
                 historyCheck: 'Geçmiş Satış Kontrolü (Son 3 Ay)',
+                convertedSales: 'Satışa Dönen Müşteriler',
                 advanced: 'Gelişmiş Rapor' 
             };
             safeSetText('tabTitle', titles[tab] || 'Yönetim Portalı');
@@ -1223,7 +1406,7 @@
         function deleteSingleRow(sheetId, sheetName, rowNum, customerName, isOriginal) {
             const alertText = isOriginal 
                 ? `<strong>${customerName}</strong> müşterisine ait <strong>ORİJİNAL (İLK İŞLEM)</strong> kaydını Google Sheets'ten kalıcı olarak silmek üzeresiniz. Emin misiniz?`
-                : `<strong>${customerName}</strong> müşterisine ait mükerrer kaydı Google Sheets tablosundan silmek istiyor musunuz?`;
+                : `<strong>${customerName}</strong> müşterisine ait kaydı Google Sheets tablosundan silmek istiyor musunuz?`;
 
             openCleanConfirmModal("Kaydı Sil", alertText, {
                 type: 'SINGLE',
@@ -1304,6 +1487,8 @@
                     updateSelectedDuplicateCount();
                     selectedHistoryRows.clear();
                     updateHistoryActionButtons();
+                    selectedSalesRows.clear();
+                    updateSalesActionButtons();
 
                     if (activeTab === 'historyCheck') {
                         runHistoryCheckAnalysis();
@@ -2199,6 +2384,425 @@
             );
         }
 
+        // --- CONVERTED SALES (SATIŞA DÖNENLER) CONTROLLER ---
+        function setSalesFilter(mode) {
+            salesFilterMode = mode;
+            ['all', 'has_revenue', 'zero_revenue', 'edited'].forEach(m => {
+                const btn = document.getElementById(`sales-filter-btn-${m}`);
+                if (btn) {
+                    if (m === mode) {
+                        btn.className = "text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white text-slate-900 shadow-xs transition";
+                    } else {
+                        btn.className = "text-[10px] font-bold px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition";
+                    }
+                }
+            });
+            renderConvertedSales(currentData);
+        }
+
+        function toggleSelectAllSalesRows(masterCheckbox) {
+            const isChecked = masterCheckbox.checked;
+            document.querySelectorAll('.sales-row-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+                const key = cb.dataset.rowKey;
+                if (isChecked) selectedSalesRows.add(key);
+                else selectedSalesRows.delete(key);
+            });
+            updateSalesActionButtons();
+        }
+
+        function onSalesRowCheckChange(checkbox) {
+            const key = checkbox.dataset.rowKey;
+            if (checkbox.checked) selectedSalesRows.add(key);
+            else selectedSalesRows.delete(key);
+            updateSalesActionButtons();
+        }
+
+        function onSalesRevenueChange(rowKey, sheetId, rowNum, originalRev, newRev) {
+            const numVal = parseFloat(newRev) || 0;
+            salesRevenueEdits.set(rowKey, {
+                sheetId,
+                rowNum: parseInt(rowNum, 10),
+                newRevenue: numVal,
+                originalRevenue: parseFloat(originalRev) || 0
+            });
+            updateSalesActionButtons();
+            renderConvertedSales(currentData);
+        }
+
+        function updateSalesActionButtons() {
+            const count = selectedSalesRows.size;
+            safeSetText('selectedSalesCountBadge', `${count} satır seçildi`);
+
+            const delBtn = document.getElementById('btnDeleteSelectedSales');
+            if (delBtn) {
+                delBtn.disabled = count === 0;
+                delBtn.classList.toggle('opacity-50', count === 0);
+                delBtn.classList.toggle('cursor-not-allowed', count === 0);
+            }
+
+            const editsCount = salesRevenueEdits.size;
+            const saveBtn = document.getElementById('btnSaveSalesRevenues');
+            const dirtyBadge = document.getElementById('dirtySalesEditsBadge');
+            const dirtyCountText = document.getElementById('dirtySalesCountText');
+
+            if (saveBtn) {
+                saveBtn.disabled = editsCount === 0;
+                saveBtn.classList.toggle('opacity-50', editsCount === 0);
+                saveBtn.classList.toggle('cursor-not-allowed', editsCount === 0);
+            }
+
+            if (dirtyBadge) {
+                dirtyBadge.classList.toggle('hidden', editsCount === 0);
+            }
+            if (dirtyCountText) {
+                dirtyCountText.innerText = editsCount;
+            }
+        }
+
+        function openEditSaleModal(sheetId, rowNum, rowKey) {
+            if (!currentData || !currentData.customerList) return;
+            const item = currentData.customerList.find(i => i.sheetId === sheetId && i.rowNum === rowNum);
+            if (!item) return;
+
+            const editedData = salesRevenueEdits.get(rowKey);
+            const currentRev = editedData ? editedData.newRevenue : (item.revenue || 0);
+
+            document.getElementById('editModalSheetId').value = sheetId;
+            document.getElementById('editModalRowNum').value = rowNum;
+            document.getElementById('editModalRowKey').value = rowKey;
+
+            document.getElementById('editModalCustomerName').value = item.customerName || '';
+            document.getElementById('editModalPhone').value = item.phone || '';
+            document.getElementById('editModalCustomerNo').value = item.customerNo || '';
+            document.getElementById('editModalCategory').value = item.category || '';
+            document.getElementById('editModalStatus').value = item.status || 'Satışa Döndü';
+            document.getElementById('editModalRevenue').value = currentRev;
+
+            safeSetText('editModalBranchSubtitle', `${item.branch} • Satır: ${rowNum}`);
+
+            const modal = document.getElementById('editSaleModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeEditSaleModal() {
+            const modal = document.getElementById('editSaleModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function submitSaleEditModal(e) {
+            e.preventDefault();
+            const sheetId = document.getElementById('editModalSheetId').value;
+            const rowNum = parseInt(document.getElementById('editModalRowNum').value, 10);
+            const rowKey = document.getElementById('editModalRowKey').value;
+            const activePeriod = document.getElementById('periodSelector')?.value || '';
+
+            const details = {
+                customerName: document.getElementById('editModalCustomerName').value.trim(),
+                phone: document.getElementById('editModalPhone').value.trim(),
+                customerNo: document.getElementById('editModalCustomerNo').value.trim(),
+                category: document.getElementById('editModalCategory').value.trim(),
+                status: document.getElementById('editModalStatus').value,
+                revenue: parseFloat(document.getElementById('editModalRevenue').value) || 0
+            };
+
+            closeEditSaleModal();
+
+            const loader = document.getElementById('loadingIndicator');
+            const loaderText = document.getElementById('loader-text');
+            if (loader) loader.classList.remove('hidden');
+            if (loaderText) loaderText.innerText = "Satış Kaydı Güncelleniyor...";
+
+            try {
+                const res = await fetch(`${APPSCRIPT_URL}?action=updateRowDetails&sheetId=${encodeURIComponent(sheetId)}&sheetName=${encodeURIComponent(activePeriod)}&rowNum=${rowNum}&details=${encodeURIComponent(JSON.stringify(details))}&t=${Date.now()}`, { cache: 'no-store' });
+                const resData = await res.json();
+
+                if (resData && resData.success) {
+                    if (currentData && currentData.customerList) {
+                        const target = currentData.customerList.find(i => i.sheetId === sheetId && i.rowNum === rowNum);
+                        if (target) {
+                            target.customerName = details.customerName;
+                            target.phone = details.phone;
+                            target.customerNo = details.customerNo;
+                            target.category = details.category;
+                            target.status = details.status;
+                            target.revenue = details.revenue;
+                        }
+                    }
+                    salesRevenueEdits.delete(rowKey);
+                    updateSalesActionButtons();
+                    renderConvertedSales(currentData);
+                    showToast(resData.message || "Satış kaydı güncellendi.", "success");
+                    fetchDataWithPeriod(activePeriod, true, false);
+                } else {
+                    showErrorModal("Güncelleme Hatası", resData?.message || "Satış bilgileri güncellenemedi.");
+                }
+            } catch (err) {
+                console.error(err);
+                showErrorModal("Bağlantı Hatası", "Satış kaydı güncellenirken sunucuyla bağlantı kesildi.");
+            } finally {
+                if (loader) loader.classList.add('hidden');
+                if (loaderText) loaderText.innerText = "Veriler Yükleniyor...";
+            }
+        }
+
+        async function saveSingleSalesRevenue(sheetId, rowNum, rowKey) {
+            const edit = salesRevenueEdits.get(rowKey);
+            const activePeriod = document.getElementById('periodSelector')?.value || '';
+            const newRevenue = edit ? edit.newRevenue : (document.querySelector(`input[data-sales-key="${rowKey}"]`)?.value || 0);
+
+            const loader = document.getElementById('loadingIndicator');
+            const loaderText = document.getElementById('loader-text');
+            if (loader) loader.classList.remove('hidden');
+            if (loaderText) loaderText.innerText = "Ciro Google Sheets'e Yazılıyor...";
+
+            try {
+                const res = await fetch(`${APPSCRIPT_URL}?action=updateRowRevenue&sheetId=${encodeURIComponent(sheetId)}&sheetName=${encodeURIComponent(activePeriod)}&rowNum=${rowNum}&newRevenue=${encodeURIComponent(newRevenue)}&t=${Date.now()}`, { cache: 'no-store' });
+                const resData = await res.json();
+
+                if (resData && resData.success) {
+                    if (currentData && currentData.customerList) {
+                        const target = currentData.customerList.find(i => i.sheetId === sheetId && i.rowNum === rowNum);
+                        if (target) target.revenue = parseFloat(newRevenue) || 0;
+                    }
+                    salesRevenueEdits.delete(rowKey);
+                    updateSalesActionButtons();
+                    renderConvertedSales(currentData);
+                    showToast(resData.message || "Ciro güncellendi.", "success");
+                    fetchDataWithPeriod(activePeriod, true, false);
+                } else {
+                    showErrorModal("Güncelleme Hatası", resData?.message || "Ciro kaydedilemedi.");
+                }
+            } catch(e) {
+                console.error(e);
+                showErrorModal("Bağlantı Hatası", "Ciro güncellenirken sunucuyla bağlantı kesildi.");
+            } finally {
+                if (loader) loader.classList.add('hidden');
+                if (loaderText) loaderText.innerText = "Veriler Yükleniyor...";
+            }
+        }
+
+        async function saveSalesBatchChanges() {
+            if (salesRevenueEdits.size === 0) return;
+            const activePeriod = document.getElementById('periodSelector')?.value || '';
+
+            const items = [];
+            salesRevenueEdits.forEach((v) => {
+                items.push({
+                    sheetId: v.sheetId,
+                    rowNum: v.rowNum,
+                    newRevenue: v.newRevenue
+                });
+            });
+
+            const loader = document.getElementById('loadingIndicator');
+            const loaderText = document.getElementById('loader-text');
+            if (loader) loader.classList.remove('hidden');
+            if (loaderText) loaderText.innerText = `${items.length} adet satış cirosu Google Sheets'e kaydediliyor...`;
+
+            try {
+                const res = await fetch(`${APPSCRIPT_URL}?action=updateBatchRevenues&sheetName=${encodeURIComponent(activePeriod)}&items=${encodeURIComponent(JSON.stringify(items))}&t=${Date.now()}`, { cache: 'no-store' });
+                const resData = await res.json();
+
+                if (resData && resData.success) {
+                    if (currentData && currentData.customerList) {
+                        items.forEach(item => {
+                            const target = currentData.customerList.find(i => i.sheetId === item.sheetId && i.rowNum === item.rowNum);
+                            if (target) target.revenue = item.newRevenue;
+                        });
+                    }
+                    salesRevenueEdits.clear();
+                    updateSalesActionButtons();
+                    renderConvertedSales(currentData);
+                    showToast(resData.message || "Tüm ciro tutarları Google Sheets'e kaydedildi.", "success");
+                    fetchDataWithPeriod(activePeriod, true, false);
+                } else {
+                    showErrorModal("Güncelleme Hatası", resData?.message || "Ciro tutarları güncellenirken hata oluştu.");
+                }
+            } catch(e) {
+                console.error(e);
+                showErrorModal("Bağlantı Hatası", "Ciro tutarları kaydedilirken bağlantı hatası oluştu.");
+            } finally {
+                if (loader) loader.classList.add('hidden');
+                if (loaderText) loaderText.innerText = "Veriler Yükleniyor...";
+            }
+        }
+
+        function deleteSelectedSalesRows() {
+            if (selectedSalesRows.size === 0) return;
+            const period = document.getElementById('periodSelector').value;
+            const items = [];
+            selectedSalesRows.forEach(key => {
+                const [sheetId, rowNum] = key.split('_');
+                items.push({ sheetId, rowNum: parseInt(rowNum, 10) });
+            });
+
+            openCleanConfirmModal(
+                "Seçilen Satış Kayıtlarını Sil",
+                `İşaretlediğiniz <strong>${items.length} adet satış kaydı</strong> Google Sheets tablolarından kalıcı olarak silinecektir.`,
+                { type: 'SELECTED', sheetName: period, items }
+            );
+        }
+
+        function renderConvertedSales(data) {
+            if (!data) return;
+            const branchSelector = document.getElementById('branchSelector');
+            const selectedBranch = branchSelector ? branchSelector.value : 'Tümü';
+            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
+            const activePeriod = document.getElementById('periodSelector')?.value || '';
+
+            let list = (data.customerList || []).filter(i => {
+                const ciro = Number(i.revenue || 0);
+                const stat = String(i.status || "").trim().toLowerCase();
+                return ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu';
+            });
+
+            if (selectedBranch !== "Tümü") {
+                list = list.filter(i => i.branch === selectedBranch);
+            }
+
+            if (searchQuery) {
+                list = list.filter(i => {
+                    const nameStr = String(i.customerName || "").toLowerCase();
+                    const phoneStr = String(i.phone || "").toLowerCase();
+                    const noStr = String(i.customerNo || "").toLowerCase();
+                    const branchStr = String(i.branch || "").toLowerCase();
+                    const catStr = String(i.category || "").toLowerCase();
+                    return nameStr.includes(searchQuery) || phoneStr.includes(searchQuery) || noStr.includes(searchQuery) || branchStr.includes(searchQuery) || catStr.includes(searchQuery);
+                });
+            }
+
+            // Quick Filter Counts
+            const allSalesCount = list.length;
+            const hasRevCount = list.filter(i => Number(i.revenue || 0) > 0).length;
+            const zeroRevCount = list.filter(i => Number(i.revenue || 0) === 0).length;
+            const editedCount = salesRevenueEdits.size;
+
+            safeSetText('sales-cnt-all', allSalesCount);
+            safeSetText('sales-cnt-has_revenue', hasRevCount);
+            safeSetText('sales-cnt-zero_revenue', zeroRevCount);
+            safeSetText('sales-cnt-edited', editedCount);
+
+            // Apply Sales Sub-filter
+            let filteredList = list;
+            if (salesFilterMode === 'has_revenue') {
+                filteredList = list.filter(i => Number(i.revenue || 0) > 0);
+            } else if (salesFilterMode === 'zero_revenue') {
+                filteredList = list.filter(i => Number(i.revenue || 0) === 0);
+            } else if (salesFilterMode === 'edited') {
+                filteredList = list.filter(i => {
+                    const rowKey = `${i.sheetId}_${i.rowNum}`;
+                    return salesRevenueEdits.has(rowKey);
+                });
+            }
+
+            // Calculate KPIs
+            let totalRev = 0;
+            let catCounts = {};
+
+            filteredList.forEach(i => {
+                const rowKey = `${i.sheetId}_${i.rowNum}`;
+                const edit = salesRevenueEdits.get(rowKey);
+                const curRev = edit ? edit.newRevenue : (Number(i.revenue) || 0);
+                totalRev += curRev;
+
+                let cat = String(i.category || "").trim();
+                if (cat && cat.toLowerCase() !== "satışa döndü" && cat.toLowerCase() !== "belirtilmemiş") {
+                    catCounts[cat] = (catCounts[cat] || 0) + 1;
+                }
+            });
+
+            const avgBasket = filteredList.length > 0 ? (totalRev / filteredList.length) : 0;
+            let topCat = "---";
+            let maxCatCount = 0;
+            Object.entries(catCounts).forEach(([cat, count]) => {
+                if (count > maxCatCount) {
+                    maxCatCount = count;
+                    topCat = cat;
+                }
+            });
+
+            safeSetText('sales-kpi-count', num(filteredList.length));
+            safeSetText('sales-kpi-revenue', fmt(totalRev));
+            safeSetText('sales-kpi-basket', fmt(avgBasket));
+            safeSetText('sales-kpi-top-category', topCat.toUpperCase());
+            safeSetText('sales-kpi-top-category-sub', `${maxCatCount} Adet Satış`);
+            safeSetText('sales-total-revenue-footer', fmt(totalRev));
+            safeSetText('salesTableBadge', `${filteredList.length} Satış Kaydı`);
+
+            const tableBody = document.getElementById('sales-table-body');
+            if (!tableBody) return;
+
+            if (filteredList.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="text-center py-12">
+                            <div class="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
+                                <i class="fas fa-bag-shopping"></i>
+                            </div>
+                            <p class="text-xs font-bold text-slate-700">Satış Kaydı Bulunamadı</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Seçili şube ve filtre kriterlerine uygun satış kaydı tespit edilemedi.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = filteredList.map((item, idx) => {
+                const rowKey = `${item.sheetId}_${item.rowNum}`;
+                const isChecked = selectedSalesRows.has(rowKey);
+                const editedData = salesRevenueEdits.get(rowKey);
+                const currentDisplayRev = editedData ? editedData.newRevenue : (item.revenue || 0);
+                const isEdited = editedData && editedData.newRevenue !== editedData.originalRevenue;
+                const revNum = Number(currentDisplayRev);
+
+                return `
+                    <tr class="${isEdited ? 'bg-amber-50/40' : (isChecked ? 'bg-indigo-50/30' : '')}">
+                        <td class="text-center">
+                            <input type="checkbox" data-row-key="${rowKey}" ${isChecked ? 'checked' : ''} onchange="onSalesRowCheckChange(this)" class="sales-row-checkbox w-3.5 h-3.5 text-brand-600 rounded border-slate-300">
+                        </td>
+                        <td class="text-center font-bold text-slate-400 text-xs">${idx + 1}</td>
+                        <td>
+                            <span class="font-extrabold text-slate-900 text-xs block">${item.customerName || "İsimsiz Müşteri"}</span>
+                            ${isEdited ? '<span class="text-[9px] font-bold text-amber-600 flex items-center gap-1"><i class="fas fa-pen text-[8px]"></i> Düzenlendi</span>' : ''}
+                        </td>
+                        <td class="text-xs text-slate-600 font-medium">${item.phone || '---'}</td>
+                        <td>
+                            ${item.customerNo && item.customerNo.toLowerCase() !== 'belirtilmemiş' 
+                                ? `<span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${item.customerNo}</span>` 
+                                : '<span class="text-rose-600 text-[10px] font-bold">Eksik No</span>'}
+                        </td>
+                        <td class="font-bold text-slate-800 text-xs">${item.branch}</td>
+                        <td class="text-xs text-slate-600 font-medium">${item.date || '---'}</td>
+                        <td><span class="text-xs font-semibold text-slate-700">${item.category || 'Belirtilmemiş'}</span></td>
+                        <td><span class="badge-pill ${revNum > 0 ? 'badge-emerald' : 'badge-amber'}">${item.status || 'Satışa Döndü'}</span></td>
+                        <td class="text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <span class="text-slate-400 text-xs font-black">₺</span>
+                                <input type="number" step="1" min="0" value="${currentDisplayRev}" data-sales-key="${rowKey}"
+                                    onchange="onSalesRevenueChange('${rowKey}', '${item.sheetId}', ${item.rowNum}, ${item.revenue || 0}, this.value)"
+                                    class="w-24 px-2 py-1 bg-white text-right font-black text-xs rounded-lg border ${isEdited ? 'border-amber-500 bg-amber-50 text-amber-900 ring-1 ring-amber-400' : 'border-slate-300'} outline-none">
+                            </div>
+                        </td>
+                        <td class="text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button onclick="saveSingleSalesRevenue('${item.sheetId}', ${item.rowNum}, '${rowKey}')" title="Ciro Tutarını Kaydet" class="${isEdited ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'} p-1.5 rounded-lg text-xs transition">
+                                    <i class="fas fa-floppy-disk text-[10px]"></i>
+                                </button>
+                                <button onclick="openEditSaleModal('${item.sheetId}', ${item.rowNum}, '${rowKey}')" title="Detayları Düzenle" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 p-1.5 rounded-lg text-xs transition">
+                                    <i class="fas fa-pen-to-square text-[10px]"></i>
+                                </button>
+                                <button onclick="deleteSingleRow('${item.sheetId}', '${activePeriod}', ${item.rowNum}, '${(item.customerName || "Müşteri").replace(/'/g, "\\'")}', false)" title="Kaydı Sil" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 p-1.5 rounded-lg text-xs transition">
+                                    <i class="fas fa-trash-can text-[10px]"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
         // --- Main Render Pipeline ---
         function render(data) {
             if (!data) return;
@@ -2433,6 +3037,9 @@
 
             } else if (activeTab === 'duplicates') {
                 renderDuplicates(list);
+
+            } else if (activeTab === 'convertedSales') {
+                renderConvertedSales(data);
             }
         }
 
@@ -2722,6 +3329,16 @@
                         item.status || item.callStatus || '---',
                         item.revenue || 0
                     ]);
+                });
+            } else if (activeTab === 'convertedSales') {
+                wsData.push(["SIRA", "ŞUBE", "MÜŞTERİ ADI", "TELEFON", "MÜŞTERİ NO", "TARİH", "KATEGORİ", "DURUM", "CİRO (TL)"]);
+                const salesList = list.filter(i => {
+                    const ciro = Number(i.revenue || 0);
+                    const stat = String(i.status || "").trim().toLowerCase();
+                    return ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu';
+                });
+                salesList.forEach((i, idx) => {
+                    wsData.push([idx + 1, i.branch, i.customerName || '---', i.phone || '---', i.customerNo || '---', i.date || '---', i.category || '---', i.status || 'Satışa Döndü', i.revenue || 0]);
                 });
             } else {
                 wsData.push(["SIRA", "ŞUBE", "MÜŞTERİ NO", "TELEFON", "DURUM", "CİRO (TL)"]);
