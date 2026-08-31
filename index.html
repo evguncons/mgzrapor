@@ -101,6 +101,9 @@
 </head>
 <body class="flex h-screen w-full overflow-hidden bg-slate-100">
 
+    <!-- Dedicated Printable Area -->
+    <div id="printArea"></div>
+
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="fixed bottom-5 right-5 z-[200] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 
@@ -3258,13 +3261,15 @@
                     customerBody.innerHTML = grouped.map(group => {
                         const groupRev = group.items.reduce((s, it) => s + Number(it.revenue || 0), 0);
                         return `
-                            <tr class="bg-indigo-50/50">
-                                <td colspan="5" class="px-6 py-2.5 font-extrabold text-indigo-900 text-xs uppercase tracking-wider border-y border-indigo-100 flex items-center justify-between">
-                                    <span class="flex items-center gap-2">
-                                        <i class="fas fa-store text-indigo-600"></i> ${group.branch}
-                                        <span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${group.items.length} Kayıt</span>
-                                    </span>
-                                    <span class="text-indigo-700 font-black text-xs">Ara Toplam: ${fmt(groupRev)}</span>
+                            <tr class="bg-indigo-50/60">
+                                <td colspan="5" class="px-6 py-2.5 border-y border-indigo-100">
+                                    <div class="flex items-center justify-between font-extrabold text-indigo-900 text-xs uppercase tracking-wider">
+                                        <span class="flex items-center gap-2">
+                                            <i class="fas fa-store text-indigo-600"></i> ${group.branch}
+                                            <span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${group.items.length} Kayıt</span>
+                                        </span>
+                                        <span class="text-indigo-700 font-black text-xs">Ara Toplam: ${fmt(groupRev)}</span>
+                                    </div>
                                 </td>
                             </tr>
                             ${group.items.map((item, idx) => {
@@ -3335,12 +3340,14 @@
 
                 if (followupBody) {
                     followupBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-slate-100/70">
-                            <td colspan="5" class="px-6 py-2.5 font-extrabold text-slate-800 text-xs uppercase tracking-wider border-y border-slate-200 flex items-center justify-between">
-                                <span class="flex items-center gap-2">
-                                    <i class="fas fa-building text-slate-600"></i> ${group.branch}
-                                </span>
-                                <span class="bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${group.items.length} Kayıt</span>
+                        <tr class="bg-slate-100/80">
+                            <td colspan="5" class="px-6 py-2.5 border-y border-slate-200">
+                                <div class="flex items-center justify-between font-extrabold text-slate-800 text-xs uppercase tracking-wider">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-building text-slate-600"></i> ${group.branch}
+                                    </span>
+                                    <span class="bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${group.items.length} Kayıt</span>
+                                </div>
                             </td>
                         </tr>
                         ${group.items.map((item, idx) => {
@@ -3429,13 +3436,15 @@
                     unspecifiedBody.innerHTML = grouped.map(group => {
                         const groupRev = group.items.reduce((s, it) => s + Number(it.revenue || 0), 0);
                         return `
-                            <tr class="bg-rose-50/50">
-                                <td colspan="5" class="px-6 py-2.5 font-extrabold text-rose-900 text-xs uppercase tracking-wider border-y border-rose-100 flex items-center justify-between">
-                                    <span class="flex items-center gap-2">
-                                        <i class="fas fa-triangle-exclamation text-rose-600"></i> ${group.branch}
-                                        <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${group.items.length} Hatalı Kayıt</span>
-                                    </span>
-                                    <span class="text-rose-700 font-black text-xs">Hatalı Tutar: ${fmt(groupRev)}</span>
+                            <tr class="bg-rose-50/60">
+                                <td colspan="5" class="px-6 py-2.5 border-y border-rose-100">
+                                    <div class="flex items-center justify-between font-extrabold text-rose-900 text-xs uppercase tracking-wider">
+                                        <span class="flex items-center gap-2">
+                                            <i class="fas fa-triangle-exclamation text-rose-600"></i> ${group.branch}
+                                            <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${group.items.length} Hatalı Kayıt</span>
+                                        </span>
+                                        <span class="text-rose-700 font-black text-xs">Hatalı Tutar: ${fmt(groupRev)}</span>
+                                    </div>
                                 </td>
                             </tr>
                             ${group.items.map((item, idx) => {
@@ -3791,21 +3800,28 @@
             showToast("Excel raporu indirildi.", "success");
         }
 
-        function exportAdvancedToExcel() {
-            if (!window.lastAdvancedStats) return;
+        async function exportAdvancedToExcel() {
+            if (!window.lastAdvancedStats) {
+                await runAdvancedAnalysis();
+            }
+            if (!window.lastAdvancedStats) {
+                showErrorModal("Excel Hatası", "Lütfen önce analiz dönemlerini seçip 'Analiz Et' butonuna tıklayın.");
+                return;
+            }
             const { periods, sortedBranches, monthlyStats } = window.lastAdvancedStats;
             const wb = XLSX.utils.book_new();
 
             let wsData = [
-                ["HEDEF AVM - GELİŞMİŞ DÖNEMSEL KIYASLAMA RAPORU"],
+                ["HEDEF AVM - GELİŞMİŞ DÖNEMSEL KIYASLAMA VE CİRO RAPORU"],
                 ["Analiz Aralığı:", `${periods[0]} - ${periods[periods.length - 1]}`.toUpperCase()],
+                ["Rapor Oluşturma Tarihi:", new Date().toLocaleString('tr-TR')],
                 [],
                 ["SIRA", "ŞUBE ADI"]
             ];
 
             periods.forEach(p => {
-                wsData[3].push(`${p} YÖNLENDİRME`);
-                wsData[3].push(`${p} CİRO`);
+                wsData[4].push(`${p} YÖNLENDİRME`);
+                wsData[4].push(`${p} CİRO (TL)`);
             });
 
             sortedBranches.forEach((bName, idx) => {
@@ -3817,14 +3833,99 @@
                 wsData.push(row);
             });
 
+            // Add Genel Toplam Row
+            const totalRow = ["", "GENEL TOPLAM"];
+            periods.forEach(p => {
+                totalRow.push(monthlyStats[p]?.totalYönlendirme || 0);
+                totalRow.push(monthlyStats[p]?.totalRevenue || 0);
+            });
+            wsData.push(totalRow);
+
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, "Gelişmiş Rapor");
             XLSX.writeFile(wb, `Hedef_AVM_Gelismis_Rapor_${periods[0].replace(/ /g, '_')}_${periods[periods.length - 1].replace(/ /g, '_')}.xlsx`);
-            showToast("Gelişmiş Excel raporu indirildi.", "success");
+            showToast("Gelişmiş Excel raporu başarıyla indirildi.", "success");
         }
 
-        function printReport() { window.print(); }
-        function printAdvancedReport() { window.print(); }
+        async function printAdvancedReport() {
+            if (!window.lastAdvancedStats) {
+                await runAdvancedAnalysis();
+            }
+            if (!window.lastAdvancedStats) {
+                showErrorModal("Yazdırma Hatası", "Lütfen önce analiz dönemlerini seçip 'Analiz Et' butonuna tıklayın.");
+                return;
+            }
+            const { periods, sortedBranches, monthlyStats } = window.lastAdvancedStats;
+            const printArea = document.getElementById('printArea');
+            if (!printArea) return;
+
+            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
+
+            let html = `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #1e293b; max-width: 1000px; margin: 0 auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 18px;">
+                        <div>
+                            <h1 style="font-size: 18px; font-weight: 800; margin: 0; color: #0f172a; text-transform: uppercase;">HEDEF AVM - GELİŞMİŞ DÖNEMSEL KIYASLAMA RAPORU</h1>
+                            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">Analiz Aralığı: <strong>${periods[0]} ➔ ${periods[periods.length - 1]}</strong></p>
+                        </div>
+                        <div style="text-align: right; font-size: 10px; color: #64748b;">
+                            <p style="margin: 0;">Rapor Tarihi: <strong>${new Date().toLocaleString('tr-TR')}</strong></p>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(${Math.min(periods.length, 4)}, 1fr); gap: 10px; margin-bottom: 20px;">
+                        ${periods.map(p => `
+                            <div style="border: 1px solid #cbd5e1; border-top: 4px solid #4f46e5; border-radius: 8px; padding: 8px 12px; background: #f8fafc;">
+                                <div style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">${p}</div>
+                                <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 3px;">${fmt(monthlyStats[p]?.totalRevenue || 0)}</div>
+                                <div style="font-size: 10px; color: #4f46e5; font-weight: 600; margin-top: 2px;">${num(monthlyStats[p]?.totalYönlendirme || 0)} Yönlendirme</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <table class="print-table" style="width: 100%; border-collapse: collapse; font-size: 10.5px;">
+                        <thead>
+                            <tr style="background-color: #0f172a !important; color: white;">
+                                <th style="border: 1px solid #334155; padding: 7px 6px; text-align: center; color: white; width: 35px;">#</th>
+                                <th style="border: 1px solid #334155; padding: 7px 10px; text-align: left; color: white;">Şube Adı</th>
+                                ${periods.map(p => `<th style="border: 1px solid #334155; padding: 7px 10px; text-align: right; color: white;">${p} (Ciro)</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sortedBranches.map((bName, idx) => `
+                                <tr style="${idx % 2 === 1 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;'}">
+                                    <td style="border: 1px solid #e2e8f0; padding: 6px; text-align: center; color: #64748b;">${idx + 1}</td>
+                                    <td style="border: 1px solid #e2e8f0; padding: 6px 10px; font-weight: bold; color: #1e293b;">${bName}</td>
+                                    ${periods.map(p => {
+                                        const rev = monthlyStats[p]?.branches?.[bName] || 0;
+                                        return `<td style="border: 1px solid #e2e8f0; padding: 6px 10px; text-align: right; font-weight: 600; color: #0f172a;">${fmt(rev)}</td>`;
+                                    }).join('')}
+                                </tr>
+                            `).join('')}
+                            <tr style="background-color: #0f172a !important; color: white; font-weight: bold;">
+                                <td colspan="2" style="border: 1px solid #334155; padding: 9px 10px; text-align: right; color: white; font-weight: bold;">GENEL TOPLAM</td>
+                                ${periods.map(p => {
+                                    const termRev = monthlyStats[p]?.totalRevenue || 0;
+                                    return `<td style="border: 1px solid #334155; padding: 9px 10px; text-align: right; color: #4ade80; font-weight: bold; font-size: 11.5px;">${fmt(termRev)}</td>`;
+                                }).join('')}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            printArea.innerHTML = html;
+            window.print();
+        }
+
+        function printReport() { 
+            if (activeTab === 'advanced') {
+                printAdvancedReport();
+                return;
+            }
+            window.print(); 
+        }
     </script>
 </body>
 </html>
