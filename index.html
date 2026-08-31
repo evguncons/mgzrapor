@@ -632,7 +632,7 @@
             </div>
 
             <!-- 7. CONVERTED SALES VIEW (SATIŞA DÖNENLER) -->
-            <div id="tab-convertedSales" class="hidden space-y-6 max-w-[1500px] mx-auto">
+            <div id="tab-convertedSales" class="hidden space-y-6 max-w-[1250px] mx-auto">
                 <!-- Top Sales KPI Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="kpi-card border-t-4 border-t-emerald-500">
@@ -717,11 +717,11 @@
                                 <tr class="bg-slate-900 text-white">
                                     <th class="w-12 text-center py-3.5 px-3 bg-slate-900 text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Seç</th>
                                     <th class="w-14 text-center py-3.5 px-3 bg-slate-900 text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">#</th>
-                                    <th class="py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Müşteri Ad Soyad</th>
-                                    <th class="w-44 py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Telefon</th>
-                                    <th class="w-36 py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Müşteri No</th>
-                                    <th class="w-48 py-3.5 px-4 text-right bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Ciro Tutarı (TRY)</th>
-                                    <th class="w-36 py-3.5 px-4 text-center bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">İşlemler</th>
+                                    <th class="w-[30%] py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Müşteri Ad Soyad</th>
+                                    <th class="w-[20%] py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Telefon</th>
+                                    <th class="w-[16%] py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Müşteri No</th>
+                                    <th class="w-[18%] py-3.5 px-4 text-right bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Ciro Tutarı (TRY)</th>
+                                    <th class="w-[16%] py-3.5 px-4 text-center bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">İşlemler</th>
                                 </tr>
                             </thead>
                             <tbody id="sales-table-body" class="divide-y divide-slate-100"></tbody>
@@ -733,6 +733,31 @@
                                 </tr>
                             </tfoot>
                         </table>
+                    </div>
+
+                    <!-- Sales Table Pagination Footer Bar -->
+                    <div id="salesPaginationContainer" class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-2">
+                            <p class="font-bold text-slate-600 text-xs">
+                                Toplam <span id="sales-pag-total" class="text-slate-900 font-extrabold">0</span> kayıttan 
+                                <span id="sales-pag-start" class="text-slate-900 font-extrabold">0</span> - <span id="sales-pag-end" class="text-slate-900 font-extrabold">0</span> arası gösteriliyor
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-4 flex-wrap">
+                            <div class="flex items-center gap-2 font-bold text-slate-600">
+                                <span>Sayfa Başına:</span>
+                                <select id="salesPageSizeSelector" onchange="onSalesPageSizeChange(this.value)" class="bg-white border border-slate-200 text-slate-800 text-xs font-bold rounded-lg px-2.5 py-1 outline-none cursor-pointer shadow-2xs">
+                                    <option value="15">15</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="all">Tümü</option>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center gap-1" id="salesPaginationButtons"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -936,6 +961,8 @@
         let lastHistoryMatchResults = [];
         let historyFilterMode = 'all'; // 'all', 'same_revenue', 'revenue', 'zero', 'edited'
         let salesFilterMode = 'all';   // 'all', 'has_revenue', 'zero_revenue', 'edited'
+        let salesCurrentPage = 1;
+        let salesPageSize = 25;
         let searchQuery = "";
         let branchSortOrder = { field: 'revenue', dir: 'desc' };
 
@@ -1073,6 +1100,7 @@
         // --- Global Search Controller ---
         function onGlobalSearch(query) {
             searchQuery = String(query || "").trim().toLowerCase();
+            salesCurrentPage = 1;
             
             const clearBtn = document.getElementById('clearSearchBtn');
             if (clearBtn) clearBtn.classList.toggle('hidden', searchQuery.length === 0);
@@ -1091,6 +1119,7 @@
         }
 
         function onBranchChange() {
+            salesCurrentPage = 1;
             if (activeTab === 'historyCheck') runHistoryCheckAnalysis();
             else if (currentData) render(currentData);
         }
@@ -2383,6 +2412,7 @@
         // --- CONVERTED SALES (SATIŞA DÖNENLER) CONTROLLER ---
         function setSalesFilter(mode) {
             salesFilterMode = mode;
+            salesCurrentPage = 1;
             ['all', 'has_revenue', 'zero_revenue', 'edited'].forEach(m => {
                 const btn = document.getElementById(`sales-filter-btn-${m}`);
                 if (btn) {
@@ -2394,6 +2424,83 @@
                 }
             });
             renderConvertedSales(currentData);
+        }
+
+        function onSalesPageSizeChange(val) {
+            salesPageSize = val === 'all' ? 'all' : (parseInt(val, 10) || 25);
+            salesCurrentPage = 1;
+            renderConvertedSales(currentData);
+        }
+
+        function goToSalesPage(page) {
+            salesCurrentPage = parseInt(page, 10) || 1;
+            renderConvertedSales(currentData);
+        }
+
+        function renderSalesPaginationButtons(totalPages, currentPage) {
+            const container = document.getElementById('salesPaginationButtons');
+            if (!container) return;
+
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            const isFirst = currentPage === 1;
+            html += `
+                <button onclick="goToSalesPage(1)" ${isFirst ? 'disabled' : ''} class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center font-bold text-xs transition cursor-pointer" title="İlk Sayfa">
+                    <i class="fas fa-angles-left text-[10px]"></i>
+                </button>
+                <button onclick="goToSalesPage(${currentPage - 1})" ${isFirst ? 'disabled' : ''} class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center font-bold text-xs transition cursor-pointer" title="Önceki Sayfa">
+                    <i class="fas fa-chevron-left text-[10px]"></i>
+                </button>
+            `;
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (currentPage <= 3) {
+                endPage = Math.min(5, totalPages);
+            }
+            if (currentPage >= totalPages - 2) {
+                startPage = Math.max(1, totalPages - 4);
+            }
+
+            if (startPage > 1) {
+                html += `<button onclick="goToSalesPage(1)" class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 flex items-center justify-center font-bold text-xs transition cursor-pointer">1</button>`;
+                if (startPage > 2) {
+                    html += `<span class="px-1 text-slate-400 font-bold text-xs">...</span>`;
+                }
+            }
+
+            for (let p = startPage; p <= endPage; p++) {
+                const isActive = p === currentPage;
+                html += `
+                    <button onclick="goToSalesPage(${p})" class="w-8 h-8 rounded-lg font-extrabold text-xs transition cursor-pointer ${isActive ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}">
+                        ${p}
+                    </button>
+                `;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span class="px-1 text-slate-400 font-bold text-xs">...</span>`;
+                }
+                html += `<button onclick="goToSalesPage(${totalPages})" class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 flex items-center justify-center font-bold text-xs transition cursor-pointer">${totalPages}</button>`;
+            }
+
+            const isLast = currentPage === totalPages;
+            html += `
+                <button onclick="goToSalesPage(${currentPage + 1})" ${isLast ? 'disabled' : ''} class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center font-bold text-xs transition cursor-pointer" title="Sonraki Sayfa">
+                    <i class="fas fa-chevron-right text-[10px]"></i>
+                </button>
+                <button onclick="goToSalesPage(${totalPages})" ${isLast ? 'disabled' : ''} class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center font-bold text-xs transition cursor-pointer" title="Son Sayfa">
+                    <i class="fas fa-angles-right text-[10px]"></i>
+                </button>
+            `;
+
+            container.innerHTML = html;
         }
 
         function toggleSelectAllSalesRows(masterCheckbox) {
@@ -2730,7 +2837,22 @@
             const tableBody = document.getElementById('sales-table-body');
             if (!tableBody) return;
 
-            if (filteredList.length === 0) {
+            const totalItems = filteredList.length;
+            const pageSize = salesPageSize === 'all' ? totalItems : (parseInt(salesPageSize, 10) || 25);
+            const totalPages = Math.max(1, Math.ceil(totalItems / (pageSize || 1)));
+            salesCurrentPage = Math.max(1, Math.min(salesCurrentPage, totalPages));
+
+            const startIndex = (salesCurrentPage - 1) * pageSize;
+            const endIndex = salesPageSize === 'all' ? totalItems : Math.min(startIndex + pageSize, totalItems);
+            const pagedList = salesPageSize === 'all' ? filteredList : filteredList.slice(startIndex, endIndex);
+
+            safeSetText('sales-pag-total', num(totalItems));
+            safeSetText('sales-pag-start', totalItems > 0 ? num(startIndex + 1) : 0);
+            safeSetText('sales-pag-end', num(endIndex));
+
+            renderSalesPaginationButtons(totalPages, salesCurrentPage);
+
+            if (totalItems === 0) {
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="7" class="text-center py-12">
@@ -2745,7 +2867,8 @@
                 return;
             }
 
-            tableBody.innerHTML = filteredList.map((item, idx) => {
+            tableBody.innerHTML = pagedList.map((item, idx) => {
+                const globalIndex = startIndex + idx;
                 const rowKey = `${item.sheetId}_${item.rowNum}`;
                 const isChecked = selectedSalesRows.has(rowKey);
                 const editedData = salesRevenueEdits.get(rowKey);
@@ -2760,7 +2883,7 @@
                             <input type="checkbox" data-row-key="${rowKey}" ${isChecked ? 'checked' : ''} onchange="onSalesRowCheckChange(this)" class="sales-row-checkbox w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer">
                         </td>
                         <td class="text-center py-3.5 px-3">
-                            <span class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 font-black text-slate-600 text-xs flex items-center justify-center mx-auto shadow-2xs">${idx + 1}</span>
+                            <span class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 font-black text-slate-600 text-xs flex items-center justify-center mx-auto shadow-2xs">${globalIndex + 1}</span>
                         </td>
                         <td class="py-3.5 px-4">
                             <div class="flex items-center gap-3">
