@@ -720,10 +720,6 @@
                                     <th>Müşteri Ad Soyad</th>
                                     <th>Telefon</th>
                                     <th>Müşteri No</th>
-                                    <th>Şube</th>
-                                    <th>Tarih</th>
-                                    <th>Kategori</th>
-                                    <th>Durum</th>
                                     <th class="text-right">Ciro Tutarı (TRY)</th>
                                     <th class="w-32 text-right">Eylemler</th>
                                 </tr>
@@ -731,7 +727,7 @@
                             <tbody id="sales-table-body"></tbody>
                             <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
                                 <tr>
-                                    <td colspan="9" class="text-right py-4 px-5 text-slate-600 text-xs uppercase tracking-wider">Satış Listesi Genel Toplamı</td>
+                                    <td colspan="5" class="text-right py-4 px-5 text-slate-600 text-xs uppercase tracking-wider">Satış Listesi Genel Toplamı</td>
                                     <td id="sales-total-revenue-footer" class="text-right py-4 px-5 text-emerald-700 text-base font-extrabold">₺0</td>
                                     <td></td>
                                 </tr>
@@ -2737,7 +2733,7 @@
             if (filteredList.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="11" class="text-center py-12">
+                        <td colspan="7" class="text-center py-12">
                             <div class="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
                                 <i class="fas fa-bag-shopping"></i>
                             </div>
@@ -2755,7 +2751,6 @@
                 const editedData = salesRevenueEdits.get(rowKey);
                 const currentDisplayRev = editedData ? editedData.newRevenue : (item.revenue || 0);
                 const isEdited = editedData && editedData.newRevenue !== editedData.originalRevenue;
-                const revNum = Number(currentDisplayRev);
 
                 return `
                     <tr class="${isEdited ? 'bg-amber-50/40' : (isChecked ? 'bg-indigo-50/30' : '')}">
@@ -2773,10 +2768,6 @@
                                 ? `<span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${item.customerNo}</span>` 
                                 : '<span class="text-rose-600 text-[10px] font-bold">Eksik No</span>'}
                         </td>
-                        <td class="font-bold text-slate-800 text-xs">${item.branch}</td>
-                        <td class="text-xs text-slate-600 font-medium">${item.date || '---'}</td>
-                        <td><span class="text-xs font-semibold text-slate-700">${item.category || 'Belirtilmemiş'}</span></td>
-                        <td><span class="badge-pill ${revNum > 0 ? 'badge-emerald' : 'badge-amber'}">${item.status || 'Satışa Döndü'}</span></td>
                         <td class="text-right">
                             <div class="flex items-center justify-end gap-1">
                                 <span class="text-slate-400 text-xs font-black">₺</span>
