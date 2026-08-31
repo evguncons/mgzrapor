@@ -405,32 +405,64 @@
                 </div>
             </div>
 
-            <!-- 2. CUSTOMERS VIEW -->
+            <!-- 2. CUSTOMERS VIEW (MÜŞTERİ DETAYLARI) -->
             <div id="tab-customers" class="hidden space-y-6 max-w-[1500px] mx-auto">
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                        <div>
-                            <h3 class="font-bold text-sm text-slate-900">Müşteri Detay Çizelgesi</h3>
-                            <p class="text-[11px] font-medium text-slate-500">Cirolu müşteri işlemlerinin şube bazlı detaylı listesi.</p>
+                <!-- Customers KPI Overview -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="kpi-card border-t-4 border-t-indigo-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Cirolu Müşteri Sayısı</p>
+                        <h3 id="cust-kpi-count" class="text-2xl font-extrabold text-slate-900">0</h3>
+                        <p class="text-[10px] font-bold text-indigo-600 mt-2"><i class="fas fa-user-check mr-1"></i> Kayıtlı Müşteri No</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-emerald-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Liste Cirosu</p>
+                        <h3 id="cust-kpi-revenue" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
+                        <p class="text-[10px] font-bold text-emerald-600 mt-2"><i class="fas fa-coins mr-1"></i> Cirolu İşlemler Toplamı</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-amber-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Müşteri Başı Ortalama</p>
+                        <h3 id="cust-kpi-basket" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
+                        <p class="text-[10px] font-bold text-amber-600 mt-2"><i class="fas fa-receipt mr-1"></i> Ortalama Satış Değeri</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-purple-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Lider Kategori</p>
+                        <h3 id="cust-kpi-category" class="text-sm font-extrabold text-slate-900 truncate">---</h3>
+                        <p id="cust-kpi-category-sub" class="text-[10px] font-bold text-purple-600 mt-2"><i class="fas fa-tags mr-1"></i> En Çok Satan</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-bold border border-indigo-100">
+                                <i class="fas fa-users-rectangle"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-base text-slate-900 tracking-tight">Müşteri Detay Çizelgesi</h3>
+                                <p class="text-xs font-semibold text-slate-400 mt-0.5">Cirolu müşteri işlemlerinin şube bazlı detaylı dökümü</p>
+                            </div>
                         </div>
-                        <span id="customerCountBadge" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">0 Müşteri</span>
+                        <span id="customerCountBadge" class="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200">0 Müşteri</span>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="portal-table">
+                        <table class="portal-table w-full">
                             <thead>
-                                <tr>
-                                    <th class="w-14 text-center">No</th>
-                                    <th>Müşteri No</th>
-                                    <th>Telefon</th>
-                                    <th>Kategori</th>
-                                    <th class="text-right">Tutar (TRY)</th>
+                                <tr class="bg-slate-900 text-white">
+                                    <th class="w-14 text-center py-3.5 px-3 bg-slate-900 text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">#</th>
+                                    <th class="w-48 py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Müşteri No</th>
+                                    <th class="w-48 py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Telefon</th>
+                                    <th class="py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Kategori</th>
+                                    <th class="w-52 py-3.5 px-4 text-right bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Tutar (TRY)</th>
                                 </tr>
                             </thead>
-                            <tbody id="customer-body-specified"></tbody>
-                            <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
+                            <tbody id="customer-body-specified" class="divide-y divide-slate-100"></tbody>
+                            <tfoot class="bg-slate-900 text-white font-bold border-t-2 border-slate-800">
                                 <tr>
-                                    <td colspan="4" class="text-right py-4 px-5 text-slate-600 text-xs uppercase">Liste Toplamı</td>
-                                    <td id="customer-total-val" class="text-right py-4 px-5 text-indigo-700 text-base font-extrabold">₺0</td>
+                                    <td colspan="4" class="text-right py-4 px-6 text-slate-300 text-xs font-extrabold uppercase tracking-wider">Müşteri Listesi Toplam Ciro</td>
+                                    <td id="customer-total-val" class="text-right py-4 px-4 text-emerald-400 text-base font-black">₺0</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -438,64 +470,152 @@
                 </div>
             </div>
 
-            <!-- 3. FOLLOW-UP VIEW -->
+            <!-- 3. FOLLOW-UP VIEW (TAKİP LİSTESİ) -->
             <div id="tab-followup" class="hidden space-y-6 max-w-[1500px] mx-auto">
-                <div>
-                    <h3 class="font-bold text-xs text-slate-600 uppercase tracking-wider mb-2.5">Şube Bazlı Aksiyon Dağılımı</h3>
-                    <div id="followup-kpi-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
+                <!-- Followup Overview KPIs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="kpi-card border-t-4 border-t-brand-600">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Takip Kaydı</p>
+                        <h3 id="follow-kpi-total" class="text-2xl font-extrabold text-slate-900">0</h3>
+                        <p class="text-[10px] font-bold text-brand-600 mt-2"><i class="fas fa-list-check mr-1"></i> Tüm Şubeler Toplamı</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-rose-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Aranmadı Olanlar</p>
+                        <h3 id="follow-kpi-aranmadi" class="text-2xl font-extrabold text-rose-600">0</h3>
+                        <p class="text-[10px] font-bold text-rose-600 mt-2"><i class="fas fa-phone-slash mr-1"></i> Arama Bekleyen Müşteriler</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-amber-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Tekrar Aranacak</p>
+                        <h3 id="follow-kpi-tekrar" class="text-2xl font-extrabold text-amber-600">0</h3>
+                        <p class="text-[10px] font-bold text-amber-600 mt-2"><i class="fas fa-clock mr-1"></i> Takipte Olan Müşteriler</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-blue-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Mağazaya Gelecek</p>
+                        <h3 id="follow-kpi-gelecek" class="text-2xl font-extrabold text-blue-600">0</h3>
+                        <p class="text-[10px] font-bold text-blue-600 mt-2"><i class="fas fa-person-walking mr-1"></i> Ziyaret Beklenen Müşteri</p>
+                    </div>
                 </div>
 
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                        <div>
-                            <h3 class="font-bold text-sm text-slate-900">Aksiyon & Takip Listesi</h3>
-                            <p class="text-[11px] font-medium text-slate-500">Tekrar aranacaklar veya mağazaya gelecek müşteriler.</p>
+                <!-- Branch Action Distribution Grid -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-card space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-xs">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <h3 class="font-extrabold text-sm text-slate-900">Şube Bazlı Aksiyon & Arama Dağılımı</h3>
                         </div>
-                        <span id="followupCountBadge" class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">0 Kayıt</span>
+                        <span class="text-[11px] font-bold text-slate-400">Şubelere Göre Durumlar</span>
+                    </div>
+                    <div id="followup-kpi-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3.5"></div>
+                </div>
+
+                <!-- Followup Detail Table -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold border border-amber-100">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-base text-slate-900 tracking-tight">Aksiyon & Takip Detay Listesi</h3>
+                                <p class="text-xs font-semibold text-slate-400 mt-0.5">Tekrar aranacaklar, mağazaya gelecekler veya aranmayan müşteriler</p>
+                            </div>
+                        </div>
+                        <span id="followupCountBadge" class="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">0 Kayıt</span>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="portal-table">
+                        <table class="portal-table w-full">
                             <thead>
-                                <tr>
-                                    <th class="w-14 text-center">#</th>
-                                    <th>Müşteri Ad Soyad</th>
-                                    <th>Telefon</th>
-                                    <th>Giriş Tarihi</th>
-                                    <th>Aksiyon Durumu</th>
+                                <tr class="bg-slate-900 text-white">
+                                    <th class="w-14 text-center py-3.5 px-3 bg-slate-900 text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">#</th>
+                                    <th class="w-[30%] py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Müşteri Ad Soyad</th>
+                                    <th class="w-[22%] py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Telefon</th>
+                                    <th class="w-[22%] py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Giriş Tarihi</th>
+                                    <th class="w-[26%] py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Aksiyon Durumu</th>
                                 </tr>
                             </thead>
-                            <tbody id="followup-body"></tbody>
+                            <tbody id="followup-body" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- 4. UNSPECIFIED VIEW -->
+            <!-- 4. UNSPECIFIED VIEW (BELİRTİLMEYENLER) -->
             <div id="tab-unspecified" class="hidden space-y-6 max-w-[1500px] mx-auto">
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                        <div>
-                            <h3 class="font-bold text-sm text-slate-900">Belirtilmeyen / Uyumsuz Kayıtlar</h3>
-                            <p class="text-[11px] font-medium text-slate-500">Müşteri numarası eksik olan veya sıfır cirolu satış kayıtları.</p>
+                <!-- Unspecified KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="kpi-card border-t-4 border-t-rose-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Uyumsuz Kayıt</p>
+                        <h3 id="unspec-kpi-total" class="text-2xl font-extrabold text-rose-600">0</h3>
+                        <p class="text-[10px] font-bold text-rose-600 mt-2"><i class="fas fa-triangle-exclamation mr-1"></i> Kontrol Edilmesi Gereken</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-amber-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Eksik Müşteri No</p>
+                        <h3 id="unspec-kpi-missing-no" class="text-2xl font-extrabold text-amber-600">0</h3>
+                        <p class="text-[10px] font-bold text-amber-600 mt-2"><i class="fas fa-id-card-clip mr-1"></i> No Girilmemiş Satış</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-purple-500">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Sıfır Cirolu Satış</p>
+                        <h3 id="unspec-kpi-zero-rev" class="text-2xl font-extrabold text-purple-600">0</h3>
+                        <p class="text-[10px] font-bold text-purple-600 mt-2"><i class="fas fa-circle-question mr-1"></i> Satışa Döndü Ama ₺0</p>
+                    </div>
+
+                    <div class="kpi-card border-t-4 border-t-rose-600">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Hatalı / Eksik Ciro Tutarı</p>
+                        <h3 id="unspec-kpi-revenue" class="text-xl font-extrabold text-slate-900 truncate">₺0</h3>
+                        <p class="text-[10px] font-bold text-rose-600 mt-2"><i class="fas fa-hand-holding-dollar mr-1"></i> No'suz Cirolar Toplamı</p>
+                    </div>
+                </div>
+
+                <!-- Guidance Info Box -->
+                <div class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3.5">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fas fa-lightbulb text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-extrabold text-amber-900">Uyumsuz Kayıt Uyarısı</h4>
+                        <p class="text-[11px] font-semibold text-amber-800 mt-0.5 leading-relaxed">
+                            Bu çizelge, Google Sheets kaynak tablolarınızda <strong>müşteri numarası belirtilmeden ciro yazılmış</strong> veya <strong>'Satışa Döndü' seçilip ciro tutarı ₺0 bırakılmış</strong> kayıtları listeler. Doğru raporlama için bu satırların Google Sheets üzerinden veya Satışa Dönenler sekmesinden düzenlenmesi önerilir.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Unspecified Table -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm font-bold border border-rose-100">
+                                <i class="fas fa-circle-exclamation"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-base text-slate-900 tracking-tight">Belirtilmeyen / Uyumsuz Kayıtlar</h3>
+                                <p class="text-xs font-semibold text-slate-400 mt-0.5">Müşteri numarası eksik veya sıfır cirolu satış kayıtları</p>
+                            </div>
                         </div>
-                        <span id="unspecifiedCountBadge" class="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200">0 Hatalı Kayıt</span>
+                        <span id="unspecifiedCountBadge" class="text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200">0 Hatalı Kayıt</span>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="portal-table">
+                        <table class="portal-table w-full">
                             <thead>
-                                <tr>
-                                    <th class="w-14 text-center">#</th>
-                                    <th>Müşteri Tanımı</th>
-                                    <th>Telefon / Detay</th>
-                                    <th>Sorun Tipi</th>
-                                    <th class="text-right">Tutar (TRY)</th>
+                                <tr class="bg-slate-900 text-white">
+                                    <th class="w-14 text-center py-3.5 px-3 bg-slate-900 text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">#</th>
+                                    <th class="w-[30%] py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Müşteri Tanımı</th>
+                                    <th class="w-[24%] py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Telefon / Detay</th>
+                                    <th class="w-[24%] py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Sorun Tipi</th>
+                                    <th class="w-[22%] py-3.5 px-4 text-right bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Tutar (TRY)</th>
                                 </tr>
                             </thead>
-                            <tbody id="unspecified-body"></tbody>
-                            <tfoot class="bg-rose-50/50 font-bold border-t border-rose-200">
+                            <tbody id="unspecified-body" class="divide-y divide-slate-100"></tbody>
+                            <tfoot class="bg-slate-900 text-white font-bold border-t-2 border-slate-800">
                                 <tr>
-                                    <td colspan="4" class="text-right py-4 px-5 text-rose-700 text-xs uppercase">Hatalı Ciro Toplamı</td>
-                                    <td id="unspecified-total-val" class="text-right py-4 px-5 text-rose-800 text-base font-extrabold">₺0</td>
+                                    <td colspan="4" class="text-right py-4 px-6 text-slate-300 text-xs font-extrabold uppercase tracking-wider">Hatalı Ciro Toplamı</td>
+                                    <td id="unspecified-total-val" class="text-right py-4 px-4 text-rose-400 text-base font-black">₺0</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -762,60 +882,75 @@
                 </div>
             </div>
 
-            <!-- 8. ADVANCED VIEW -->
+            <!-- 8. ADVANCED VIEW (GELİŞMİŞ RAPOR) -->
             <div id="tab-advanced" class="hidden space-y-6 max-w-[1500px] mx-auto">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card flex flex-wrap items-end justify-between gap-4">
-                    <div class="flex flex-wrap items-center gap-3">
+                <!-- Advanced Controls Toolbar -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-card flex flex-wrap items-end justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
                         <div>
-                            <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Başlangıç Dönemi</label>
-                            <select id="advStartPeriod" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-3 py-2 outline-none cursor-pointer min-w-[150px] shadow-xs"></select>
+                            <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1.5">
+                                <i class="fas fa-calendar-minus text-brand-600 mr-1"></i> Başlangıç Dönemi
+                            </label>
+                            <select id="advStartPeriod" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-2xl px-4 py-2.5 outline-none cursor-pointer min-w-[160px] shadow-2xs focus:bg-white focus:border-brand-600 transition"></select>
                         </div>
                         <div>
-                            <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Bitiş Dönemi</label>
-                            <select id="advEndPeriod" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-3 py-2 outline-none cursor-pointer min-w-[150px] shadow-xs"></select>
+                            <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1.5">
+                                <i class="fas fa-calendar-plus text-indigo-600 mr-1"></i> Bitiş Dönemi
+                            </label>
+                            <select id="advEndPeriod" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-2xl px-4 py-2.5 outline-none cursor-pointer min-w-[160px] shadow-2xs focus:bg-white focus:border-brand-600 transition"></select>
                         </div>
-                        <button onclick="runAdvancedAnalysis()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs flex items-center gap-1.5 self-end">
-                            <i class="fas fa-chart-line text-xs"></i> Analiz Et
+                        <button onclick="runAdvancedAnalysis()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-5 py-2.5 rounded-2xl transition shadow-lg shadow-brand-600/30 flex items-center gap-2 self-end cursor-pointer">
+                            <i class="fas fa-chart-line text-xs"></i> Karşılaştır & Analiz Et
                         </button>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="exportAdvancedToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
-                            <i class="fas fa-file-excel text-xs"></i> Excel
+                    <div class="flex items-center gap-2.5">
+                        <button onclick="exportAdvancedToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/90 px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
+                            <i class="fas fa-file-excel text-xs"></i> Excel İndir
                         </button>
-                        <button onclick="printAdvancedReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
-                            <i class="fas fa-file-pdf text-xs"></i> PDF
+                        <button onclick="printAdvancedReport()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/90 px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
+                            <i class="fas fa-file-pdf text-xs"></i> PDF Rapor
                         </button>
-                    </div>
-                </div>
-
-                <!-- Periodical Revenue Line Chart -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                                <i class="fas fa-chart-line text-brand-600"></i> Dönemsel Ciro Gelişim Trendi
-                            </h3>
-                            <p class="text-[11px] font-medium text-slate-500">Seçilen dönemler arasındaki toplam ciro değişimi</p>
-                        </div>
-                    </div>
-                    <div class="relative w-full h-[280px]">
-                        <canvas id="chartAdvTrend"></canvas>
                     </div>
                 </div>
 
                 <!-- Monthly Revenue Cards -->
                 <div id="adv-month-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"></div>
 
+                <!-- Periodical Revenue Line Chart -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-card">
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center text-sm font-bold border border-brand-100">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-base text-slate-900 tracking-tight">Dönemsel Ciro Gelişim Trendi</h3>
+                                <p class="text-xs font-semibold text-slate-400 mt-0.5">Seçilen dönemler arasındaki toplam ciro ve performans seyri</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative w-full h-[290px]">
+                        <canvas id="chartAdvTrend"></canvas>
+                    </div>
+                </div>
+
                 <!-- Comparison Table -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100">
-                        <h3 class="font-bold text-sm text-slate-900">Dönemsel Şube Ciro Karşılaştırma Matrisi</h3>
-                        <p id="adv-comparison-subtitle" class="text-[11px] font-medium text-slate-500">Seçilen dönem aralığına ait şube ciro değişimleri.</p>
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden">
+                    <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-bold border border-indigo-100">
+                                <i class="fas fa-table-columns"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-base text-slate-900 tracking-tight">Dönemsel Şube Ciro Karşılaştırma Matrisi</h3>
+                                <p id="adv-comparison-subtitle" class="text-xs font-semibold text-slate-400 mt-0.5">Seçilen dönem aralığına ait şube bazlı ciro değişimleri</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="portal-table">
+                        <table class="portal-table w-full">
                             <thead id="adv-table-head"></thead>
-                            <tbody id="adv-table-body"></tbody>
+                            <tbody id="adv-table-body" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
@@ -3094,23 +3229,69 @@
                     const cNo = String(i.customerNo || "").trim();
                     return rev > 0 && cNo !== "" && cNo.toLowerCase() !== "belirtilmemiş";
                 });
-                const grouped = groupDataByBranch(specList);
                 
+                const totalCustRev = specList.reduce((a, b) => a + Number(b.revenue || 0), 0);
+                const avgCustBasket = specList.length > 0 ? (totalCustRev / specList.length) : 0;
+                
+                // Find top category for customers
+                const custCats = {};
+                specList.forEach(i => {
+                    const cat = String(i.category || "").trim();
+                    if (cat && cat.toLowerCase() !== "belirtilmemiş") custCats[cat] = (custCats[cat] || 0) + 1;
+                });
+                let topCustCat = "---", maxCustCatCnt = 0;
+                Object.entries(custCats).forEach(([c, cnt]) => {
+                    if (cnt > maxCustCatCnt) { maxCustCatCnt = cnt; topCustCat = c; }
+                });
+
+                safeSetText('cust-kpi-count', num(specList.length));
+                safeSetText('cust-kpi-revenue', fmt(totalCustRev));
+                safeSetText('cust-kpi-basket', fmt(avgCustBasket));
+                safeSetText('cust-kpi-category', topCustCat.toUpperCase());
+                safeSetText('cust-kpi-category-sub', `${maxCustCatCnt} Satış`);
+                safeSetText('customer-total-val', fmt(totalCustRev));
+                safeSetText('customerCountBadge', `${num(specList.length)} Müşteri`);
+
+                const grouped = groupDataByBranch(specList);
                 const customerBody = document.getElementById('customer-body-specified');
                 if (customerBody) {
-                    customerBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-indigo-50/40"><td colspan="5" class="px-5 py-2 font-bold text-indigo-800 text-[11px] uppercase tracking-wider border-y border-indigo-100"><i class="fas fa-store mr-1.5"></i> ${group.branch} (${group.items.length})</td></tr>
-                        ${group.items.map((item, idx) => `<tr>
-                            <td class="text-center text-slate-400 font-bold text-xs">${idx+1}</td>
-                            <td class="font-bold text-slate-800 text-xs">${item.customerNo}</td>
-                            <td class="text-xs text-slate-600">${item.phone || '---'}</td>
-                            <td class="text-xs font-semibold text-slate-700">${item.category || '---'}</td>
-                            <td class="text-right font-bold text-indigo-700 text-xs">${fmt(item.revenue)}</td>
-                        </tr>`).join('')}
-                    `).join('');
+                    customerBody.innerHTML = grouped.map(group => {
+                        const groupRev = group.items.reduce((s, it) => s + Number(it.revenue || 0), 0);
+                        return `
+                            <tr class="bg-indigo-50/50">
+                                <td colspan="5" class="px-6 py-2.5 font-extrabold text-indigo-900 text-xs uppercase tracking-wider border-y border-indigo-100 flex items-center justify-between">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-store text-indigo-600"></i> ${group.branch}
+                                        <span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${group.items.length} Kayıt</span>
+                                    </span>
+                                    <span class="text-indigo-700 font-black text-xs">Ara Toplam: ${fmt(groupRev)}</span>
+                                </td>
+                            </tr>
+                            ${group.items.map((item, idx) => {
+                                const cleanPhone = cleanPhoneNumber(item.phone);
+                                const phoneBadge = cleanPhone 
+                                    ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 text-sky-700 text-xs font-bold border border-sky-200/80"><i class="fas fa-phone text-[10px] text-sky-500"></i>${cleanPhone}</span>` 
+                                    : (item.phone ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 text-sky-700 text-xs font-bold border border-sky-200/80">${item.phone}</span>` : `<span class="text-slate-300 text-xs">---</span>`);
+                                
+                                return `<tr class="hover:bg-slate-50/80 transition duration-150">
+                                    <td class="text-center text-slate-400 font-bold text-xs py-3.5 px-3">${idx+1}</td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-mono font-bold border border-indigo-200/80">
+                                            <i class="fas fa-hashtag text-[10px] text-indigo-500"></i>${item.customerNo}
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-4">${phoneBadge}</td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">
+                                            <i class="fas fa-tag text-[10px] text-slate-400"></i>${item.category || '---'}
+                                        </span>
+                                    </td>
+                                    <td class="text-right font-black text-emerald-600 text-sm py-3.5 px-4">${fmt(item.revenue)}</td>
+                                </tr>`;
+                            }).join('')}
+                        `;
+                    }).join('');
                 }
-                safeSetText('customer-total-val', fmt(specList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
-                safeSetText('customerCountBadge', `${specList.length} Müşteri`);
 
             } else if (activeTab === 'followup') {
                 renderFollowupKPIs(list);
@@ -3120,6 +3301,23 @@
                     const cs = String(i.callStatus || "").trim().toLowerCase();
                     return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı' || cs === 'aranmadi';
                 });
+
+                const totalFollowupCount = fList.length;
+                const aranmadiCount = fList.filter(i => {
+                    const cs = String(i.callStatus || "").trim().toLowerCase();
+                    return cs === 'aranmadı' || cs === 'aranmadi';
+                }).length;
+                const tekrarCount = fList.filter(i => String(i.status || "").trim().toLowerCase() === 'tekrar aranacak').length;
+                const gelecekCount = fList.filter(i => {
+                    const s = String(i.status || "").trim().toLowerCase();
+                    return s.includes('mağaza') || s.includes('magaza') || s.includes('gelecek');
+                }).length;
+
+                safeSetText('follow-kpi-total', num(totalFollowupCount));
+                safeSetText('follow-kpi-aranmadi', num(aranmadiCount));
+                safeSetText('follow-kpi-tekrar', num(tekrarCount));
+                safeSetText('follow-kpi-gelecek', num(gelecekCount));
+                safeSetText('followupCountBadge', `${num(fList.length)} Takip Kaydı`);
 
                 if (selectedAction !== "tümü") {
                     if (selectedAction === "aranmadı" || selectedAction === "aranmadi") {
@@ -3137,37 +3335,66 @@
 
                 if (followupBody) {
                     followupBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-slate-100/60"><td colspan="5" class="px-5 py-2 font-bold text-slate-700 text-[11px] uppercase tracking-wider border-y border-slate-200"><i class="fas fa-building mr-1.5"></i> ${group.branch} (${group.items.length})</td></tr>
+                        <tr class="bg-slate-100/70">
+                            <td colspan="5" class="px-6 py-2.5 font-extrabold text-slate-800 text-xs uppercase tracking-wider border-y border-slate-200 flex items-center justify-between">
+                                <span class="flex items-center gap-2">
+                                    <i class="fas fa-building text-slate-600"></i> ${group.branch}
+                                </span>
+                                <span class="bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${group.items.length} Kayıt</span>
+                            </td>
+                        </tr>
                         ${group.items.map((item, idx) => {
                             const callStatus = String(item.callStatus || "").trim().toLowerCase();
                             const status = String(item.status || "").trim().toLowerCase();
-                            let badgeClass = 'badge-pill badge-brand'; 
+                            let badgeClass = 'bg-blue-50 text-blue-700 border-blue-200'; 
+                            let icon = 'fa-person-walking';
                             let label = 'Mağazaya Gelecek';
 
                             if (callStatus === 'aranmadı' || callStatus === 'aranmadi') { 
-                                badgeClass = 'badge-pill badge-rose'; 
+                                badgeClass = 'bg-rose-50 text-rose-700 border-rose-200'; 
+                                icon = 'fa-phone-slash';
                                 label = 'Aranmadı'; 
                             } else if (status === 'tekrar aranacak') { 
-                                badgeClass = 'badge-pill badge-amber'; 
+                                badgeClass = 'bg-amber-50 text-amber-700 border-amber-200'; 
+                                icon = 'fa-clock';
                                 label = 'Tekrar Aranacak'; 
                             }
                             
-                            let lateWarning = item.isLate ? `<span class="text-[10px] font-bold text-rose-600 ml-2 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200"><i class="fas fa-clock mr-1"></i>Gecikmiş</span>` : '';
+                            const custName = item.customerName || "İsimsiz Müşteri";
+                            const initial = custName.charAt(0).toUpperCase();
+                            const cleanPhone = cleanPhoneNumber(item.phone);
+                            const phoneBadge = cleanPhone 
+                                ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 text-sky-700 text-xs font-bold border border-sky-200/80"><i class="fas fa-phone text-[10px] text-sky-500"></i>${cleanPhone}</span>` 
+                                : (item.phone ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 text-sky-700 text-xs font-bold border border-sky-200/80">${item.phone}</span>` : `<span class="text-slate-300 text-xs">---</span>`);
+
+                            let lateWarning = item.isLate ? `<span class="text-[10px] font-extrabold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200 inline-flex items-center gap-1"><i class="fas fa-clock text-[9px]"></i>Gecikmiş</span>` : '';
                             
-                            return `<tr>
-                                <td class="text-center text-slate-400 font-bold text-xs">${idx+1}</td>
-                                <td>
-                                    <span class="font-bold text-slate-800 text-xs">${item.customerName || "---"}</span>
-                                    ${lateWarning}
+                            return `<tr class="hover:bg-slate-50/80 transition duration-150">
+                                <td class="text-center text-slate-400 font-bold text-xs py-3.5 px-3">${idx+1}</td>
+                                <td class="py-3.5 px-4">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">${initial}</div>
+                                        <div>
+                                            <span class="font-extrabold text-slate-800 text-xs block">${custName}</span>
+                                            ${lateWarning}
+                                        </div>
+                                    </div>
                                 </td>
-                                <td class="text-xs text-slate-600">${item.phone || '---'}</td>
-                                <td class="text-xs text-slate-600 font-medium">${item.date || '---'}</td>
-                                <td><span class="${badgeClass}">${label}</span></td>
+                                <td class="py-3.5 px-4">${phoneBadge}</td>
+                                <td class="py-3.5 px-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">
+                                        <i class="fas fa-calendar-day text-[10px] text-slate-400"></i>${item.date || '---'}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold border ${badgeClass}">
+                                        <i class="fas ${icon} text-[10px]"></i>${label}
+                                    </span>
+                                </td>
                             </tr>`;
                         }).join('')}
                     `).join('');
                 }
-                safeSetText('followupCountBadge', `${fList.length} Takip Kaydı`);
 
             } else if (activeTab === 'unspecified') {
                 const unspecList = list.filter(i => {
@@ -3176,28 +3403,73 @@
                     const rev = Number(i.revenue || 0);
                     return ((cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && rev > 0) || (status === 'satışa döndü' && rev === 0);
                 });
+
+                const missingNoCount = unspecList.filter(i => {
+                    const cNo = String(i.customerNo || "").trim();
+                    return (cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && Number(i.revenue || 0) > 0;
+                }).length;
+
+                const zeroRevCount = unspecList.filter(i => {
+                    const status = String(i.status || "").trim().toLowerCase();
+                    return status === 'satışa döndü' && Number(i.revenue || 0) === 0;
+                }).length;
+
+                const totalUnspecRev = unspecList.reduce((a, b) => a + Number(b.revenue || 0), 0);
+
+                safeSetText('unspec-kpi-total', num(unspecList.length));
+                safeSetText('unspec-kpi-missing-no', num(missingNoCount));
+                safeSetText('unspec-kpi-zero-rev', num(zeroRevCount));
+                safeSetText('unspec-kpi-revenue', fmt(totalUnspecRev));
+                safeSetText('unspecified-total-val', fmt(totalUnspecRev));
+                safeSetText('unspecifiedCountBadge', `${num(unspecList.length)} Uyumsuz Kayıt`);
+
                 const grouped = groupDataByBranch(unspecList);
-                
                 const unspecifiedBody = document.getElementById('unspecified-body');
                 if (unspecifiedBody) {
-                    unspecifiedBody.innerHTML = grouped.map(group => `
-                        <tr class="bg-rose-50/40"><td colspan="5" class="px-5 py-2 font-bold text-rose-800 text-[11px] uppercase tracking-wider border-y border-rose-100"><i class="fas fa-triangle-exclamation mr-1.5"></i> ${group.branch} (${group.items.length})</td></tr>
-                        ${group.items.map((item, idx) => {
-                            const status = String(item.status || "").trim().toLowerCase();
-                            const rev = Number(item.revenue || 0);
-                            const isZeroRevenue = status === 'satışa döndü' && rev === 0;
-                            return `<tr>
-                                <td class="text-center text-slate-400 font-bold text-xs">${idx+1}</td>
-                                <td class="font-bold text-slate-800 text-xs">${item.customerName || "---"}</td>
-                                <td class="text-xs text-slate-600">${item.phone || '---'}</td>
-                                <td><span class="badge-pill ${isZeroRevenue ? 'badge-amber' : 'badge-rose'}">${isZeroRevenue ? 'Sıfır Cirolu Satış' : 'Numara Eksik'}</span></td>
-                                <td class="text-right font-bold text-rose-700 text-xs">${fmt(rev)}</td>
-                            </tr>`;
-                        }).join('')}
-                    `).join('');
+                    unspecifiedBody.innerHTML = grouped.map(group => {
+                        const groupRev = group.items.reduce((s, it) => s + Number(it.revenue || 0), 0);
+                        return `
+                            <tr class="bg-rose-50/50">
+                                <td colspan="5" class="px-6 py-2.5 font-extrabold text-rose-900 text-xs uppercase tracking-wider border-y border-rose-100 flex items-center justify-between">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-triangle-exclamation text-rose-600"></i> ${group.branch}
+                                        <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${group.items.length} Hatalı Kayıt</span>
+                                    </span>
+                                    <span class="text-rose-700 font-black text-xs">Hatalı Tutar: ${fmt(groupRev)}</span>
+                                </td>
+                            </tr>
+                            ${group.items.map((item, idx) => {
+                                const status = String(item.status || "").trim().toLowerCase();
+                                const rev = Number(item.revenue || 0);
+                                const isZeroRevenue = status === 'satışa döndü' && rev === 0;
+                                const custName = item.customerName || "İsimsiz / Belirtilmemiş";
+                                const initial = custName.charAt(0).toUpperCase();
+                                const cleanPhone = cleanPhoneNumber(item.phone);
+                                const phoneBadge = cleanPhone 
+                                    ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 text-sky-700 text-xs font-bold border border-sky-200/80"><i class="fas fa-phone text-[10px] text-sky-500"></i>${cleanPhone}</span>` 
+                                    : (item.phone ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 text-sky-700 text-xs font-bold border border-sky-200/80">${item.phone}</span>` : `<span class="text-slate-300 text-xs">---</span>`);
+
+                                return `<tr class="hover:bg-slate-50/80 transition duration-150">
+                                    <td class="text-center text-slate-400 font-bold text-xs py-3.5 px-3">${idx+1}</td>
+                                    <td class="py-3.5 px-4">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-600 to-rose-800 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">${initial}</div>
+                                            <span class="font-extrabold text-slate-800 text-xs">${custName}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-4">${phoneBadge}</td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold border ${isZeroRevenue ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200'}">
+                                            <i class="fas ${isZeroRevenue ? 'fa-circle-question' : 'fa-id-card-clip'} text-[10px]"></i>
+                                            ${isZeroRevenue ? 'Sıfır Cirolu Satış' : 'Müşteri No Eksik'}
+                                        </span>
+                                    </td>
+                                    <td class="text-right font-black ${rev > 0 ? 'text-rose-600' : 'text-slate-400'} text-sm py-3.5 px-4">${fmt(rev)}</td>
+                                </tr>`;
+                            }).join('')}
+                        `;
+                    }).join('');
                 }
-                safeSetText('unspecified-total-val', fmt(unspecList.reduce((a, b) => a + Number(b.revenue || 0), 0)));
-                safeSetText('unspecifiedCountBadge', `${unspecList.length} Uyumsuz Kayıt`);
 
             } else if (activeTab === 'duplicates') {
                 renderDuplicates(list);
@@ -3326,8 +3598,8 @@
             const tableBody = document.getElementById('adv-table-body');
 
             if (cardsGrid) cardsGrid.innerHTML = "";
-            let headHtml = `<tr><th class="w-12 text-center">#</th><th>Şube Adı</th>`;
-            periods.forEach(p => headHtml += `<th class="text-right">${p} (Ciro)</th>`);
+            let headHtml = `<tr class="bg-slate-900 text-white"><th class="w-14 text-center py-3.5 px-3 bg-slate-900 text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">#</th><th class="py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Şube Adı</th>`;
+            periods.forEach(p => headHtml += `<th class="py-3.5 px-4 text-right bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">${p} (Ciro)</th>`);
             headHtml += `</tr>`;
             if (tableHead) tableHead.innerHTML = headHtml;
 
@@ -3353,14 +3625,16 @@
                 }
             });
 
-            periods.forEach(p => {
+            const cardColors = ['border-t-brand-600', 'border-t-emerald-500', 'border-t-purple-500', 'border-t-amber-500', 'border-t-rose-500'];
+            periods.forEach((p, pIdx) => {
                 const s = monthlyStats[p];
                 if (cardsGrid && s) {
+                    const colorClass = cardColors[pIdx % cardColors.length];
                     cardsGrid.innerHTML += `
-                        <div class="kpi-card border-t-4 border-t-indigo-500">
+                        <div class="kpi-card border-t-4 ${colorClass}">
                             <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">${p}</p>
-                            <h4 class="text-lg font-extrabold text-slate-900 truncate">${fmt(s.totalRevenue || 0)}</h4>
-                            <p class="text-[10px] font-bold text-indigo-600 mt-2 flex items-center gap-1"><i class="fas fa-bullhorn text-[10px]"></i> ${num(s.totalYönlendirme || 0)} Yönlendirme</p>
+                            <h4 class="text-xl font-extrabold text-slate-900 truncate">${fmt(s.totalRevenue || 0)}</h4>
+                            <p class="text-[10px] font-bold text-indigo-600 mt-2 flex items-center gap-1.5"><i class="fas fa-bullhorn text-[10px]"></i> ${num(s.totalYönlendirme || 0)} Yönlendirme</p>
                         </div>
                     `;
                 }
@@ -3370,21 +3644,21 @@
             let bodyHtml = "";
 
             sortedBranches.forEach((bName, idx) => {
-                bodyHtml += `<tr><td class="text-center font-bold text-slate-400 text-xs">${idx + 1}</td><td class="font-bold text-slate-800 text-xs">${bName}</td>`;
+                bodyHtml += `<tr class="hover:bg-slate-50/80 transition duration-150"><td class="text-center font-bold text-slate-400 text-xs py-3.5 px-3">${idx + 1}</td><td class="font-extrabold text-slate-800 text-xs py-3.5 px-4"><div class="flex items-center gap-2"><i class="fas fa-building text-slate-400 text-xs"></i>${bName}</div></td>`;
                 periods.forEach(p => {
                     const rev = monthlyStats[p]?.branches?.[bName] || 0;
-                    bodyHtml += `<td class="text-right font-medium text-slate-700 text-xs">${fmt(rev)}</td>`;
+                    bodyHtml += `<td class="text-right font-black text-emerald-600 text-xs py-3.5 px-4">${fmt(rev)}</td>`;
                 });
                 bodyHtml += `</tr>`;
             });
 
             bodyHtml += `
-                <tr class="bg-indigo-50/70 font-bold border-t-2 border-indigo-500">
-                    <td colspan="2" class="text-right text-indigo-900 uppercase text-xs py-4 px-5">GENEL TOPLAM</td>
+                <tr class="bg-slate-900 text-white font-bold border-t-2 border-slate-800">
+                    <td colspan="2" class="text-right text-slate-300 uppercase text-xs py-4 px-6 font-extrabold tracking-wider">Dönemler Genel Toplamı</td>
             `;
             periods.forEach(p => {
                 const termRev = monthlyStats[p]?.totalRevenue || 0;
-                bodyHtml += `<td class="text-right font-extrabold text-slate-900 text-xs">${fmt(termRev)}</td>`;
+                bodyHtml += `<td class="text-right font-black text-emerald-400 text-sm py-4 px-4">${fmt(termRev)}</td>`;
             });
             bodyHtml += `</tr>`;
 
