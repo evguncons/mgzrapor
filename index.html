@@ -712,24 +712,24 @@
                     </div>
 
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="portal-table">
+                        <table class="portal-table w-full">
                             <thead>
-                                <tr>
-                                    <th class="w-10 text-center">Seç</th>
-                                    <th class="w-12 text-center">#</th>
-                                    <th>Müşteri Ad Soyad</th>
-                                    <th>Telefon</th>
-                                    <th>Müşteri No</th>
-                                    <th class="text-right">Ciro Tutarı (TRY)</th>
-                                    <th class="w-32 text-right">Eylemler</th>
+                                <tr class="bg-slate-900 text-white">
+                                    <th class="w-12 text-center py-3.5 px-3 bg-slate-900 text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Seç</th>
+                                    <th class="w-14 text-center py-3.5 px-3 bg-slate-900 text-slate-300 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">#</th>
+                                    <th class="py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Müşteri Ad Soyad</th>
+                                    <th class="w-44 py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Telefon</th>
+                                    <th class="w-36 py-3.5 px-4 text-left bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Müşteri No</th>
+                                    <th class="w-48 py-3.5 px-4 text-right bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">Ciro Tutarı (TRY)</th>
+                                    <th class="w-36 py-3.5 px-4 text-center bg-slate-900 text-slate-200 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800">İşlemler</th>
                                 </tr>
                             </thead>
-                            <tbody id="sales-table-body"></tbody>
-                            <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
+                            <tbody id="sales-table-body" class="divide-y divide-slate-100"></tbody>
+                            <tfoot class="bg-slate-900 text-white font-bold border-t-2 border-slate-800">
                                 <tr>
-                                    <td colspan="5" class="text-right py-4 px-5 text-slate-600 text-xs uppercase tracking-wider">Satış Listesi Genel Toplamı</td>
-                                    <td id="sales-total-revenue-footer" class="text-right py-4 px-5 text-emerald-700 text-base font-extrabold">₺0</td>
-                                    <td></td>
+                                    <td colspan="5" class="text-right py-4 px-6 text-slate-300 text-xs font-extrabold uppercase tracking-wider">Satış Listesi Genel Toplamı</td>
+                                    <td id="sales-total-revenue-footer" class="text-right py-4 px-4 text-emerald-400 text-base font-black">₺0</td>
+                                    <td class="py-4 px-4"></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -2751,41 +2751,59 @@
                 const editedData = salesRevenueEdits.get(rowKey);
                 const currentDisplayRev = editedData ? editedData.newRevenue : (item.revenue || 0);
                 const isEdited = editedData && editedData.newRevenue !== editedData.originalRevenue;
+                const custName = item.customerName || "İsimsiz Müşteri";
+                const initial = custName.trim().charAt(0).toUpperCase() || 'M';
 
                 return `
-                    <tr class="${isEdited ? 'bg-amber-50/40' : (isChecked ? 'bg-indigo-50/30' : '')}">
-                        <td class="text-center">
-                            <input type="checkbox" data-row-key="${rowKey}" ${isChecked ? 'checked' : ''} onchange="onSalesRowCheckChange(this)" class="sales-row-checkbox w-3.5 h-3.5 text-brand-600 rounded border-slate-300">
+                    <tr class="${isEdited ? 'bg-amber-50/60' : (isChecked ? 'bg-indigo-50/40' : (idx % 2 === 1 ? 'bg-slate-50/70' : 'bg-white'))} hover:bg-indigo-50/30 transition-colors">
+                        <td class="text-center py-3.5 px-3">
+                            <input type="checkbox" data-row-key="${rowKey}" ${isChecked ? 'checked' : ''} onchange="onSalesRowCheckChange(this)" class="sales-row-checkbox w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer">
                         </td>
-                        <td class="text-center font-bold text-slate-400 text-xs">${idx + 1}</td>
-                        <td>
-                            <span class="font-extrabold text-slate-900 text-xs block">${item.customerName || "İsimsiz Müşteri"}</span>
-                            ${isEdited ? '<span class="text-[9px] font-bold text-amber-600 flex items-center gap-1"><i class="fas fa-pen text-[8px]"></i> Düzenlendi</span>' : ''}
+                        <td class="text-center py-3.5 px-3">
+                            <span class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 font-black text-slate-600 text-xs flex items-center justify-center mx-auto shadow-2xs">${idx + 1}</span>
                         </td>
-                        <td class="text-xs text-slate-600 font-medium">${item.phone || '---'}</td>
-                        <td>
-                            ${item.customerNo && item.customerNo.toLowerCase() !== 'belirtilmemiş' 
-                                ? `<span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${item.customerNo}</span>` 
-                                : '<span class="text-rose-600 text-[10px] font-bold">Eksik No</span>'}
-                        </td>
-                        <td class="text-right">
-                            <div class="flex items-center justify-end gap-1">
-                                <span class="text-slate-400 text-xs font-black">₺</span>
-                                <input type="number" step="1" min="0" value="${currentDisplayRev}" data-sales-key="${rowKey}"
-                                    onchange="onSalesRevenueChange('${rowKey}', '${item.sheetId}', ${item.rowNum}, ${item.revenue || 0}, this.value)"
-                                    class="w-24 px-2 py-1 bg-white text-right font-black text-xs rounded-lg border ${isEdited ? 'border-amber-500 bg-amber-50 text-amber-900 ring-1 ring-amber-400' : 'border-slate-300'} outline-none">
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
+                                    ${initial}
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="font-extrabold text-slate-900 text-xs block truncate">${custName}</span>
+                                    ${isEdited ? '<span class="text-[10px] font-extrabold text-amber-700 flex items-center gap-1 mt-0.5"><i class="fas fa-pen-to-square text-[9px]"></i> Değişiklik Bekliyor</span>' : ''}
+                                </div>
                             </div>
                         </td>
-                        <td class="text-right">
-                            <div class="flex items-center justify-end gap-1">
-                                <button onclick="saveSingleSalesRevenue('${item.sheetId}', ${item.rowNum}, '${rowKey}')" title="Ciro Tutarını Kaydet" class="${isEdited ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'} p-1.5 rounded-lg text-xs transition">
-                                    <i class="fas fa-floppy-disk text-[10px]"></i>
+                        <td class="py-3.5 px-4">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 text-sky-800 border border-sky-200/90 font-bold text-xs">
+                                <i class="fas fa-phone text-sky-600 text-[10px]"></i>
+                                <span>${item.phone || '---'}</span>
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            ${item.customerNo && item.customerNo.toLowerCase() !== 'belirtilmemiş' 
+                                ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-50 text-indigo-800 border border-indigo-200/90 font-mono font-bold text-xs"><i class="fas fa-hashtag text-indigo-500 text-[10px]"></i> ${item.customerNo}</span>` 
+                                : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold"><i class="fas fa-circle-exclamation text-[9px]"></i> Eksik No</span>'}
+                        </td>
+                        <td class="py-3.5 px-4 text-right">
+                            <div class="flex items-center justify-end">
+                                <div class="relative w-36">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 font-black text-xs ${isEdited ? 'text-amber-700' : 'text-emerald-700'}">₺</span>
+                                    <input type="number" step="1" min="0" value="${currentDisplayRev}" data-sales-key="${rowKey}"
+                                        onchange="onSalesRevenueChange('${rowKey}', '${item.sheetId}', ${item.rowNum}, ${item.revenue || 0}, this.value)"
+                                        class="w-full pl-7 pr-3 py-1.5 bg-emerald-50/70 focus:bg-white text-right font-black text-xs rounded-xl border ${isEdited ? 'border-amber-500 bg-amber-50 text-amber-900 ring-2 ring-amber-400/20' : 'border-emerald-300 text-emerald-950'} focus:border-emerald-600 outline-none transition shadow-2xs">
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="saveSingleSalesRevenue('${item.sheetId}', ${item.rowNum}, '${rowKey}')" title="Ciro Tutarını Sheets'e Kaydet" class="${isEdited ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/30 animate-pulse' : 'bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-300/90'} w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-150 shadow-xs cursor-pointer">
+                                    <i class="fas fa-floppy-disk text-xs"></i>
                                 </button>
-                                <button onclick="openEditSaleModal('${item.sheetId}', ${item.rowNum}, '${rowKey}')" title="Detayları Düzenle" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 p-1.5 rounded-lg text-xs transition">
-                                    <i class="fas fa-pen-to-square text-[10px]"></i>
+                                <button onclick="openEditSaleModal('${item.sheetId}', ${item.rowNum}, '${rowKey}')" title="Tüm Bilgileri Düzenle" class="bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-300/90 w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-150 shadow-xs cursor-pointer">
+                                    <i class="fas fa-pen-to-square text-xs"></i>
                                 </button>
-                                <button onclick="deleteSingleRow('${item.sheetId}', '${activePeriod}', ${item.rowNum}, '${(item.customerName || "Müşteri").replace(/'/g, "\\'")}', false)" title="Kaydı Sil" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 p-1.5 rounded-lg text-xs transition">
-                                    <i class="fas fa-trash-can text-[10px]"></i>
+                                <button onclick="deleteSingleRow('${item.sheetId}', '${activePeriod}', ${item.rowNum}, '${custName.replace(/'/g, "\\'")}', false)" title="Kaydı Kalıcı Olarak Sil" class="bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-300/90 w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-150 shadow-xs cursor-pointer">
+                                    <i class="fas fa-trash-can text-xs"></i>
                                 </button>
                             </div>
                         </td>
