@@ -1318,12 +1318,25 @@
             pendingCleanAction = null;
         }
 
+        async function refreshAvailablePeriods(force = false) {
+            try {
+                const url = `${APPSCRIPT_URL}?action=getAvailablePeriods${force ? '&refresh=1' : ''}&t=${Date.now()}`;
+                const res = await fetch(url, { cache: 'no-store' });
+                const freshPeriods = await res.json();
+                if (freshPeriods && freshPeriods.length > 0) {
+                    safeStorage.setItem('available_periods', JSON.stringify(freshPeriods));
+                    const defaultPeriod = getCurrentPeriod(freshPeriods);
+                    populatePeriodDropdowns(freshPeriods, defaultPeriod);
+                    return freshPeriods;
+                }
+            } catch(e) {
+                console.error("Dönemleri yenileme hatası:", e);
+            }
+            return null;
+        }
+
         // --- Stale-While-Revalidate Turbo Page Lifecycle ---
         document.addEventListener('DOMContentLoaded', async () => {
-            const sel = document.getElementById('periodSelector');
-            const startSel = document.getElementById('advStartPeriod');
-            const endSel = document.getElementById('advEndPeriod');
-            
             const cachedPeriodsStr = safeStorage.getItem('available_periods');
             let periods = null;
             if (cachedPeriodsStr) {
@@ -1340,15 +1353,11 @@
             }
 
             try {
-                const res = await fetch(`${APPSCRIPT_URL}?action=getAvailablePeriods&t=${Date.now()}`, { cache: 'no-store' });
-                const freshPeriods = await res.json();
-                
+                const freshPeriods = await refreshAvailablePeriods(true);
                 if (freshPeriods && freshPeriods.length > 0) {
-                    safeStorage.setItem('available_periods', JSON.stringify(freshPeriods));
-                    const defaultPeriod = getCurrentPeriod(freshPeriods);
-                    populatePeriodDropdowns(freshPeriods, defaultPeriod);
-                    
-                    await fetchDataWithPeriod(defaultPeriod, false, false);
+                    const sel = document.getElementById('periodSelector');
+                    const activePeriod = sel ? sel.value : getCurrentPeriod(freshPeriods);
+                    await fetchDataWithPeriod(activePeriod, false, false);
                     startContinuousSync();
                     prewarmPreviousPeriods();
                 } else if (!periods) {
@@ -1364,27 +1373,49 @@
         });
 
         function populatePeriodDropdowns(periods, defaultPeriod) {
+            if (!periods || periods.length === 0) return;
             const sel = document.getElementById('periodSelector');
             const startSel = document.getElementById('advStartPeriod');
             const endSel = document.getElementById('advEndPeriod');
 
-            if (sel && sel.options.length <= 1) {
+            if (sel) {
+                const prevVal = sel.value;
                 sel.innerHTML = periods.map(p => `<option value="${p}">${p}</option>`).join('');
-                sel.value = defaultPeriod;
+                if (prevVal && periods.includes(prevVal)) {
+                    sel.value = prevVal;
+                } else if (defaultPeriod && periods.includes(defaultPeriod)) {
+                    sel.value = defaultPeriod;
+                } else {
+                    sel.value = periods[0];
+                }
             }
 
             const chronologicalPeriods = [...periods].sort((a, b) => periodToVal(a) - periodToVal(b));
-            if (startSel && startSel.options.length === 0) {
+            if (startSel) {
+                const prevStart = startSel.value;
                 startSel.innerHTML = chronologicalPeriods.map(p => `<option value="${p}">${p}</option>`).join('');
-                startSel.value = chronologicalPeriods[Math.max(0, chronologicalPeriods.length - 2)];
+                if (prevStart && chronologicalPeriods.includes(prevStart)) {
+                    startSel.value = prevStart;
+                } else {
+                    startSel.value = chronologicalPeriods[Math.max(0, chronologicalPeriods.length - 2)];
+                }
             }
-            if (endSel && endSel.options.length === 0) {
+            if (endSel) {
+                const prevEnd = endSel.value;
                 endSel.innerHTML = chronologicalPeriods.map(p => `<option value="${p}">${p}</option>`).join('');
-                endSel.value = chronologicalPeriods[chronologicalPeriods.length - 1];
+                if (prevEnd && chronologicalPeriods.includes(prevEnd)) {
+                    endSel.value = prevEnd;
+                } else {
+                    endSel.value = chronologicalPeriods[chronologicalPeriods.length - 1];
+                }
             }
         }
 
         async function fetchData(forceServer = false) {
+            if (forceServer) {
+                showToast("Dönemler ve veriler Google Sheets'ten taranıyor...", "info");
+                await refreshAvailablePeriods(true);
+            }
             const sel = document.getElementById('periodSelector');
             const activePeriod = sel ? sel.value : '';
             if (!activePeriod) return;
