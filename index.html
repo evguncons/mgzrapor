@@ -186,13 +186,11 @@
                 </button>
                 <div>
                     <h2 id="tabTitle" class="text-base font-extrabold text-slate-900 tracking-tight leading-none">Performans Analizi</h2>
-                    <div class="flex items-center gap-2 mt-0.5">
-                        <p id="syncStatusSubtitle" class="text-slate-500 text-[10px] font-semibold flex items-center gap-1">
-                            <i class="fas fa-circle-check text-emerald-500 text-[9px]"></i> Anlık RAM Önbellek
-                        </p>
-                        <div id="silentSyncIndicator" class="hidden flex items-center gap-1 text-[10px] font-bold text-brand-600 animate-pulse">
-                            <i class="fas fa-arrows-rotate fa-spin text-[9px]"></i> Senkronize ediliyor...
-                        </div>
+                    <div class="flex items-center mt-0.5 h-4">
+                        <span id="syncStatusBadge" class="text-slate-500 text-[10px] font-semibold inline-flex items-center gap-1.5 transition-all duration-150">
+                            <i id="syncStatusIcon" class="fas fa-circle-check text-emerald-500 text-[9px]"></i>
+                            <span id="syncStatusText">Anlık RAM Önbellek</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -1318,6 +1316,32 @@
             pendingCleanAction = null;
         }
 
+        function setSyncStatus(status) {
+            const icon = document.getElementById('syncStatusIcon');
+            const text = document.getElementById('syncStatusText');
+            if (!icon || !text) return;
+            if (status === 'syncing') {
+                icon.className = 'fas fa-arrows-rotate fa-spin text-brand-600 text-[9px]';
+                text.innerText = 'Senkronize ediliyor...';
+            } else {
+                icon.className = 'fas fa-circle-check text-emerald-500 text-[9px]';
+                text.innerText = 'Anlık RAM Önbellek';
+            }
+        }
+
+        function computeDataFingerprint(data) {
+            if (!data || !data.customerList) return "";
+            const list = data.customerList;
+            const len = list.length;
+            let revSum = 0;
+            for (let i = 0; i < len; i += 7) {
+                revSum += Number(list[i].revenue || 0);
+            }
+            const first = len > 0 ? (list[0].phone || '') + (list[0].revenue || '') : '';
+            const last = len > 0 ? (list[len - 1].phone || '') + (list[len - 1].revenue || '') : '';
+            return `${len}_${revSum}_${first}_${last}`;
+        }
+
         async function refreshAvailablePeriods(force = false) {
             try {
                 const url = `${APPSCRIPT_URL}?action=getAvailablePeriods${force ? '&refresh=1' : ''}&t=${Date.now()}`;
@@ -1335,7 +1359,7 @@
             return null;
         }
 
-        // --- Stale-While-Revalidate Turbo Page Lifecycle ---
+        // --- Smooth Page Lifecycle & Background Auto-Sync ---
         document.addEventListener('DOMContentLoaded', async () => {
             const cachedPeriodsStr = safeStorage.getItem('available_periods');
             let periods = null;
@@ -1347,30 +1371,37 @@
                 const defaultPeriod = getCurrentPeriod(periods);
                 populatePeriodDropdowns(periods, defaultPeriod);
                 fetchDataWithPeriod(defaultPeriod, false, true);
-            } else {
-                const loader = document.getElementById('loadingIndicator');
-                if (loader) loader.classList.remove('hidden');
             }
 
             try {
-                const freshPeriods = await refreshAvailablePeriods(true);
-                if (freshPeriods && freshPeriods.length > 0) {
+                const freshPeriods = await refreshAvailablePeriods(false);
+                const activeList = freshPeriods || periods;
+                if (activeList && activeList.length > 0) {
                     const sel = document.getElementById('periodSelector');
-                    const activePeriod = sel ? sel.value : getCurrentPeriod(freshPeriods);
-                    await fetchDataWithPeriod(activePeriod, false, false);
-                    startContinuousSync();
-                    prewarmPreviousPeriods();
-                } else if (!periods) {
-                    showErrorModal("Veri Bulunamadı", "Google Sheets dosyalarınızda uygun dönem sayfası tespit edilemedi.");
+                    const activePeriod = (sel && sel.value) ? sel.value : getCurrentPeriod(activeList);
+                    await fetchDataWithPeriod(activePeriod, false, false, true);
                 }
             } catch (e) { 
                 console.error(e); 
-                if (!periods) showErrorModal("Bağlantı Hatası", "Backend Web App servisinden veri okunamadı.");
             } finally {
-                const loader = document.getElementById('loadingIndicator');
-                if (loader) loader.classList.add('hidden');
+                startBackgroundSync();
             }
         });
+
+        let bgSyncInterval = null;
+        function startBackgroundSync() {
+            if (bgSyncInterval) clearInterval(bgSyncInterval);
+            bgSyncInterval = setInterval(async () => {
+                if (document.visibilityState !== 'visible') return;
+                if (isFetchingPeriod) return;
+                
+                const sel = document.getElementById('periodSelector');
+                const activePeriod = sel ? sel.value : '';
+                if (activePeriod && activeTab !== 'advanced') {
+                    await fetchDataWithPeriod(activePeriod, false, false, true);
+                }
+            }, 60000); // 60 saniyede bir arka planda sessizce kontrol eder
+        }
 
         function populatePeriodDropdowns(periods, defaultPeriod) {
             if (!periods || periods.length === 0) return;
@@ -1422,13 +1453,14 @@
             await fetchDataWithPeriod(activePeriod, forceServer);
         }
 
-        async function fetchDataWithPeriod(period, forceServer = false, onlyLocal = false) {
+        let isFetchingPeriod = false;
+        async function fetchDataWithPeriod(period, forceServer = false, onlyLocal = false, isBackground = false) {
             if (!period) return;
 
             const cachedStr = safeStorage.getItem(`cache_${period}`);
             let hadLocal = false;
 
-            if (!forceServer && cachedStr) {
+            if (cachedStr) {
                 try {
                     const cachedObj = JSON.parse(cachedStr);
                     if (cachedObj && cachedObj.customerList) {
@@ -1443,79 +1475,73 @@
             }
 
             if (onlyLocal && hadLocal) return;
+            if (isFetchingPeriod) return;
 
-            const syncBadge = document.getElementById('silentSyncIndicator');
             const loader = document.getElementById('loadingIndicator');
 
-            if (!hadLocal) {
+            // Arka plan yenilemesinde VEYA ekranda veri varken asla tam ekran loader açılmaz
+            if (!isBackground && !currentData && !hadLocal) {
                 if (loader) loader.classList.remove('hidden');
             } else {
-                if (syncBadge) syncBadge.classList.remove('hidden');
+                setSyncStatus('syncing');
             }
 
+            isFetchingPeriod = true;
             try {
                 const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`, { cache: 'no-store' });
                 const freshData = await res.json();
                 
                 if (freshData && freshData.customerList) {
-                    currentData = freshData;
-                    safeStorage.setItem(`cache_${period}`, JSON.stringify(currentData));
-                    populateBranchFilter(currentData);
-                    
-                    if (activeTab === 'historyCheck') {
-                        runHistoryCheckAnalysis();
-                    } else {
-                        render(currentData);
+                    const sel = document.getElementById('periodSelector');
+                    const activePeriodNow = sel ? sel.value : '';
+                    if (!activePeriodNow || activePeriodNow === period) {
+                        const prevFingerprint = computeDataFingerprint(currentData);
+                        const newFingerprint = computeDataFingerprint(freshData);
+
+                        // Eğer veriler değişmemişse DOM'u sıfırdan çizme! Sadece saati güncelle (titremeyi %100 engeller)
+                        if (isBackground && prevFingerprint && prevFingerprint === newFingerprint) {
+                            safeSetText('lastUpdateTime', new Date().toLocaleTimeString('tr-TR'));
+                            return;
+                        }
+
+                        // Kullanıcı şu anda modalde düzenleme yapıyorsa veya satır seçmişse ekranı bozma
+                        const editModal = document.getElementById('editSaleModal');
+                        const isEditing = editModal && !editModal.classList.contains('hidden');
+                        const hasSelection = selectedDuplicateRows.size > 0 || selectedHistoryRows.size > 0 || selectedSalesRows.size > 0;
+                        if (isBackground && (isEditing || hasSelection)) {
+                            safeSetText('lastUpdateTime', new Date().toLocaleTimeString('tr-TR'));
+                            return;
+                        }
+
+                        // Kaydırma (scroll) pozisyonunu hatırla
+                        const scrollEl = document.querySelector('main');
+                        const savedScroll = scrollEl ? scrollEl.scrollTop : 0;
+
+                        currentData = freshData;
+                        safeStorage.setItem(`cache_${period}`, JSON.stringify(currentData));
+                        populateBranchFilter(currentData);
+                        
+                        if (activeTab === 'historyCheck') {
+                            runHistoryCheckAnalysis();
+                        } else {
+                            render(currentData);
+                        }
+
+                        // Kaydırma pozisyonunu aynen geri yükle
+                        if (scrollEl) scrollEl.scrollTop = savedScroll;
+                        
+                        safeSetText('lastUpdateTime', new Date().toLocaleTimeString('tr-TR'));
+                        if (forceServer) showToast(`${period} dönemi verileri Google Sheets'ten güncellendi.`, 'success');
                     }
-                    
-                    safeSetText('lastUpdateTime', new Date().toLocaleTimeString('tr-TR'));
-                    if (forceServer) showToast(`${period} dönemi verileri Google Sheets'ten güncellendi.`, 'success');
                 }
             } catch (e) { 
                 console.error(e); 
-                if (!hadLocal) showErrorModal("Veri Hatası", "Dönem verileri alınamadı.");
+                if (!isBackground && !currentData && !hadLocal) showErrorModal("Veri Hatası", "Dönem verileri alınamadı.");
             } finally { 
+                isFetchingPeriod = false;
                 if (loader) loader.classList.add('hidden'); 
-                if (syncBadge) syncBadge.classList.add('hidden');
+                setSyncStatus('idle');
             }
-        }
-
-        function prewarmPreviousPeriods() {
-            setTimeout(async () => {
-                const sel = document.getElementById('periodSelector');
-                if (!sel) return;
-                const allPeriods = Array.from(sel.options || []).map(o => o.value);
-                const sorted = [...allPeriods].sort((a, b) => periodToVal(a) - periodToVal(b));
-                const curVal = sel.value;
-                const curIdx = sorted.indexOf(curVal);
-                if (curIdx < 0) return;
-
-                const toPrewarm = sorted.slice(Math.max(0, curIdx - 3), curIdx);
-                for (let p of toPrewarm) {
-                    if (!safeStorage.getItem(`cache_${p}`)) {
-                        try {
-                            const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(p)}&t=${Date.now()}`, { cache: 'no-store' });
-                            const d = await res.json();
-                            if (d && d.customerList) safeStorage.setItem(`cache_${p}`, JSON.stringify(d));
-                        } catch(e){}
-                    }
-                }
-            }, 1000);
-        }
-
-        let autoRefreshInterval = null;
-        function startContinuousSync() {
-            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-            autoRefreshInterval = setInterval(() => {
-                const modal = document.getElementById('errorModal');
-                if (document.visibilityState === 'visible' && (!modal || modal.classList.contains('hidden'))) {
-                    const sel = document.getElementById('periodSelector');
-                    const activePeriod = sel ? sel.value : '';
-                    if (activePeriod && activeTab !== 'advanced' && activeTab !== 'historyCheck') {
-                        fetchDataWithPeriod(activePeriod, false, false);
-                    }
-                }
-            }, 45000);
         }
 
         function populateBranchFilter(data) {
