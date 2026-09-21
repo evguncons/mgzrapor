@@ -1442,6 +1442,19 @@
             }
         }
 
+        function computeDataFingerprint(data) {
+            if (!data || !data.customerList) return "";
+            const list = data.customerList;
+            const len = list.length;
+            let revSum = 0;
+            for (let i = 0; i < len; i++) {
+                revSum += Number(list[i].revenue || 0);
+            }
+            const firstKey = len > 0 ? `${list[0].sheetId}_${list[0].rowNum}_${list[0].phone}_${list[0].revenue}` : '';
+            const lastKey = len > 0 ? `${list[len-1].sheetId}_${list[len-1].rowNum}_${list[len-1].phone}_${list[len-1].revenue}` : '';
+            return `${len}_${revSum}_${firstKey}_${lastKey}`;
+        }
+
         async function fetchData(forceServer = false) {
             if (forceServer) {
                 showToast("Dönemler ve veriler Google Sheets'ten taranıyor...", "info");
@@ -1460,7 +1473,8 @@
             const cachedStr = safeStorage.getItem(`cache_${period}`);
             let hadLocal = false;
 
-            if (cachedStr) {
+            // Arka plan sorgusunda ekrandaki veriyi asla baştan çizme!
+            if (!isBackground && cachedStr) {
                 try {
                     const cachedObj = JSON.parse(cachedStr);
                     if (cachedObj && cachedObj.customerList) {
@@ -1716,10 +1730,46 @@
                 if (resData && resData.success) {
                     if (currentData && currentData.customerList) {
                         if (payload.type === 'SINGLE') {
-                            currentData.customerList = currentData.customerList.filter(i => !(i.sheetId === payload.sheetId && i.rowNum === payload.rowNum));
+                            currentData.customerList = currentData.customerList.filter(i => !(i.sheetId === payload.sheetId && parseInt(i.rowNum, 10) === parseInt(payload.rowNum, 10)));
                         } else if (payload.type === 'SELECTED' && Array.isArray(payload.items)) {
                             const deleteSet = new Set(payload.items.map(item => `${item.sheetId}_${item.rowNum}`));
-                            currentData.customerList = currentData.customerList.filter(i => !deleteSet.has(`${i.sheetId}_${item.rowNum}`));
+                            currentData.customerList = currentData.customerList.filter(i => !deleteSet.has(`${i.sheetId}_${i.rowNum}`));
+                        } else if (payload.type === 'CUSTOMER') {
+                            const key = payload.targetKey;
+                            const phoneGroups = {};
+                            currentData.customerList.forEach(item => {
+                                const cleanPhone = cleanPhoneNumber(item.phone);
+                                const cNo = String(item.customerNo || "").trim().toLowerCase();
+                                const k = cleanPhone.length >= 7 ? cleanPhone : (cNo && cNo !== "belirtilmemiş" ? `no_${cNo}` : null);
+                                if (k === key) {
+                                    if (!phoneGroups[k]) phoneGroups[k] = [];
+                                    phoneGroups[k].push(item);
+                                }
+                            });
+                            if (phoneGroups[key] && phoneGroups[key].length > 1) {
+                                phoneGroups[key].sort((a, b) => parseTurkishDate(a.date) - parseTurkishDate(b.date));
+                                const toDelete = new Set(phoneGroups[key].slice(1).map(x => `${x.sheetId}_${x.rowNum}`));
+                                currentData.customerList = currentData.customerList.filter(i => !toDelete.has(`${i.sheetId}_${i.rowNum}`));
+                            }
+                        } else if (payload.type === 'ALL') {
+                            const phoneGroups = {};
+                            currentData.customerList.forEach(item => {
+                                const cleanPhone = cleanPhoneNumber(item.phone);
+                                const cNo = String(item.customerNo || "").trim().toLowerCase();
+                                const k = cleanPhone.length >= 7 ? cleanPhone : (cNo && cNo !== "belirtilmemiş" ? `no_${cNo}` : null);
+                                if (k) {
+                                    if (!phoneGroups[k]) phoneGroups[k] = [];
+                                    phoneGroups[k].push(item);
+                                }
+                            });
+                            const toDelete = new Set();
+                            Object.values(phoneGroups).forEach(items => {
+                                if (items.length > 1) {
+                                    items.sort((a, b) => parseTurkishDate(a.date) - parseTurkishDate(b.date));
+                                    items.slice(1).forEach(x => toDelete.add(`${x.sheetId}_${x.rowNum}`));
+                                }
+                            });
+                            currentData.customerList = currentData.customerList.filter(i => !toDelete.has(`${i.sheetId}_${i.rowNum}`));
                         }
                     }
 
