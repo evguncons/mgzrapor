@@ -1230,12 +1230,9 @@
 
         function isAranmadi(item) {
             if (!item) return false;
+            // Kullanıcı talebi: Doğrudan C sütunundaki ("callStatus") 'aranmadı' değerini baz alır
             const cs = String(item.callStatus || "").trim().toLocaleLowerCase('tr-TR').replace(/ı/g, 'i');
-            const s = String(item.status || "").trim().toLocaleLowerCase('tr-TR').replace(/ı/g, 'i');
-            if (cs === 'aranmadi' || cs.includes('aranma') || cs.includes('ulasilamadi') || cs.includes('cevap vermedi') || cs.includes('mesgul')) return true;
-            if (s === 'aranmadi' || s.includes('aranma')) return true;
-            if (!cs && !s && Number(item.revenue || 0) === 0) return true;
-            return false;
+            return cs === 'aranmadi' || cs === 'aranmadı' || cs.includes('aranma');
         }
 
         function getFollowupAction(item) {
@@ -1253,6 +1250,7 @@
 
         const safeStorage = {
             getItem(key) { try { return window.localStorage.getItem(key); } catch (e) { return null; } },
+            removeItem(key) { try { window.localStorage.removeItem(key); } catch (e) {} },
             setItem(key, value) { 
                 try { 
                     window.localStorage.setItem(key, value); 
@@ -1494,12 +1492,13 @@
         }
 
         async function fetchData(forceServer = false) {
-            if (forceServer) {
-                showToast("Dönemler ve veriler Google Sheets'ten taranıyor...", "info");
-                await refreshAvailablePeriods(true);
-            }
             const sel = document.getElementById('periodSelector');
             const activePeriod = sel ? sel.value : '';
+            if (forceServer) {
+                showToast("Veriler Google Sheets'ten güncelleniyor...", "info");
+                if (activePeriod) safeStorage.removeItem(`cache_${activePeriod}`);
+                await refreshAvailablePeriods(true);
+            }
             if (!activePeriod) return;
             await fetchDataWithPeriod(activePeriod, forceServer);
         }
@@ -1508,7 +1507,11 @@
         async function fetchDataWithPeriod(period, forceServer = false, onlyLocal = false, isBackground = false) {
             if (!period) return;
 
-            const cachedStr = safeStorage.getItem(`cache_${period}`);
+            if (forceServer) {
+                safeStorage.removeItem(`cache_${period}`);
+            }
+
+            const cachedStr = forceServer ? null : safeStorage.getItem(`cache_${period}`);
             let hadLocal = false;
 
             // Sadece ekranda veri yokken (ilk yüklemede) önbellekten anında çiz
@@ -1531,8 +1534,12 @@
 
             const loader = document.getElementById('loadingIndicator');
 
-            // Arka plan yenilemesinde VEYA ekranda veri varken asla tam ekran loader açılmaz
-            if (!isBackground && !currentData && !hadLocal) {
+            // Kullanıcı yenileme butonuna bastıysa veya ekranda veri yokken loader göster
+            if (forceServer) {
+                if (loader) loader.classList.remove('hidden');
+                const loaderText = document.getElementById('loader-text');
+                if (loaderText) loaderText.innerText = "Google Sheets Verileri Taranıyor...";
+            } else if (!isBackground && !currentData && !hadLocal) {
                 if (loader) loader.classList.remove('hidden');
             } else {
                 setSyncStatus('syncing');
@@ -1540,7 +1547,8 @@
 
             isFetchingPeriod = true;
             try {
-                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}&t=${Date.now()}`, { cache: 'no-store' });
+                const refreshParam = forceServer ? '&refresh=1&force=1' : '';
+                const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}${refreshParam}&t=${Date.now()}`, { cache: 'no-store' });
                 const freshData = await res.json();
                 
                 if (freshData && freshData.customerList) {
