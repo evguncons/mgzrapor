@@ -91,11 +91,13 @@
 
         #printArea { display: none; }
         @media print {
+            @page { size: auto; margin: 8mm 8mm 8mm 8mm; }
+            body { background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             body > * { display: none !important; }
-            body > #printArea { display: block !important; width: 100%; color: black; padding: 15px; }
-            .print-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-            .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left; }
-            .print-table th { background-color: #f1f5f9 !important; font-weight: bold; }
+            body > #printArea { display: block !important; width: 100% !important; color: #0f172a !important; padding: 0 !important; margin: 0 !important; }
+            .print-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+            .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 5px 8px; }
+            .print-table tr { page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -304,7 +306,10 @@
                             <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Aranan</p>
                             <h3 id="kpi-aranan" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</h3>
                         </div>
-                        <p class="text-[10px] font-bold text-purple-600 mt-3 flex items-center gap-1"><i class="fas fa-headset"></i> İletişim Kuruldu</p>
+                        <div class="mt-3 flex items-center justify-between text-[10px] font-bold">
+                            <span class="text-purple-600 flex items-center gap-1"><i class="fas fa-headset"></i> İletişim Kuruldu</span>
+                            <span id="kpi-aranmadi-badge" class="bg-rose-50 text-rose-700 px-2 py-0.5 rounded-full text-[10px] font-extrabold border border-rose-200">0 Aranmadı</span>
+                        </div>
                     </div>
 
                     <div class="kpi-card border-t-4 border-t-emerald-500">
@@ -388,6 +393,8 @@
                                     <th class="w-14 text-center">#</th>
                                     <th class="sortable" onclick="sortBranchTable('name')">Şube Adı <i class="fas fa-sort text-[9px] ml-1 text-slate-400"></i></th>
                                     <th class="text-right sortable" onclick="sortBranchTable('referrals')">Yönlendirme <i class="fas fa-sort text-[9px] ml-1 text-slate-400"></i></th>
+                                    <th class="text-right sortable" onclick="sortBranchTable('aranan')">Aranan <i class="fas fa-sort text-[9px] ml-1 text-slate-400"></i></th>
+                                    <th class="text-right sortable" onclick="sortBranchTable('aranmadi')">Aranmadı <i class="fas fa-sort text-[9px] ml-1 text-slate-400"></i></th>
                                     <th class="text-right sortable" onclick="sortBranchTable('sales')">Satış Adedi <i class="fas fa-sort text-[9px] ml-1 text-slate-400"></i></th>
                                     <th class="text-right sortable" onclick="sortBranchTable('revenue')">Toplam Ciro <i class="fas fa-sort text-[9px] ml-1 text-slate-400"></i></th>
                                 </tr>
@@ -396,9 +403,11 @@
                             <tfoot class="bg-slate-50/80 font-bold border-t border-slate-200">
                                 <tr>
                                     <td colspan="2" class="py-4 px-5 text-right text-slate-600 text-xs uppercase tracking-wider">Genel Toplam</td>
-                                    <td id="total-referrals-val" class="text-right py-4 px-5 text-indigo-700 text-sm font-extrabold">0</td>
-                                    <td id="total-sales-val" class="text-right py-4 px-5 text-emerald-700 text-sm font-extrabold">0</td>
-                                    <td id="total-revenue-val" class="text-right py-4 px-5 text-slate-900 text-base font-extrabold">₺0</td>
+                                    <td id="total-referrals-val" class="text-right py-4 px-3 text-indigo-700 text-xs font-black">0</td>
+                                    <td id="total-aranan-val" class="text-right py-4 px-3 text-purple-700 text-xs font-black">0</td>
+                                    <td id="total-aranmadi-val" class="text-right py-4 px-3 text-rose-600 text-xs font-black">0</td>
+                                    <td id="total-sales-val" class="text-right py-4 px-3 text-emerald-700 text-xs font-black">0</td>
+                                    <td id="total-revenue-val" class="text-right py-4 px-5 text-slate-900 text-sm font-black">₺0</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -1219,9 +1228,50 @@
             return isNaN(d.getTime()) ? new Date(0) : d;
         }
 
+        function isAranmadi(item) {
+            if (!item) return false;
+            const cs = String(item.callStatus || "").trim().toLocaleLowerCase('tr-TR').replace(/ı/g, 'i');
+            const s = String(item.status || "").trim().toLocaleLowerCase('tr-TR').replace(/ı/g, 'i');
+            if (cs === 'aranmadi' || cs.includes('aranma') || cs.includes('ulasilamadi') || cs.includes('cevap vermedi') || cs.includes('mesgul')) return true;
+            if (s === 'aranmadi' || s.includes('aranma')) return true;
+            if (!cs && !s && Number(item.revenue || 0) === 0) return true;
+            return false;
+        }
+
+        function getFollowupAction(item) {
+            if (!item) return null;
+            if (isAranmadi(item)) return 'aranmadı';
+            const s = String(item.status || "").trim().toLocaleLowerCase('tr-TR').replace(/ı/g, 'i');
+            if (s === 'tekrar aranacak' || s.includes('tekrar') || s.includes('aranacak')) {
+                return 'tekrar aranacak';
+            }
+            if (s.includes('magaza') || s.includes('mağaza') || s.includes('gelecek')) {
+                return 'müşteri mağazaya gelecek';
+            }
+            return null;
+        }
+
         const safeStorage = {
             getItem(key) { try { return window.localStorage.getItem(key); } catch (e) { return null; } },
-            setItem(key, value) { try { window.localStorage.setItem(key, value); } catch (e) {} }
+            setItem(key, value) { 
+                try { 
+                    window.localStorage.setItem(key, value); 
+                } catch (e) {
+                    try {
+                        const toRemove = [];
+                        for (let i = 0; i < window.localStorage.length; i++) {
+                            const k = window.localStorage.key(i);
+                            if (k && k.startsWith('cache_') && k !== key) {
+                                toRemove.push(k);
+                            }
+                        }
+                        toRemove.forEach(k => window.localStorage.removeItem(k));
+                        window.localStorage.setItem(key, value);
+                    } catch(err) {
+                        console.warn("safeStorage setItem error:", err);
+                    }
+                } 
+            }
         };
 
         const safeSetText = (id, text) => { 
@@ -1329,18 +1379,6 @@
             }
         }
 
-        function computeDataFingerprint(data) {
-            if (!data || !data.customerList) return "";
-            const list = data.customerList;
-            const len = list.length;
-            let revSum = 0;
-            for (let i = 0; i < len; i += 7) {
-                revSum += Number(list[i].revenue || 0);
-            }
-            const first = len > 0 ? (list[0].phone || '') + (list[0].revenue || '') : '';
-            const last = len > 0 ? (list[len - 1].phone || '') + (list[len - 1].revenue || '') : '';
-            return `${len}_${revSum}_${first}_${last}`;
-        }
 
         async function refreshAvailablePeriods(force = false) {
             try {
@@ -1473,8 +1511,8 @@
             const cachedStr = safeStorage.getItem(`cache_${period}`);
             let hadLocal = false;
 
-            // Arka plan sorgusunda ekrandaki veriyi asla baştan çizme!
-            if (!isBackground && cachedStr) {
+            // Sadece ekranda veri yokken (ilk yüklemede) önbellekten anında çiz
+            if (!currentData && cachedStr) {
                 try {
                     const cachedObj = JSON.parse(cachedStr);
                     if (cachedObj && cachedObj.customerList) {
@@ -1900,7 +1938,7 @@
             if (currentData) render(currentData);
         }
 
-        function renderDuplicates(list) {
+        function renderDuplicates(fullList, selectedBranch = 'Tümü') {
             const container = document.getElementById('duplicates-container');
             const dupFilter = document.getElementById('duplicateFilter');
             const filterVal = dupFilter ? dupFilter.value : 'satislar';
@@ -1911,7 +1949,7 @@
             const activePeriod = document.getElementById('periodSelector')?.value || '';
 
             const phoneGroups = {};
-            list.forEach(item => {
+            (fullList || []).forEach(item => {
                 const cleanPhone = cleanPhoneNumber(item.phone);
                 const cNo = String(item.customerNo || "").trim().toLowerCase();
                 const key = cleanPhone.length >= 7 ? cleanPhone : (cNo && cNo !== "belirtilmemiş" ? `no_${cNo}` : null);
@@ -1934,6 +1972,9 @@
                     const distinctBranches = new Set(items.map(i => i.branch));
                     const isMultiBranch = distinctBranches.size > 1;
                     
+                    // Eğer belirli bir şube seçilmişse, o şubeyi ilgilendirmeyen mükerrerleri filtrele
+                    if (selectedBranch && selectedBranch !== "Tümü" && !distinctBranches.has(selectedBranch)) return;
+
                     const duplicateEntries = items.slice(1);
                     const duplicateRevenue = duplicateEntries.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
                     
@@ -3249,10 +3290,8 @@
             }
 
             const totalReferrals = list.length;
-            const totalAranan = list.filter(i => {
-                const cs = String(i.callStatus || "").trim().toLowerCase();
-                return cs !== "" && cs !== "aranmadı" && cs !== "aranmadi";
-            }).length;
+            const totalAranmadi = list.filter(i => isAranmadi(i)).length;
+            const totalAranan = totalReferrals - totalAranmadi;
 
             const totalSales = list.filter(i => {
                 const ciro = Number(i.revenue || 0);
@@ -3286,6 +3325,7 @@
 
             safeSetText('kpi-referrals', num(totalReferrals));
             safeSetText('kpi-aranan', num(totalAranan));
+            safeSetText('kpi-aranmadi-badge', `${num(totalAranmadi)} Aranmadı`);
             safeSetText('kpi-sales', num(totalSales));
             safeSetText('kpi-revenue', fmt(totalRevenue));
             safeSetText('kpi-top-category', topCategory.toUpperCase());
@@ -3296,13 +3336,20 @@
                 let branchSummary = [...(data.charts?.branch || [])];
                 if (selectedBranch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === selectedBranch);
                 
+                let totBranchAranan = 0, totBranchAranmadi = 0;
                 branchSummary.forEach(b => {
-                    b.referrals = list.filter(i => i.branch === b.name).length;
-                    b.sales = list.filter(i => {
+                    const bList = list.filter(i => i.branch === b.name);
+                    b.referrals = bList.length;
+                    b.aranmadi = bList.filter(i => isAranmadi(i)).length;
+                    b.aranan = b.referrals - b.aranmadi;
+                    b.sales = bList.filter(i => {
                         const ciro = Number(i.revenue || 0);
                         const stat = String(i.status || "").trim().toLowerCase();
                         return i.branch === b.name && (ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu');
                     }).length;
+                    b.revenue = bList.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
+                    totBranchAranan += b.aranan;
+                    totBranchAranmadi += b.aranmadi;
                 });
 
                 // Apply Table Sorting
@@ -3320,6 +3367,8 @@
                             <td class="text-center font-bold text-slate-400 text-xs">${i+1}</td>
                             <td class="font-bold text-slate-800 text-xs">${b.name}</td>
                             <td class="text-right font-medium text-slate-600 text-xs">${num(b.referrals)}</td>
+                            <td class="text-right font-bold text-purple-700 text-xs">${num(b.aranan)}</td>
+                            <td class="text-right font-bold text-rose-600 text-xs">${num(b.aranmadi)}</td>
                             <td class="text-right font-medium text-slate-600 text-xs">${num(b.sales)}</td>
                             <td class="text-right font-bold text-indigo-700 text-xs">${fmt(b.revenue)}</td>
                         </tr>
@@ -3328,6 +3377,8 @@
                 
                 safeSetText('total-sales-val', num(totalSales));
                 safeSetText('total-referrals-val', num(totalReferrals));
+                safeSetText('total-aranan-val', num(totBranchAranan));
+                safeSetText('total-aranmadi-val', num(totBranchAranmadi));
                 safeSetText('total-revenue-val', fmt(totalRevenue));
                 safeSetText('branchTableCountBadge', `${branchSummary.length} Şube`);
 
@@ -3406,41 +3457,26 @@
                 }
 
             } else if (activeTab === 'followup') {
-                renderFollowupKPIs(list);
+                renderFollowupKPIs(data.customerList || [], selectedBranch);
 
-                let fList = list.filter(i => {
-                    const s = String(i.status || "").trim().toLowerCase();
-                    const cs = String(i.callStatus || "").trim().toLowerCase();
-                    return s === 'tekrar aranacak' || s === 'müşteri mağazaya gelecek' || cs === 'aranmadı' || cs === 'aranmadi';
-                });
+                const baseFollowList = list.filter(i => getFollowupAction(i) !== null);
 
-                const totalFollowupCount = fList.length;
-                const aranmadiCount = fList.filter(i => {
-                    const cs = String(i.callStatus || "").trim().toLowerCase();
-                    return cs === 'aranmadı' || cs === 'aranmadi';
-                }).length;
-                const tekrarCount = fList.filter(i => String(i.status || "").trim().toLowerCase() === 'tekrar aranacak').length;
-                const gelecekCount = fList.filter(i => {
-                    const s = String(i.status || "").trim().toLowerCase();
-                    return s.includes('mağaza') || s.includes('magaza') || s.includes('gelecek');
-                }).length;
+                const totalFollowupCount = baseFollowList.length;
+                const aranmadiCount = baseFollowList.filter(i => getFollowupAction(i) === 'aranmadı').length;
+                const tekrarCount = baseFollowList.filter(i => getFollowupAction(i) === 'tekrar aranacak').length;
+                const gelecekCount = baseFollowList.filter(i => getFollowupAction(i) === 'müşteri mağazaya gelecek').length;
 
                 safeSetText('follow-kpi-total', num(totalFollowupCount));
                 safeSetText('follow-kpi-aranmadi', num(aranmadiCount));
                 safeSetText('follow-kpi-tekrar', num(tekrarCount));
                 safeSetText('follow-kpi-gelecek', num(gelecekCount));
-                safeSetText('followupCountBadge', `${num(fList.length)} Takip Kaydı`);
 
+                let fList = baseFollowList;
                 if (selectedAction !== "tümü") {
-                    if (selectedAction === "aranmadı" || selectedAction === "aranmadi") {
-                        fList = fList.filter(i => {
-                            const cs = String(i.callStatus || "").trim().toLowerCase();
-                            return cs === 'aranmadı' || cs === 'aranmadi';
-                        });
-                    } else {
-                        fList = fList.filter(i => String(i.status || "").trim().toLowerCase() === selectedAction);
-                    }
+                    fList = baseFollowList.filter(i => getFollowupAction(i) === selectedAction);
                 }
+
+                safeSetText('followupCountBadge', `${num(fList.length)} Takip Kaydı`);
 
                 const grouped = groupDataByBranch(fList);
                 const followupBody = document.getElementById('followup-body');
@@ -3458,17 +3494,16 @@
                             </td>
                         </tr>
                         ${group.items.map((item, idx) => {
-                            const callStatus = String(item.callStatus || "").trim().toLowerCase();
-                            const status = String(item.status || "").trim().toLowerCase();
+                            const action = getFollowupAction(item);
                             let badgeClass = 'bg-blue-50 text-blue-700 border-blue-200'; 
                             let icon = 'fa-person-walking';
                             let label = 'Mağazaya Gelecek';
 
-                            if (callStatus === 'aranmadı' || callStatus === 'aranmadi') { 
+                            if (action === 'aranmadı') { 
                                 badgeClass = 'bg-rose-50 text-rose-700 border-rose-200'; 
                                 icon = 'fa-phone-slash';
                                 label = 'Aranmadı'; 
-                            } else if (status === 'tekrar aranacak') { 
+                            } else if (action === 'tekrar aranacak') { 
                                 badgeClass = 'bg-amber-50 text-amber-700 border-amber-200'; 
                                 icon = 'fa-clock';
                                 label = 'Tekrar Aranacak'; 
@@ -3588,27 +3623,28 @@
                 }
 
             } else if (activeTab === 'duplicates') {
-                renderDuplicates(list);
+                renderDuplicates(data.customerList || [], selectedBranch);
 
             } else if (activeTab === 'convertedSales') {
                 renderConvertedSales(data);
             }
         }
 
-        function renderFollowupKPIs(list) {
+        function renderFollowupKPIs(allList, selectedBranch = "Tümü") {
             const container = document.getElementById('followup-kpi-container');
             if (!container) return;
 
+            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
             const branchMap = {};
             PREFERRED_BRANCH_ORDER.forEach(b => {
                 branchMap[b] = { name: b, aranmadi: 0, tekrar: 0, gelecek: 0 };
             });
 
-            list.forEach(i => {
-                const s = String(i.status || "").trim().toLowerCase();
-                const cs = String(i.callStatus || "").trim().toLowerCase();
-                const rawBranch = String(i.branch || "").toLocaleUpperCase('tr-TR');
+            allList.forEach(i => {
+                const action = getFollowupAction(i);
+                if (!action) return;
 
+                const rawBranch = String(i.branch || "").toLocaleUpperCase('tr-TR');
                 let matchedKey = null;
                 for (let b of PREFERRED_BRANCH_ORDER) {
                     if (rawBranch.includes(b)) {
@@ -3625,16 +3661,21 @@
                 }
 
                 const bData = branchMap[matchedKey];
-                if (cs === 'aranmadı' || cs === 'aranmadi') {
+                if (action === 'aranmadı') {
                     bData.aranmadi++;
-                } else if (s === 'tekrar aranacak') {
+                } else if (action === 'tekrar aranacak') {
                     bData.tekrar++;
-                } else if (s.includes('mağaza') || s.includes('magaza') || s.includes('gelecek')) {
+                } else if (action === 'müşteri mağazaya gelecek') {
                     bData.gelecek++;
                 }
             });
 
-            const branchList = Object.keys(branchMap).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)).map(k => branchMap[k]);
+            let branchList = Object.keys(branchMap).sort((a, b) => getBranchSortIndex(a) - getBranchSortIndex(b)).map(k => branchMap[k]);
+
+            if (selectedBranch !== "Tümü") {
+                const selUpper = selectedBranch.toLocaleUpperCase('tr-TR');
+                branchList = branchList.filter(b => selUpper.includes(b.name) || b.name.includes(selUpper.replace(' ŞUBESİ', '').replace(' ŞUBESI', '')));
+            }
 
             container.innerHTML = branchList.map(b => {
                 const displayName = b.name.replace(' ŞUBESİ', '').replace(' ŞUBESI', '');
@@ -3643,12 +3684,12 @@
                         <div class="flex items-center justify-between gap-1 mb-2">
                             <span class="font-extrabold text-xs text-slate-900 tracking-tight truncate uppercase" title="${displayName}">${displayName}</span>
                             <span class="bg-rose-100/70 text-rose-700 font-extrabold text-[10px] px-2 py-0.5 rounded-full shrink-0 tracking-tight">
-                                ${b.aranmadi} ARANMADI
+                                ${num(b.aranmadi)} ARANMADI
                             </span>
                         </div>
                         <div class="border-t border-slate-100/90 pt-2 flex items-center justify-between text-[11px] font-bold text-slate-700">
-                            <div>Tekrar: <span class="text-amber-600 font-extrabold">${b.tekrar}</span></div>
-                            <div>Gelecek: <span class="text-blue-600 font-extrabold">${b.gelecek}</span></div>
+                            <div>Tekrar: <span class="text-amber-600 font-extrabold">${num(b.tekrar)}</span></div>
+                            <div>Gelecek: <span class="text-blue-600 font-extrabold">${num(b.gelecek)}</span></div>
                         </div>
                     </div>
                 `;
@@ -3831,80 +3872,479 @@
         }
 
         // --- Export & Print Handlers ---
-        function exportToExcel() {
-            if (activeTab === 'advanced') {
-                exportAdvancedToExcel();
-                return;
-            }
-            if (!currentData) return;
+        function getActiveTabData() {
+            if (!currentData) return null;
             const period = document.getElementById('periodSelector')?.value || '';
-            const branch = document.getElementById('branchSelector')?.value || 'Tümü';
-            let list = currentData.customerList ? currentData.customerList.filter(i => (i.customerName || i.customerNo || Number(i.revenue || 0) > 0)) : [];
-            if (branch !== "Tümü") list = list.filter(i => i.branch === branch);
+            const branchSelector = document.getElementById('branchSelector');
+            const branch = branchSelector ? branchSelector.value : 'Tümü';
+            const followupFilter = document.getElementById('followupFilter');
+            const followupVal = followupFilter ? followupFilter.value : 'Tümü';
+            const dupFilter = document.getElementById('duplicateFilter');
+            const dupVal = dupFilter ? dupFilter.value : 'satislar';
 
-            const wb = XLSX.utils.book_new();
-            let wsData = [
-                ["HEDEF AVM YÖNETİM PORTALI RAPORU"],
-                [`SAYFA: ${activeTab.toUpperCase()} | DÖNEM: ${period.toUpperCase()} | ŞUBE: ${branch.toUpperCase()}`],
-                [`TARİH: ${new Date().toLocaleString('tr-TR')}`],
-                []
-            ];
+            const fmt = (v) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v);
+            const num = (v) => new Intl.NumberFormat('tr-TR').format(v);
 
-            if (activeTab === 'duplicates') {
-                wsData.push(["MÜŞTERİ", "TELEFON", "GİRİŞ TARİHİ", "ŞUBE", "DURUM", "CİRO (TL)"]);
-                const groups = window.lastDuplicateGroups || [];
-                groups.forEach(g => {
+            let rawList = currentData.customerList ? [...currentData.customerList] : [];
+            let list = rawList;
+            if (branch !== "Tümü") {
+                list = list.filter(i => i.branch === branch);
+            }
+            if (searchQuery) {
+                list = list.filter(i => {
+                    const nameStr = String(i.customerName || "").toLowerCase();
+                    const phoneStr = String(i.phone || "").toLowerCase();
+                    const noStr = String(i.customerNo || "").toLowerCase();
+                    const branchStr = String(i.branch || "").toLowerCase();
+                    const catStr = String(i.category || "").toLowerCase();
+                    return nameStr.includes(searchQuery) || phoneStr.includes(searchQuery) || noStr.includes(searchQuery) || branchStr.includes(searchQuery) || catStr.includes(searchQuery);
+                });
+            }
+
+            let result = {
+                tab: activeTab,
+                title: '',
+                meta: [
+                    { label: 'Dönem', value: period },
+                    { label: 'Şube', value: branch },
+                    { label: 'Rapor Tarihi', value: new Date().toLocaleString('tr-TR') }
+                ],
+                kpis: [],
+                headers: [],
+                rows: [],
+                summaryRow: null
+            };
+
+            if (searchQuery) {
+                result.meta.push({ label: 'Arama Filtresi', value: `"${searchQuery}"` });
+            }
+
+            if (activeTab === 'dashboard') {
+                result.title = 'Performans Analizi ve Şube Raporu';
+                let branchSummary = [...(currentData.charts?.branch || [])];
+                if (branch !== "Tümü") branchSummary = branchSummary.filter(b => b.name === branch);
+                
+                let totRef = 0, totAranan = 0, totAranmadi = 0, totSales = 0, totRev = 0;
+                branchSummary.forEach(b => {
+                    const bList = rawList.filter(i => i.branch === b.name);
+                    b.referrals = bList.length;
+                    b.aranmadi = bList.filter(i => isAranmadi(i)).length;
+                    b.aranan = b.referrals - b.aranmadi;
+                    b.sales = bList.filter(i => {
+                        const ciro = Number(i.revenue || 0);
+                        const stat = String(i.status || "").trim().toLowerCase();
+                        return ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu';
+                    }).length;
+                    b.revenue = bList.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
+                    b.basket = b.sales > 0 ? (b.revenue / b.sales) : 0;
+                    b.callRate = b.referrals > 0 ? ((b.aranan / b.referrals) * 100).toFixed(1) + '%' : '0%';
+                    b.saleRate = b.referrals > 0 ? ((b.sales / b.referrals) * 100).toFixed(1) + '%' : '0%';
+
+                    totRef += b.referrals;
+                    totAranan += b.aranan;
+                    totAranmadi += b.aranmadi;
+                    totSales += b.sales;
+                    totRev += b.revenue;
+                });
+
+                result.kpis = [
+                    { label: 'Toplam Yönlendirme', value: num(totRef) },
+                    { label: 'Toplam Aranan', value: num(totAranan) },
+                    { label: 'Toplam Aranmadı', value: num(totAranmadi) },
+                    { label: 'Toplam Satış', value: num(totSales) },
+                    { label: 'Toplam Ciro', value: fmt(totRev) },
+                    { label: 'Ortalama Sepet', value: fmt(totSales > 0 ? totRev / totSales : 0) }
+                ];
+
+                result.headers = ["#", "ŞUBE ADI", "YÖNLENDİRME", "ARANAN", "ARANMADI", "ARAMA ORANI", "SATIŞ ADEDİ", "SATIŞ ORANI", "TOPLAM CİRO (TL)", "ORT. SEPET (TL)"];
+                result.rows = branchSummary.map((b, idx) => [
+                    idx + 1,
+                    b.name,
+                    b.referrals,
+                    b.aranan,
+                    b.aranmadi,
+                    b.callRate,
+                    b.sales,
+                    b.saleRate,
+                    b.revenue,
+                    b.basket
+                ]);
+
+                result.summaryRow = [
+                    "",
+                    "GENEL TOPLAM",
+                    totRef,
+                    totAranan,
+                    totAranmadi,
+                    totRef > 0 ? ((totAranan / totRef) * 100).toFixed(1) + '%' : '0%',
+                    totSales,
+                    totRef > 0 ? ((totSales / totRef) * 100).toFixed(1) + '%' : '0%',
+                    totRev,
+                    totSales > 0 ? (totRev / totSales) : 0
+                ];
+
+            } else if (activeTab === 'customers') {
+                result.title = 'Müşteri Detayları Raporu (Ciro Yapılan Müşteriler)';
+                const specList = list.filter(i => {
+                    const rev = Number(i.revenue || 0);
+                    const cNo = String(i.customerNo || "").trim();
+                    return rev > 0 && cNo !== "" && cNo.toLowerCase() !== "belirtilmemiş";
+                });
+                const totalCustRev = specList.reduce((a, b) => a + Number(b.revenue || 0), 0);
+                const avgBasket = specList.length > 0 ? (totalCustRev / specList.length) : 0;
+
+                result.kpis = [
+                    { label: 'Toplam Müşteri', value: num(specList.length) },
+                    { label: 'Toplam Ciro', value: fmt(totalCustRev) },
+                    { label: 'Ortalama Sepet', value: fmt(avgBasket) }
+                ];
+
+                result.headers = ["#", "ŞUBE", "MÜŞTERİ NO", "MÜŞTERİ ADI", "TELEFON", "KATEGORİ", "CİRO TUTARI (TL)"];
+                result.rows = specList.map((i, idx) => [
+                    idx + 1,
+                    i.branch,
+                    i.customerNo || '---',
+                    i.customerName || '---',
+                    cleanPhoneNumber(i.phone) || i.phone || '---',
+                    i.category || '---',
+                    Number(i.revenue || 0)
+                ]);
+
+                result.summaryRow = ["", "GENEL TOPLAM", `${specList.length} Müşteri`, "", "", "", totalCustRev];
+
+            } else if (activeTab === 'followup') {
+                result.title = 'Takip Listesi Raporu';
+                result.meta.push({ label: 'Aksiyon Filtresi', value: followupVal.toUpperCase() });
+
+                const baseFollowList = list.filter(i => getFollowupAction(i) !== null);
+                const totalAranmadi = baseFollowList.filter(i => getFollowupAction(i) === 'aranmadı').length;
+                const totalTekrar = baseFollowList.filter(i => getFollowupAction(i) === 'tekrar aranacak').length;
+                const totalGelecek = baseFollowList.filter(i => getFollowupAction(i) === 'müşteri mağazaya gelecek').length;
+
+                const selectedAction = followupVal.toLowerCase();
+                let fList = baseFollowList;
+                if (selectedAction !== "tümü") {
+                    fList = baseFollowList.filter(i => getFollowupAction(i) === selectedAction);
+                }
+
+                if (selectedAction === 'aranmadı') {
+                    result.kpis = [
+                        { label: 'Aranmadı Bekleyen', value: num(fList.length) },
+                        { label: 'Şube', value: branch },
+                        { label: 'Dönem', value: period }
+                    ];
+                } else if (selectedAction === 'tekrar aranacak') {
+                    result.kpis = [
+                        { label: 'Tekrar Aranacak', value: num(fList.length) },
+                        { label: 'Şube', value: branch },
+                        { label: 'Dönem', value: period }
+                    ];
+                } else if (selectedAction === 'müşteri mağazaya gelecek') {
+                    result.kpis = [
+                        { label: 'Mağazaya Gelecek', value: num(fList.length) },
+                        { label: 'Şube', value: branch },
+                        { label: 'Dönem', value: period }
+                    ];
+                } else {
+                    result.kpis = [
+                        { label: 'Toplam Takip', value: num(baseFollowList.length) },
+                        { label: 'Aranmadı', value: num(totalAranmadi) },
+                        { label: 'Tekrar Aranacak', value: num(totalTekrar) },
+                        { label: 'Mağazaya Gelecek', value: num(totalGelecek) }
+                    ];
+                }
+
+                result.headers = ["#", "ŞUBE", "MÜŞTERİ ADI", "TELEFON", "TARİH", "İLETİŞİM DURUMU", "AKSİYON DURUMU", "GECİKME DURUMU"];
+                result.rows = fList.map((i, idx) => {
+                    const action = getFollowupAction(i);
+                    let label = 'Diğer';
+                    if (action === 'aranmadı') label = 'Aranmadı';
+                    else if (action === 'tekrar aranacak') label = 'Tekrar Aranacak';
+                    else if (action === 'müşteri mağazaya gelecek') label = 'Mağazaya Gelecek';
+
+                    return [
+                        idx + 1,
+                        i.branch,
+                        i.customerName || "İsimsiz Müşteri",
+                        cleanPhoneNumber(i.phone) || i.phone || '---',
+                        i.date || '---',
+                        isAranmadi(i) ? 'Aranmadı' : (i.callStatus || 'Arandı'),
+                        label,
+                        i.isLate ? 'Gecikmiş' : 'Normal'
+                    ];
+                });
+
+                result.summaryRow = ["", "GENEL TOPLAM", `${fList.length} Kayıt`, "", "", "", "", ""];
+
+            } else if (activeTab === 'unspecified') {
+                result.title = 'Uyumsuz & Belirtilmeyen Satış Kayıtları';
+                const unspecList = list.filter(i => {
+                    const cNo = String(i.customerNo || "").trim();
+                    const status = String(i.status || "").trim().toLowerCase();
+                    const rev = Number(i.revenue || 0);
+                    return ((cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && rev > 0) || (status === 'satışa döndü' && rev === 0);
+                });
+
+                const missingNoCount = unspecList.filter(i => {
+                    const cNo = String(i.customerNo || "").trim();
+                    return (cNo === "" || cNo.toLowerCase() === "belirtilmemiş") && Number(i.revenue || 0) > 0;
+                }).length;
+                const zeroRevCount = unspecList.filter(i => {
+                    const status = String(i.status || "").trim().toLowerCase();
+                    return status === 'satışa döndü' && Number(i.revenue || 0) === 0;
+                }).length;
+                const totalUnspecRev = unspecList.reduce((a, b) => a + Number(b.revenue || 0), 0);
+
+                result.kpis = [
+                    { label: 'Toplam Uyumsuz Kayıt', value: num(unspecList.length) },
+                    { label: 'Müşteri No Eksik', value: num(missingNoCount) },
+                    { label: 'Sıfır Cirolu Satış', value: num(zeroRevCount) },
+                    { label: 'Hatalı Ciro Tutarı', value: fmt(totalUnspecRev) }
+                ];
+
+                result.headers = ["#", "ŞUBE", "MÜŞTERİ ADI", "MÜŞTERİ NO", "TELEFON", "TARİH", "HATA TÜRÜ", "CİRO (TL)"];
+                result.rows = unspecList.map((item, idx) => {
+                    const status = String(item.status || "").trim().toLowerCase();
+                    const rev = Number(item.revenue || 0);
+                    const isZeroRevenue = status === 'satışa döndü' && rev === 0;
+                    return [
+                        idx + 1,
+                        item.branch,
+                        item.customerName || "İsimsiz / Belirtilmemiş",
+                        item.customerNo || 'Belirtilmemiş',
+                        cleanPhoneNumber(item.phone) || item.phone || '---',
+                        item.date || '---',
+                        isZeroRevenue ? 'Sıfır Cirolu Satış' : 'Müşteri No Eksik',
+                        rev
+                    ];
+                });
+
+                result.summaryRow = ["", "GENEL TOPLAM", `${unspecList.length} Hatalı Kayıt`, "", "", "", "", totalUnspecRev];
+
+            } else if (activeTab === 'duplicates') {
+                result.title = 'Mükerrer Satış Kontrolü Raporu';
+                result.meta.push({ label: 'Mükerrer Filtresi', value: dupVal === 'satislar' ? 'Sadece Satışa Dönen Mükerrerler (Ciro > 0)' : 'Tüm Mükerrer Kayıtlar' });
+
+                const phoneGroups = {};
+                (currentData.customerList || []).forEach(item => {
+                    const cleanPhone = cleanPhoneNumber(item.phone);
+                    const cNo = String(item.customerNo || "").trim().toLowerCase();
+                    const key = cleanPhone.length >= 7 ? cleanPhone : (cNo && cNo !== "belirtilmemiş" ? `no_${cNo}` : null);
+                    if (key) {
+                        if (!phoneGroups[key]) phoneGroups[key] = [];
+                        phoneGroups[key].push(item);
+                    }
+                });
+
+                const duplicateGroups = [];
+                let totalDupCustomers = 0;
+                let totalDupEntries = 0;
+                let totalDupRevenue = 0;
+
+                Object.entries(phoneGroups).forEach(([key, items]) => {
+                    if (items.length > 1) {
+                        items.sort((a, b) => parseTurkishDate(a.date) - parseTurkishDate(b.date));
+                        const distinctBranches = new Set(items.map(i => i.branch));
+                        if (branch !== "Tümü" && !distinctBranches.has(branch)) return;
+
+                        const duplicateEntries = items.slice(1);
+                        const duplicateRevenue = duplicateEntries.reduce((sum, i) => sum + Number(i.revenue || 0), 0);
+                        const hasValidSales = items.some(i => Number(i.revenue || 0) > 0);
+                        if (dupVal === 'satislar' && !hasValidSales) return;
+
+                        totalDupCustomers++;
+                        totalDupEntries += duplicateEntries.length;
+                        totalDupRevenue += duplicateRevenue;
+
+                        duplicateGroups.push({ key, items });
+                    }
+                });
+
+                result.kpis = [
+                    { label: 'Mükerrer Müşteri', value: num(totalDupCustomers) },
+                    { label: 'Çakışan Ekstra Kayıt', value: num(totalDupEntries) },
+                    { label: 'Riskli Mükerrer Ciro', value: fmt(totalDupRevenue) }
+                ];
+
+                result.headers = ["#", "MÜŞTERİ GRUBU", "ŞUBE", "MÜŞTERİ NO", "TELEFON", "GİRİŞ TARİHİ", "DURUM / ETİKET", "AKSİYON", "CİRO (TL)"];
+                let rowCount = 0;
+                duplicateGroups.forEach(g => {
                     g.items.forEach((item, idx) => {
-                        wsData.push([
-                            item.customerName || '---',
-                            item.phone || '---',
-                            item.date || '---',
+                        rowCount++;
+                        result.rows.push([
+                            rowCount,
+                            item.customerName || g.key,
                             item.branch,
+                            item.customerNo || '---',
+                            cleanPhoneNumber(item.phone) || item.phone || '---',
+                            item.date || '---',
                             idx === 0 ? 'İLK İŞLEM (ORİJİNAL)' : 'MÜKERRER KAYIT',
-                            item.revenue || 0
+                            item.status || item.callStatus || '---',
+                            Number(item.revenue || 0)
                         ]);
                     });
                 });
+
+                result.summaryRow = ["", "GENEL TOPLAM", "", "", "", "", `${totalDupCustomers} Müşteri / ${rowCount} Kayıt`, "", totalDupRevenue];
+
+            } else if (activeTab === 'convertedSales') {
+                result.title = 'Satışa Dönen Müşteriler Raporu';
+                let salesList = (list || []).filter(i => {
+                    const ciro = Number(i.revenue || 0);
+                    const stat = String(i.status || "").trim().toLowerCase();
+                    return ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu';
+                });
+
+                if (salesFilterMode === 'has_revenue') {
+                    salesList = salesList.filter(i => Number(i.revenue || 0) > 0);
+                    result.meta.push({ label: 'Satış Filtresi', value: 'Sadece Cirolu Satışlar' });
+                } else if (salesFilterMode === 'zero_revenue') {
+                    salesList = salesList.filter(i => Number(i.revenue || 0) === 0);
+                    result.meta.push({ label: 'Satış Filtresi', value: 'Sıfır Cirolu Satışlar' });
+                } else if (salesFilterMode === 'edited') {
+                    salesList = salesList.filter(i => salesRevenueEdits.has(`${i.sheetId}_${i.rowNum}`));
+                    result.meta.push({ label: 'Satış Filtresi', value: 'Düzenlenen Satışlar' });
+                }
+
+                let totalSalesRev = 0;
+                salesList.forEach(i => {
+                    const rowKey = `${i.sheetId}_${i.rowNum}`;
+                    const edit = salesRevenueEdits.get(rowKey);
+                    totalSalesRev += edit ? edit.newRevenue : (Number(i.revenue) || 0);
+                });
+
+                result.kpis = [
+                    { label: 'Toplam Satış Kaydı', value: num(salesList.length) },
+                    { label: 'Toplam Satış Cirosu', value: fmt(totalSalesRev) },
+                    { label: 'Ortalama Sepet', value: fmt(salesList.length > 0 ? totalSalesRev / salesList.length : 0) }
+                ];
+
+                result.headers = ["#", "ŞUBE", "MÜŞTERİ ADI", "MÜŞTERİ NO", "TELEFON", "SATIŞ TARİHİ", "KATEGORİ", "DURUM", "CİRO (TL)"];
+                result.rows = salesList.map((i, idx) => {
+                    const rowKey = `${i.sheetId}_${i.rowNum}`;
+                    const edit = salesRevenueEdits.get(rowKey);
+                    const rev = edit ? edit.newRevenue : Number(i.revenue || 0);
+                    return [
+                        idx + 1,
+                        i.branch,
+                        i.customerName || '---',
+                        i.customerNo || '---',
+                        cleanPhoneNumber(i.phone) || i.phone || '---',
+                        i.date || '---',
+                        i.category || '---',
+                        i.status || 'Satışa Döndü',
+                        rev
+                    ];
+                });
+
+                result.summaryRow = ["", "GENEL TOPLAM", `${salesList.length} Satış`, "", "", "", "", "", totalSalesRev];
+
             } else if (activeTab === 'historyCheck') {
-                wsData.push(["SIRA", "MÜŞTERİ ADI", "TELEFON", "MÜŞTERİ NO", "AYNI CİRO EŞLEŞTİ Mİ", "GEÇMİŞ SATIŞLAR", "GEÇMİŞ CİRO TOPLAMI (TL)", "CARİ ŞUBE", "CARİ TARİH", "CARİ DURUM", "CARİ CİRO (TL)"]);
-                lastHistoryMatchResults.forEach((m, idx) => {
+                result.title = 'Geçmiş Satış Kontrolü (Son 3 Ay Eşleşmeleri)';
+                let matches = lastHistoryMatchResults || [];
+                if (historyFilterMode === 'same_revenue') matches = matches.filter(m => m.hasExactMatch);
+                else if (historyFilterMode === 'revenue') matches = matches.filter(m => Number(m.curItem.revenue || 0) > 0);
+                else if (historyFilterMode === 'zero') matches = matches.filter(m => Number(m.curItem.revenue || 0) === 0);
+                else if (historyFilterMode === 'edited') matches = matches.filter(m => historyRevenueEdits.has(`${m.curItem.sheetId}_${m.curItem.rowNum}`));
+
+                let pastTotal = 0, curTotal = 0;
+                matches.forEach(m => {
+                    pastTotal += m.pastTotalRev;
+                    curTotal += m.curRev;
+                });
+
+                result.kpis = [
+                    { label: 'Eşleşen Müşteri', value: num(matches.length) },
+                    { label: 'Geçmiş Ciro Toplamı', value: fmt(pastTotal) },
+                    { label: 'Cari Dönem Cirosu', value: fmt(curTotal) }
+                ];
+
+                result.headers = ["#", "MÜŞTERİ ADI", "TELEFON", "MÜŞTERİ NO", "BİREBİR AYNI CİRO", "GEÇMİŞ SATIŞLAR (DÖNEM - ŞUBE - CİRO)", "GEÇMİŞ CİRO (TL)", "CARİ ŞUBE", "CARİ TARİH", "CARİ DURUM", "CARİ CİRO (TL)"];
+                result.rows = matches.map((m, idx) => {
                     const item = m.curItem;
-                    const pastDesc = m.pastSales.map(ps => `${ps.period} (${ps.branch}): ₺${ps.revenue}${ps.isExactMatch ? ' [AYNI CİRO]' : ''}`).join(' | ');
-                    wsData.push([
+                    const pastDesc = m.pastSales.map(ps => `${ps.period} (${ps.branch}): ₺${ps.revenue}${ps.isExactMatch ? ' [AYNI]' : ''}`).join(' | ');
+                    return [
                         idx + 1,
                         item.customerName || '---',
-                        item.phone || '---',
+                        cleanPhoneNumber(item.phone) || item.phone || '---',
                         item.customerNo || '---',
-                        m.hasExactMatch ? 'EVET (BİREBİR AYNI)' : 'HAYIR',
+                        m.hasExactMatch ? 'EVET' : 'HAYIR',
                         pastDesc,
                         m.pastTotalRev,
                         item.branch,
                         item.date || '---',
                         item.status || item.callStatus || '---',
-                        item.revenue || 0
-                    ]);
+                        m.curRev
+                    ];
                 });
-            } else if (activeTab === 'convertedSales') {
-                wsData.push(["SIRA", "ŞUBE", "MÜŞTERİ ADI", "TELEFON", "MÜŞTERİ NO", "TARİH", "KATEGORİ", "DURUM", "CİRO (TL)"]);
-                const salesList = list.filter(i => {
-                    const ciro = Number(i.revenue || 0);
-                    const stat = String(i.status || "").trim().toLowerCase();
-                    return ciro > 0 || stat === 'satışa döndü' || stat === 'satisa dondu';
-                });
-                salesList.forEach((i, idx) => {
-                    wsData.push([idx + 1, i.branch, i.customerName || '---', i.phone || '---', i.customerNo || '---', i.date || '---', i.category || '---', i.status || 'Satışa Döndü', i.revenue || 0]);
-                });
-            } else {
-                wsData.push(["SIRA", "ŞUBE", "MÜŞTERİ NO", "TELEFON", "DURUM", "CİRO (TL)"]);
-                list.forEach((i, idx) => {
-                    wsData.push([idx + 1, i.branch, i.customerNo || '---', i.phone || '---', i.status || i.callStatus || '---', i.revenue || 0]);
-                });
+
+                result.summaryRow = ["", "GENEL TOPLAM", "", "", "", `${matches.length} Eşleşme`, pastTotal, "", "", "", curTotal];
+            }
+
+            return result;
+        }
+
+        function exportToExcel() {
+            if (activeTab === 'advanced') {
+                exportAdvancedToExcel();
+                return;
+            }
+            if (!currentData) {
+                showErrorModal("Excel Hatası", "Henüz veri yüklenmedi.");
+                return;
+            }
+
+            const data = getActiveTabData();
+            if (!data || !data.rows || data.rows.length === 0) {
+                showToast("Dışa aktarılacak filtrelenmiş kayıt bulunamadı.", "warning");
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const wsData = [
+                ["HEDEF AVM YÖNETİM PORTALI"],
+                [data.title.toUpperCase()],
+                data.meta.map(m => `${m.label}: ${m.value}`),
+                []
+            ];
+
+            if (data.kpis && data.kpis.length > 0) {
+                wsData.push(data.kpis.map(k => `${k.label}: ${k.value}`));
+                wsData.push([]);
+            }
+
+            wsData.push(data.headers);
+
+            data.rows.forEach(r => wsData.push(r));
+
+            if (data.summaryRow) {
+                wsData.push([]);
+                wsData.push(data.summaryRow);
             }
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
-            XLSX.utils.book_append_sheet(wb, ws, "Rapor");
-            XLSX.writeFile(wb, `Hedef_AVM_${activeTab.toUpperCase()}_${period.replace(/ /g, '_')}.xlsx`);
-            showToast("Excel raporu indirildi.", "success");
+
+            // Auto-fit column widths
+            const colWidths = data.headers.map((h, colIdx) => {
+                let maxLen = String(h).length;
+                data.rows.forEach(row => {
+                    const cellVal = row[colIdx];
+                    if (cellVal !== undefined && cellVal !== null) {
+                        maxLen = Math.max(maxLen, String(cellVal).length);
+                    }
+                });
+                return { wch: Math.min(Math.max(maxLen + 3, 10), 50) };
+            });
+            ws['!cols'] = colWidths;
+
+            const period = document.getElementById('periodSelector')?.value || '';
+            const branch = document.getElementById('branchSelector')?.value || 'Tumu';
+            const safeTab = data.tab.toUpperCase();
+            const filename = `Hedef_AVM_${safeTab}_${period.replace(/\s+/g, '_')}_${branch.replace(/\s+/g, '_')}.xlsx`;
+
+            XLSX.utils.book_append_sheet(wb, ws, data.title.substring(0, 31));
+            XLSX.writeFile(wb, filename);
+            showToast(`${data.title} Excel dosyası olarak indirildi.`, "success");
         }
 
         async function exportAdvancedToExcel() {
@@ -4031,7 +4471,109 @@
                 printAdvancedReport();
                 return;
             }
-            window.print(); 
+            if (!currentData) {
+                showErrorModal("Yazdırma Hatası", "Henüz veri yüklenmedi.");
+                return;
+            }
+
+            const data = getActiveTabData();
+            if (!data) return;
+
+            const printArea = document.getElementById('printArea');
+            if (!printArea) return;
+
+            const fmt = (v) => typeof v === 'number' ? new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(v) : v;
+
+            let html = `
+                <div style="font-family: Arial, -apple-system, sans-serif; padding: 15px; color: #0f172a; max-width: 1100px; margin: 0 auto;">
+                    <!-- Report Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <div style="background: #4f46e5; color: white; border-radius: 6px; padding: 4px 8px; font-weight: 900; font-size: 13px;">HEDEF AVM</div>
+                                <h1 style="font-size: 16px; font-weight: 800; margin: 0; color: #0f172a; text-transform: uppercase;">${data.title}</h1>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 10.5px; color: #475569; margin-top: 6px;">
+                                ${data.meta.map(m => `<span><strong>${m.label}:</strong> ${m.value}</span>`).join(' • ')}
+                            </div>
+                        </div>
+                        <div style="text-align: right; font-size: 10px; color: #64748b;">
+                            <p style="margin: 0;">Sayfa: <strong>${data.tab.toUpperCase()}</strong></p>
+                            <p style="margin: 2px 0 0 0;">Kayıt Sayısı: <strong>${data.rows.length} Adet</strong></p>
+                        </div>
+                    </div>
+
+                    <!-- Summary KPI Cards -->
+                    ${data.kpis && data.kpis.length > 0 ? `
+                        <div style="display: grid; grid-template-columns: repeat(${Math.min(data.kpis.length, 5)}, 1fr); gap: 8px; margin-bottom: 16px;">
+                            ${data.kpis.map(k => `
+                                <div style="border: 1px solid #cbd5e1; border-top: 3px solid #4f46e5; border-radius: 6px; padding: 6px 10px; background: #f8fafc;">
+                                    <div style="font-size: 9.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">${k.label}</div>
+                                    <div style="font-size: 13.5px; font-weight: 800; color: #0f172a; margin-top: 2px;">${k.value}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+
+                    <!-- Data Table -->
+                    <table class="print-table" style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                        <thead>
+                            <tr style="background-color: #0f172a !important; color: white;">
+                                ${data.headers.map(h => `<th style="border: 1px solid #334155; padding: 6px 8px; text-align: ${h.includes('CİRO') || h.includes('SEPET') || h.includes('TUTAR') || h.includes('YÖNLENDİRME') || h.includes('ARANAN') || h.includes('SATIŞ') ? 'right' : (h === '#' ? 'center' : 'left')}; color: white;">${h}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.rows.length === 0 ? `
+                                <tr>
+                                    <td colspan="${data.headers.length}" style="text-align: center; padding: 20px; color: #64748b; font-size: 11px;">Filtrelere uygun kayıt bulunamadı.</td>
+                                </tr>
+                            ` : data.rows.map((row, rIdx) => `
+                                <tr style="${rIdx % 2 === 1 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;'}">
+                                    ${row.map((cell, cIdx) => {
+                                        const h = data.headers[cIdx] || '';
+                                        const isNum = typeof cell === 'number' || (h.includes('CİRO') || h.includes('SEPET') || h.includes('TUTAR'));
+                                        const isAlignRight = isNum || h.includes('ORAN') || h.includes('YÖNLENDİRME') || h.includes('ARANAN') || h.includes('SATIŞ');
+                                        const isCenter = h === '#';
+                                        let displayVal = cell;
+                                        if (typeof cell === 'number' && (h.includes('CİRO') || h.includes('SEPET') || h.includes('TUTAR'))) {
+                                            displayVal = fmt(cell);
+                                        } else if (typeof cell === 'number') {
+                                            displayVal = new Intl.NumberFormat('tr-TR').format(cell);
+                                        }
+                                        return `<td style="border: 1px solid #e2e8f0; padding: 5px 8px; text-align: ${isCenter ? 'center' : (isAlignRight ? 'right' : 'left')}; ${isNum ? 'font-weight: 600;' : ''}">${displayVal !== null && displayVal !== undefined ? displayVal : '---'}</td>`;
+                                    }).join('')}
+                                </tr>
+                            `).join('')}
+                            ${data.summaryRow ? `
+                                <tr style="background-color: #0f172a !important; color: white; font-weight: bold;">
+                                    ${data.summaryRow.map((cell, cIdx) => {
+                                        const h = data.headers[cIdx] || '';
+                                        const isAlignRight = h.includes('CİRO') || h.includes('SEPET') || h.includes('TUTAR') || h.includes('ORAN') || h.includes('YÖNLENDİRME') || h.includes('ARANAN') || h.includes('SATIŞ');
+                                        let displayVal = cell;
+                                        if (typeof cell === 'number' && (h.includes('CİRO') || h.includes('SEPET') || h.includes('TUTAR'))) {
+                                            displayVal = fmt(cell);
+                                        } else if (typeof cell === 'number') {
+                                            displayVal = new Intl.NumberFormat('tr-TR').format(cell);
+                                        }
+                                        return `<td style="border: 1px solid #334155; padding: 7px 8px; text-align: ${isAlignRight ? 'right' : 'left'}; color: ${h.includes('CİRO') ? '#4ade80' : 'white'};">${displayVal !== null && displayVal !== undefined ? displayVal : ''}</td>`;
+                                    }).join('')}
+                                </tr>
+                            ` : ''}
+                        </tbody>
+                    </table>
+
+                    <!-- Footer -->
+                    <div style="margin-top: 14px; display: flex; justify-content: space-between; font-size: 9px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 6px;">
+                        <span>Hedef AVM Yönetim Portalı • Otomatik Sistem Raporu</span>
+                        <span>Yazdırılma: ${new Date().toLocaleString('tr-TR')}</span>
+                    </div>
+                </div>
+            `;
+
+            printArea.innerHTML = html;
+            setTimeout(() => {
+                window.print();
+            }, 50);
         }
     </script>
 </body>
