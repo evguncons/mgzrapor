@@ -1113,6 +1113,7 @@
     <!-- JavaScript Controller Logic -->
     <script>
         const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi7IvGRE7ABKi0TanTRo-axaeXclY8hmpb8pTDXOLsHU43gxtDvjEhIJ1tEmcF72uw/exec";
+        const APP_CACHE_VERSION = "2026_09_22_v5";
         
         let currentData = null; 
         let activeTab = 'dashboard';
@@ -1251,6 +1252,18 @@
         const safeStorage = {
             getItem(key) { try { return window.localStorage.getItem(key); } catch (e) { return null; } },
             removeItem(key) { try { window.localStorage.removeItem(key); } catch (e) {} },
+            clearAllCache() {
+                try {
+                    const toRemove = [];
+                    for (let i = 0; i < window.localStorage.length; i++) {
+                        const k = window.localStorage.key(i);
+                        if (k && (k.startsWith('cache_') || k === 'available_periods' || k.startsWith('app_cache_'))) {
+                            toRemove.push(k);
+                        }
+                    }
+                    toRemove.forEach(k => window.localStorage.removeItem(k));
+                } catch(e){}
+            },
             setItem(key, value) { 
                 try { 
                     window.localStorage.setItem(key, value); 
@@ -1397,6 +1410,12 @@
 
         // --- Smooth Page Lifecycle & Background Auto-Sync ---
         document.addEventListener('DOMContentLoaded', async () => {
+            // Sürüm kontrolü: Yeni sürüm geldiyse tüm eski önbelleği temizle
+            if (safeStorage.getItem('app_cache_version') !== APP_CACHE_VERSION) {
+                safeStorage.clearAllCache();
+                safeStorage.setItem('app_cache_version', APP_CACHE_VERSION);
+            }
+
             const cachedPeriodsStr = safeStorage.getItem('available_periods');
             let periods = null;
             if (cachedPeriodsStr) {
@@ -1483,20 +1502,30 @@
             const list = data.customerList;
             const len = list.length;
             let revSum = 0;
+            let aranmadiCount = 0;
+            let statusChecksum = 0;
             for (let i = 0; i < len; i++) {
-                revSum += Number(list[i].revenue || 0);
+                const item = list[i];
+                revSum += Number(item.revenue || 0);
+                if (isAranmadi(item)) aranmadiCount++;
+                const s = item.status || "";
+                if (s) statusChecksum = (statusChecksum + s.length + s.charCodeAt(0)) % 1000000;
             }
-            const firstKey = len > 0 ? `${list[0].sheetId}_${list[0].rowNum}_${list[0].phone}_${list[0].revenue}` : '';
-            const lastKey = len > 0 ? `${list[len-1].sheetId}_${list[len-1].rowNum}_${list[len-1].phone}_${list[len-1].revenue}` : '';
-            return `${len}_${revSum}_${firstKey}_${lastKey}`;
+            const firstKey = len > 0 ? `${list[0].sheetId}_${list[0].rowNum}_${list[0].phone}_${list[0].revenue}_${list[0].callStatus}_${list[0].status}` : '';
+            const lastKey = len > 0 ? `${list[len-1].sheetId}_${list[len-1].rowNum}_${list[len-1].phone}_${list[len-1].revenue}_${list[len-1].callStatus}_${list[len-1].status}` : '';
+            return `${len}_${revSum}_${aranmadiCount}_${statusChecksum}_${firstKey}_${lastKey}`;
         }
 
         async function fetchData(forceServer = false) {
             const sel = document.getElementById('periodSelector');
             const activePeriod = sel ? sel.value : '';
             if (forceServer) {
-                showToast("Veriler Google Sheets'ten güncelleniyor...", "info");
-                if (activePeriod) safeStorage.removeItem(`cache_${activePeriod}`);
+                showToast("Sunucu önbelleği temizleniyor ve veriler güncelleniyor...", "info");
+                try {
+                    await fetch(`${APPSCRIPT_URL}?action=clearCache&t=${Date.now()}`, { cache: 'no-store' });
+                } catch(e){}
+                safeStorage.clearAllCache();
+                safeStorage.setItem('app_cache_version', APP_CACHE_VERSION);
                 await refreshAvailablePeriods(true);
             }
             if (!activePeriod) return;
