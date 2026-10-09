@@ -490,10 +490,10 @@
                         <p class="text-[10px] font-bold text-indigo-600 mt-2"><i class="fas fa-share-nodes mr-1"></i> Tüm Şubeler Toplamı</p>
                     </div>
 
-                    <div class="kpi-card border-t-4 border-t-brand-600">
-                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Aktif Takip Kaydı</p>
-                        <h3 id="follow-kpi-total" class="text-2xl font-extrabold text-brand-600">0</h3>
-                        <p class="text-[10px] font-bold text-brand-600 mt-2"><i class="fas fa-list-check mr-1"></i> Aksiyon Bekleyenler</p>
+                    <div class="kpi-card border-t-4 border-t-purple-600">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Toplam Aranan</p>
+                        <h3 id="follow-kpi-total" class="text-2xl font-extrabold text-purple-700">0</h3>
+                        <p class="text-[10px] font-bold text-purple-600 mt-2"><i class="fas fa-headset mr-1"></i> Arandı Olanlar</p>
                     </div>
 
                     <div class="kpi-card border-t-4 border-t-rose-500">
@@ -520,7 +520,7 @@
                     <div class="flex items-center gap-2.5">
                         <i class="fas fa-circle-info text-indigo-600 text-sm shrink-0"></i>
                         <span>
-                            Bu dönem sisteme işlenen toplam <strong id="follow-info-ref" class="text-indigo-950 font-black">0</strong> yönlendirmenin <strong id="follow-info-act" class="text-brand-700 font-black">0</strong> adedi aktif takip/aksiyon listesindedir (aranmadı, tekrar aranacak veya mağazaya gelecek). Kalan <strong id="follow-info-comp" class="text-emerald-700 font-black">0</strong> kayıt ise görüşmesi sonuçlanan (olumsuz kapatılan veya satışa dönen) müşterilerdir.
+                            Bu dönem sisteme işlenen toplam <strong id="follow-info-ref" class="text-indigo-950 font-black">0</strong> yönlendirmenin <strong id="follow-info-arandi" class="text-purple-700 font-black">0</strong> adedi arandı, <strong id="follow-info-aranmadi" class="text-rose-700 font-black">0</strong> adedi aranmadı durumundadır. Aranan müşteriler içerisinden <strong id="follow-info-tekrar" class="text-amber-700 font-black">0</strong> kişi tekrar aranacak, <strong id="follow-info-gelecek" class="text-blue-700 font-black">0</strong> kişi ise mağazaya gelecektir.
                         </span>
                     </div>
                 </div>
@@ -1129,7 +1129,7 @@
     <!-- JavaScript Controller Logic -->
     <script>
         const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi7IvGRE7ABKi0TanTRo-axaeXclY8hmpb8pTDXOLsHU43gxtDvjEhIJ1tEmcF72uw/exec";
-        const APP_CACHE_VERSION = "2026_10_09_v1";
+        const APP_CACHE_VERSION = "2026_10_09_v2";
         
         let currentData = null; 
         let activeTab = 'dashboard';
@@ -3515,21 +3515,22 @@
                 const baseFollowList = list.filter(i => getFollowupAction(i) !== null);
 
                 const totalFollowupCount = baseFollowList.length;
-                const aranmadiCount = baseFollowList.filter(i => getFollowupAction(i) === 'aranmadı').length;
+                const aranmadiCount = list.filter(i => isAranmadi(i)).length;
+                const arandiCount = Math.max(0, list.length - aranmadiCount);
                 const tekrarCount = baseFollowList.filter(i => getFollowupAction(i) === 'tekrar aranacak').length;
                 const gelecekCount = baseFollowList.filter(i => getFollowupAction(i) === 'müşteri mağazaya gelecek').length;
 
-                const completedCount = Math.max(0, list.length - totalFollowupCount);
-
                 safeSetText('follow-kpi-referrals', num(list.length));
-                safeSetText('follow-kpi-total', num(totalFollowupCount));
+                safeSetText('follow-kpi-total', num(arandiCount));
                 safeSetText('follow-kpi-aranmadi', num(aranmadiCount));
                 safeSetText('follow-kpi-tekrar', num(tekrarCount));
                 safeSetText('follow-kpi-gelecek', num(gelecekCount));
 
                 safeSetText('follow-info-ref', num(list.length));
-                safeSetText('follow-info-act', num(totalFollowupCount));
-                safeSetText('follow-info-comp', num(completedCount));
+                safeSetText('follow-info-arandi', num(arandiCount));
+                safeSetText('follow-info-aranmadi', num(aranmadiCount));
+                safeSetText('follow-info-tekrar', num(tekrarCount));
+                safeSetText('follow-info-gelecek', num(gelecekCount));
 
                 let fList = baseFollowList;
                 if (selectedAction !== "tümü") {
