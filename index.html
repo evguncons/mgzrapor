@@ -1129,7 +1129,7 @@
     <!-- JavaScript Controller Logic -->
     <script>
         const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi7IvGRE7ABKi0TanTRo-axaeXclY8hmpb8pTDXOLsHU43gxtDvjEhIJ1tEmcF72uw/exec";
-        const APP_CACHE_VERSION = "2026_10_09_v2";
+        const APP_CACHE_VERSION = "2026_10_19_v3";
         
         let currentData = null; 
         let activeTab = 'dashboard';
@@ -1248,8 +1248,8 @@
         function isAranmadi(item) {
             if (!item) return false;
             // Kullanıcı talebi: Doğrudan C sütunundaki ("callStatus") 'aranmadı' değerini baz alır
-            const cs = String(item.callStatus || "").trim().toLocaleLowerCase('tr-TR').replace(/ı/g, 'i');
-            return cs === 'aranmadi' || cs === 'aranmadı' || cs.includes('aranma');
+            const cs = String(item.callStatus || "").normalize('NFKC').trim().toLocaleLowerCase('tr-TR').replace(/ı/g, 'i');
+            return cs === 'aranmadi';
         }
 
         function getFollowupAction(item) {
@@ -1514,22 +1514,9 @@
         }
 
         function computeDataFingerprint(data) {
-            if (!data || !data.customerList) return "";
-            const list = data.customerList;
-            const len = list.length;
-            let revSum = 0;
-            let aranmadiCount = 0;
-            let statusChecksum = 0;
-            for (let i = 0; i < len; i++) {
-                const item = list[i];
-                revSum += Number(item.revenue || 0);
-                if (isAranmadi(item)) aranmadiCount++;
-                const s = item.status || "";
-                if (s) statusChecksum = (statusChecksum + s.length + s.charCodeAt(0)) % 1000000;
-            }
-            const firstKey = len > 0 ? `${list[0].sheetId}_${list[0].rowNum}_${list[0].phone}_${list[0].revenue}_${list[0].callStatus}_${list[0].status}` : '';
-            const lastKey = len > 0 ? `${list[len-1].sheetId}_${list[len-1].rowNum}_${list[len-1].phone}_${list[len-1].revenue}_${list[len-1].callStatus}_${list[len-1].status}` : '';
-            return `${len}_${revSum}_${aranmadiCount}_${statusChecksum}_${firstKey}_${lastKey}`;
+            if (!data || !Array.isArray(data.customerList)) return "";
+            // Toplamlar aynı kalsa bile şubeler arasındaki durum değişikliklerini yakala.
+            return JSON.stringify([data.period, data.customerList, data.charts, data.kpis, data.errors]);
         }
 
         async function fetchData(forceServer = false) {
@@ -1594,7 +1581,11 @@
             try {
                 const refreshParam = forceServer ? '&refresh=1&force=1' : '';
                 const res = await fetch(`${APPSCRIPT_URL}?action=getDashboardData&sheetName=${encodeURIComponent(period)}${refreshParam}&t=${Date.now()}`, { cache: 'no-store' });
+                if (!res.ok) throw new Error(`Sunucu hatası: ${res.status}`);
                 const freshData = await res.json();
+                if (freshData.error || !Array.isArray(freshData.customerList)) {
+                    throw new Error(freshData.error || 'Geçersiz sunucu yanıtı');
+                }
                 
                 if (freshData && freshData.customerList) {
                     const sel = document.getElementById('periodSelector');
@@ -1623,6 +1614,9 @@
                         const savedScroll = scrollEl ? scrollEl.scrollTop : 0;
 
                         currentData = freshData;
+                        if (Array.isArray(freshData.errors) && freshData.errors.length) {
+                            showToast(`Bazı şubeler okunamadı; toplamlar eksik olabilir: ${freshData.errors.map(e => e.branch).join(', ')}`, 'warning');
+                        }
                         safeStorage.setItem(`cache_${period}`, JSON.stringify(currentData));
                         populateBranchFilter(currentData);
                         
@@ -1642,6 +1636,7 @@
             } catch (e) { 
                 console.error(e); 
                 if (!isBackground && !currentData && !hadLocal) showErrorModal("Veri Hatası", "Dönem verileri alınamadı.");
+                else if (!isBackground) showToast('Veriler yenilenemedi. Ekranda son alınan kayıtlar gösteriliyor.', 'error');
             } finally { 
                 isFetchingPeriod = false;
                 if (loader) loader.classList.add('hidden'); 
@@ -3510,7 +3505,7 @@
                 }
 
             } else if (activeTab === 'followup') {
-                renderFollowupKPIs(data.customerList || [], selectedBranch);
+                renderFollowupKPIs(list, selectedBranch);
 
                 const baseFollowList = list.filter(i => getFollowupAction(i) !== null);
 
