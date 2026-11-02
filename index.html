@@ -520,7 +520,7 @@
                     <div class="flex items-center gap-2.5">
                         <i class="fas fa-circle-info text-indigo-600 text-sm shrink-0"></i>
                         <span>
-                            Bu dönem sisteme işlenen toplam <strong id="follow-info-ref" class="text-indigo-950 font-black">0</strong> yönlendirmenin <strong id="follow-info-arandi" class="text-purple-700 font-black">0</strong> adedi arandı, <strong id="follow-info-aranmadi" class="text-rose-700 font-black">0</strong> adedi aranmadı durumundadır. Aranan müşteriler içerisinden <strong id="follow-info-tekrar" class="text-amber-700 font-black">0</strong> kişi tekrar aranacak, <strong id="follow-info-gelecek" class="text-blue-700 font-black">0</strong> kişi ise mağazaya gelecektir.
+                            Bu dönem sisteme işlenen toplam <strong id="follow-info-ref" class="text-indigo-950 font-black">0</strong> yönlendirmenin <strong id="follow-info-arandi" class="text-purple-700 font-black">0</strong> adedi arandı, <strong id="follow-info-aranmadi" class="text-rose-700 font-black">0</strong> adedi aranmadı durumundadır. <span id="follow-info-unknown"></span> Takip durumlarına göre <strong id="follow-info-tekrar" class="text-amber-700 font-black">0</strong> kişi tekrar aranacak, <strong id="follow-info-gelecek" class="text-blue-700 font-black">0</strong> kişi ise mağazaya gelecektir.
                         </span>
                     </div>
                 </div>
@@ -1140,7 +1140,7 @@
     <!-- JavaScript Controller Logic -->
     <script>
         const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi7IvGRE7ABKi0TanTRo-axaeXclY8hmpb8pTDXOLsHU43gxtDvjEhIJ1tEmcF72uw/exec";
-        const APP_CACHE_VERSION = "2026_10_19_v3";
+        const APP_CACHE_VERSION = "2026_11_02_v4";
         
         let currentData = null; 
         let activeTab = 'dashboard';
@@ -1298,21 +1298,26 @@
             }).join('') + button(page + 1, 'Sonraki', page === pageData.totalPages);
         }
 
+        function normalizeStatus(value) {
+            return String(value || '').normalize('NFKC').trim().toLocaleLowerCase('tr-TR')
+                .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c')
+                .replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/\s+/g, ' ');
+        }
+
         function isAranmadi(item) {
-            if (!item) return false;
-            // Kullanıcı talebi: Doğrudan C sütunundaki ("callStatus") 'aranmadı' değerini baz alır
-            const cs = String(item.callStatus || "").normalize('NFKC').trim().toLocaleLowerCase('tr-TR').replace(/ı/g, 'i');
-            return cs === 'aranmadi';
+            return !!item && normalizeStatus(item.callStatus) === 'aranmadi';
+        }
+
+        function isArandi(item) {
+            return !!item && normalizeStatus(item.callStatus) === 'arandi';
         }
 
         function getFollowupAction(item) {
             if (!item) return null;
             if (isAranmadi(item)) return 'aranmadı';
-            const s = String(item.status || "").trim().toLocaleLowerCase('tr-TR').replace(/ı/g, 'i');
-            if (s === 'tekrar aranacak' || s.includes('tekrar') || s.includes('aranacak')) {
-                return 'tekrar aranacak';
-            }
-            if (s.includes('magaza') || s.includes('mağaza') || s.includes('gelecek')) {
+            const status = normalizeStatus(item.status);
+            if (status === 'tekrar aranacak') return 'tekrar aranacak';
+            if (['musteri magazaya gelecek', 'magazaya gelecek'].includes(status)) {
                 return 'müşteri mağazaya gelecek';
             }
             return null;
@@ -3392,7 +3397,7 @@
 
             const totalReferrals = list.length;
             const totalAranmadi = list.filter(i => isAranmadi(i)).length;
-            const totalAranan = totalReferrals - totalAranmadi;
+            const totalAranan = list.filter(isArandi).length;
 
             const totalSales = list.filter(i => {
                 const ciro = Number(i.revenue || 0);
@@ -3442,7 +3447,7 @@
                     const bList = list.filter(i => i.branch === b.name);
                     b.referrals = bList.length;
                     b.aranmadi = bList.filter(i => isAranmadi(i)).length;
-                    b.aranan = b.referrals - b.aranmadi;
+                    b.aranan = bList.filter(isArandi).length;
                     b.sales = bList.filter(i => {
                         const ciro = Number(i.revenue || 0);
                         const stat = String(i.status || "").trim().toLowerCase();
@@ -3564,7 +3569,8 @@
 
                 const totalFollowupCount = baseFollowList.length;
                 const aranmadiCount = list.filter(i => isAranmadi(i)).length;
-                const arandiCount = Math.max(0, list.length - aranmadiCount);
+                const arandiCount = list.filter(isArandi).length;
+                const unknownCallCount = list.length - aranmadiCount - arandiCount;
                 const tekrarCount = baseFollowList.filter(i => getFollowupAction(i) === 'tekrar aranacak').length;
                 const gelecekCount = baseFollowList.filter(i => getFollowupAction(i) === 'müşteri mağazaya gelecek').length;
 
@@ -3576,6 +3582,7 @@
 
                 safeSetText('follow-info-ref', num(list.length));
                 safeSetText('follow-info-arandi', num(arandiCount));
+                safeSetText('follow-info-unknown', unknownCallCount ? ` ${num(unknownCallCount)} kaydın iletişim durumu boş veya tanımsızdır.` : '');
                 safeSetText('follow-info-aranmadi', num(aranmadiCount));
                 safeSetText('follow-info-tekrar', num(tekrarCount));
                 safeSetText('follow-info-gelecek', num(gelecekCount));
@@ -4042,7 +4049,7 @@
                     const bList = rawList.filter(i => i.branch === b.name);
                     b.referrals = bList.length;
                     b.aranmadi = bList.filter(i => isAranmadi(i)).length;
-                    b.aranan = b.referrals - b.aranmadi;
+                    b.aranan = bList.filter(isArandi).length;
                     b.sales = bList.filter(i => {
                         const ciro = Number(i.revenue || 0);
                         const stat = String(i.status || "").trim().toLowerCase();
@@ -4181,7 +4188,7 @@
                         i.customerName || "İsimsiz Müşteri",
                         cleanPhoneNumber(i.phone) || i.phone || '---',
                         i.date || '---',
-                        isAranmadi(i) ? 'Aranmadı' : (i.callStatus || 'Arandı'),
+                        isAranmadi(i) ? 'Aranmadı' : (i.callStatus || 'Belirtilmemiş'),
                         label,
                         i.isLate ? 'Gecikmiş' : 'Normal'
                     ];
